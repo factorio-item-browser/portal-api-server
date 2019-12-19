@@ -1,0 +1,8 @@
+/.idea
+/config/autoload/production
+/data/*
+!/data/migrations
+/test/coverage
+/vendor
+
+/.phpunit.result.cache

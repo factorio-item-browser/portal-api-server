@@ -1,0 +1,15 @@
+parameters:
+  level: max
+  paths:
+    - src
+    - test/src
+
+  ignoreErrors:
+    - '#Dynamic call to static method PHPUnit\\Framework\\.*#'
+    - '#Parameter \#1 \$message of method Zend\\Log\\LoggerInterface::.*\(\) expects string, .* given.#'
+    - '#.* should be contravariant with parameter .* \(object\) of method BluePsyduck\\MapperManager\\Mapper\\MapperInterface\:\:map\(\)#'
+
+includes:
+  - vendor/phpstan/phpstan-phpunit/extension.neon
+  - vendor/phpstan/phpstan-phpunit/rules.neon
+  - vendor/phpstan/phpstan-strict-rules/rules.neon

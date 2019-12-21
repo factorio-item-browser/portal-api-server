@@ -1,0 +1,8 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    results:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\EntityData>
+    numberOfResults:
+      type: int

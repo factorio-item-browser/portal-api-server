@@ -1,0 +1,12 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    craftingTime:
+      type: float
+    ingredients:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData>
+    products:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData>
+    isExpensice:
+      type: bool

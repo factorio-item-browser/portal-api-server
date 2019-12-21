@@ -1,0 +1,12 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    type:
+      type: string
+    name:
+      type: string
+    label:
+      type: string
+    amount:
+      type: float

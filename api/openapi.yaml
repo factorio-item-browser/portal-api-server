@@ -1,0 +1,142 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Factorio Item Browser - Portal API
+  contact:
+    name: BluePsyduck
+    email: bluepsyduck@gmx.com
+  description: The API used by the portal frontend to receive any data from the backend.
+
+tags:
+  - name: Search
+    description: Requests related with searching for items, recipes etc.
+
+paths:
+  /search:
+    get:
+      summary: Searches for entities matching a query.
+      operationId: search
+      tags:
+        - Search
+      parameters:
+        - $ref: "#/components/parameters/query"
+        - $ref: "#/components/parameters/indexOfFirstResult"
+        - $ref: "#/components/parameters/numberOfResults"
+      responses:
+        200:
+          description: The list of entities matching the query.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResultData"
+
+components:
+  parameters:
+    indexOfFirstResult:
+      name: indexOfFirstResult
+      in: query
+      description: The index of the first result to return, starting at 0.
+      required: true
+      schema:
+        type: integer
+        example: "0"
+    numberOfResults:
+      name: numberOfResults
+      in: query
+      description: The number of results to return.
+      required: true
+      schema:
+        type: integer
+        example: 24
+    query:
+      name: query
+      in: query
+      description: The query to use for the search.
+      required: true
+      schema:
+        type: string
+        example: iron plate
+
+  schemas:
+    EntityData:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of the entity.
+          example: item
+        name:
+          type: string
+          description: The internal name of the entity.
+          example: electronic-circuit
+        label:
+          type: string
+          description: The translated label of the entity.
+          example: Elektronischer Schaltkreis
+        recipes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeData"
+        numberOfRecipes:
+          type: integer
+          description: The total number of recipes available for the entity.
+          example: 42
+
+    RecipeData:
+      type: object
+      properties:
+        craftingTime:
+          type: number
+          description: The crafting time of the recipe in seconds.
+          example: 13.37
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeItemData"
+          description: The ingredients of the recipe.
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeItemData"
+          description: The products of the recipe.
+        isExpensive:
+          type: boolean
+          description: Whether the recipe is used in the expensive mode.
+          example: false
+
+    RecipeItemData:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - item
+            - recipe
+          description: The type of the item.
+          example: item
+        name:
+          type: string
+          description: The internal name of the item.
+          example: iron-plate
+        label:
+          type: string
+          description: The translated label of the item.
+          example: Eisenplatte
+        amount:
+          type: number
+          description: The amount of the item in the recipe.
+          example: 42
+
+    SearchResultData:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EntityData"
+          description: The actual search results.
+        numberOfResults:
+          type: integer
+          description: The total number of search results.
+          example: 42
+

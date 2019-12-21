@@ -1,0 +1,14 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\EntityData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    type:
+      type: string
+    name:
+      type: string
+    label:
+      type: string
+    recipes:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData>
+    numberOfRecipes:
+      type: int

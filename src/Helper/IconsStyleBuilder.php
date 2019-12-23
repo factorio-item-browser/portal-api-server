@@ -40,7 +40,6 @@ class IconsStyleBuilder
     public function __construct()
     {
         $this->escaper = new Escaper();
-
         $this->processedEntities = new NamesByTypes();
     }
 
@@ -69,8 +68,8 @@ class IconsStyleBuilder
      */
     protected function buildSelector(string $type, string $name): string
     {
-        $selector = $this->escaper->escapeCss(str_replace(' ', '_', "{$type}-${name}"));
-        return ".icon-{$selector}";
+        $escapedSelector = $this->escaper->escapeCss(str_replace(' ', '_', "{$type}-${name}"));
+        return ".icon-{$escapedSelector}";
     }
 
     /**
@@ -81,10 +80,10 @@ class IconsStyleBuilder
      */
     protected function buildRule(array $selectors, string $content): string
     {
-        $selector = implode(',', $selectors);
+        $selector = implode(', ', $selectors);
         $encodedContent = base64_encode($content);
 
-        return "{$selector}{ background-image:url(data:image/png;base64,{$encodedContent}); }";
+        return "{$selector} { background-image: url(data:image/png;base64,{$encodedContent}); }";
     }
 
     /**

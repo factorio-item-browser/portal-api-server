@@ -12,7 +12,9 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server;
 
 use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
+use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
+use function BluePsyduck\ZendAutoWireFactory\readConfig;
 
 return [
     'dependencies' => [
@@ -28,10 +30,13 @@ return [
             Mapper\RecipeMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
 
+            Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
 
             // Auto-wire helpers
             SerializerInterface::class . ' $portalApiServerSerializer' => Serializer\SerializerFactory::class,
+
+            'array $allowedOrigins' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER),
         ],
     ],
 ];

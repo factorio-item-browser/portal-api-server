@@ -16,6 +16,9 @@ use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 return [
     ConfigKey::PROJECT => [
         ConfigKey::PORTAL_API_SERVER => [
+            ConfigKey::ALLOWED_ORIGINS => [
+                'http://localhost:8080',
+            ],
 //            ConfigKey::CACHE_DIR => '../../data/cache/portal-api-server'
         ]
     ]

@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
 
-namespace FactorioItemBrowser\ExportQueue\Server;
+namespace FactorioItemBrowser\PortalApi\Server;
 
 use Psr\Container\ContainerInterface;
 

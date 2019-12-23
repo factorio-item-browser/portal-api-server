@@ -23,6 +23,11 @@ interface ConfigKey
     public const PORTAL_API_SERVER = 'portal-api-server';
 
     /**
+     * The origins allowed to access the Portal API server.
+     */
+    public const ALLOWED_ORIGINS = 'allowed-origins';
+
+    /**
      * The key holding the cache directory to use.
      */
     public const CACHE_DIR = 'cache-dir';

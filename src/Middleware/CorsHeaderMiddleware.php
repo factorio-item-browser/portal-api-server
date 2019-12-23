@@ -4,34 +4,32 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
-use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * The middleware serializing the response.
+ * The middleware injecting the CORS header into the response.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ResponseSerializerMiddleware implements MiddlewareInterface
+class CorsHeaderMiddleware implements MiddlewareInterface
 {
     /**
-     * The serializer.
-     * @var SerializerInterface
+     * The allowed origins to access the Portal API server.
+     * @var array<string>
      */
-    protected $serializer;
+    protected $allowedOrigins;
 
     /**
      * Initializes the middleware.
-     * @param SerializerInterface $portalApiServerSerializer
+     * @param array $allowedOrigins
      */
-    public function __construct(SerializerInterface $portalApiServerSerializer)
+    public function __construct(array $allowedOrigins)
     {
-        $this->serializer = $portalApiServerSerializer;
+        $this->allowedOrigins = $allowedOrigins;
     }
 
     /**
@@ -43,9 +41,8 @@ class ResponseSerializerMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if ($response instanceof TransferResponse) {
-            $serializedResponse = $this->serializer->serialize($response->getTransfer(), 'json');
-            $response = $response->withSerializedResponse($serializedResponse);
+        foreach ($this->allowedOrigins as $allowedOrigin) {
+            $response = $response->withHeader('Access-Control-Allow-Origin', $allowedOrigin);
         }
         return $response;
     }

@@ -20,13 +20,13 @@ class RecipeData
 
     /**
      * The ingredients of the recipe.
-     * @var array
+     * @var array<RecipeItemData>
      */
     protected $ingredients = [];
 
     /**
      * The products of the recipe.
-     * @var array
+     * @var array<RecipeItemData>
      */
     protected $products = [];
 
@@ -58,7 +58,7 @@ class RecipeData
 
     /**
      * Sets the ingredients of the recipe.
-     * @param array $ingredients
+     * @param array<RecipeItemData> $ingredients
      * @return $this
      */
     public function setIngredients(array $ingredients): self
@@ -69,7 +69,7 @@ class RecipeData
 
     /**
      * Returns the ingredients of the recipe.
-     * @return array
+     * @return array<RecipeItemData>
      */
     public function getIngredients(): array
     {
@@ -78,7 +78,7 @@ class RecipeData
 
     /**
      * Sets the products of the recipe.
-     * @param array $products
+     * @param array<RecipeItemData> $products
      * @return $this
      */
     public function setProducts(array $products): self
@@ -89,7 +89,7 @@ class RecipeData
 
     /**
      * Returns the products of the recipe.
-     * @return array
+     * @return array<RecipeItemData>
      */
     public function getProducts(): array
     {

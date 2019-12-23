@@ -23,7 +23,7 @@ class SerializerFactory implements FactoryInterface
      * Creates the serializer.
      * @param ContainerInterface $container
      * @param string $requestedName
-     * @param array|null $options
+     * @param array<mixed>|null $options
      * @return SerializerInterface
      */
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null): SerializerInterface

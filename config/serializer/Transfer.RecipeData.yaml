@@ -8,5 +8,5 @@ FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData:
       type: array<FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData>
     products:
       type: array<FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData>
-    isExpensice:
+    isExpensive:
       type: bool

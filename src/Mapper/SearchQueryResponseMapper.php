@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
+use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\Mapper\StaticMapperInterface;
 use BluePsyduck\MapperManager\MapperManagerAwareInterface;
 use BluePsyduck\MapperManager\MapperManagerInterface;
@@ -60,11 +61,20 @@ class SearchQueryResponseMapper implements StaticMapperInterface, MapperManagerA
      */
     public function map($source, $destination): void
     {
-        $destination->setResults(array_map(function(GenericEntityWithRecipes $genericEntityWithRecipes): EntityData {
-            $entityData = new EntityData();
-            $this->mapperManager->map($genericEntityWithRecipes, $entityData);
-            return $entityData;
-        }, $source->getResults()));
+        $destination->setResults(array_map([$this, 'mapEntity'], $source->getResults()));
         $destination->setNumberOfResults($source->getTotalNumberOfResults());
+    }
+
+    /**
+     * Maps the entity instance.
+     * @param GenericEntityWithRecipes $entity
+     * @return EntityData
+     * @throws MapperException
+     */
+    protected function mapEntity(GenericEntityWithRecipes $entity): EntityData
+    {
+        $entityData = new EntityData();
+        $this->mapperManager->map($entity, $entityData);
+        return $entityData;
     }
 }

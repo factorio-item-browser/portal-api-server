@@ -25,7 +25,7 @@ class CorsHeaderMiddleware implements MiddlewareInterface
 
     /**
      * Initializes the middleware.
-     * @param array $allowedOrigins
+     * @param array<string> $allowedOrigins
      */
     public function __construct(array $allowedOrigins)
     {

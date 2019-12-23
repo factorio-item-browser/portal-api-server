@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
+use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\Mapper\DynamicMapperInterface;
 use BluePsyduck\MapperManager\MapperManagerAwareInterface;
 use BluePsyduck\MapperManager\MapperManagerInterface;
@@ -61,12 +62,21 @@ class GenericEntityMapper implements DynamicMapperInterface, MapperManagerAwareI
                     ->setLabel($source->getLabel());
 
         if ($source instanceof GenericEntityWithRecipes) {
-            $destination->setRecipes(array_map(function (Recipe $recipe): RecipeData {
-                            $recipeData = new RecipeData();
-                            $this->mapperManager->map($recipe, $recipeData);
-                            return $recipeData;
-                        }, $source->getRecipes()))
+            $destination->setRecipes(array_map([$this, 'mapRecipe'], $source->getRecipes()))
                         ->setNumberOfRecipes($source->getTotalNumberOfRecipes());
         }
+    }
+
+    /**
+     * Maps the recipe instance.
+     * @param Recipe $recipe
+     * @return RecipeData
+     * @throws MapperException
+     */
+    protected function mapRecipe(Recipe $recipe): RecipeData
+    {
+        $recipeData = new RecipeData();
+        $this->mapperManager->map($recipe, $recipeData);
+        return $recipeData;
     }
 }

@@ -14,6 +14,7 @@
   "minimum-stability": "stable",
   "require": {
     "php": "^7.2",
+    "ext-json": "*",
     "bluepsyduck/mapper-manager": "^1.1",
     "bluepsyduck/zend-autowire-factory": "^1.1",
     "doctrine/cache": "^1.10",
@@ -44,7 +45,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "FactorioItemBrowserTest\\PortalApi\\Server\\": "test/src/"
+      "FactorioItemBrowserTest\\PortalApi\\Server\\": "test/src/",
+      "FactorioItemBrowserTestSerializer\\PortalApi\\Server\\": "test/serializer/"
     }
   },
   "scripts": {
@@ -57,14 +59,16 @@
     "phpcbf": "phpcbf -p --colors",
     "phpcs": "phpcs -p --colors",
     "phpstan": "phpstan analyse --no-interaction --ansi",
-    "phpunit": "phpunit --colors=always --coverage-html=test/coverage --coverage-clover=test/coverage/clover.xml",
+    "test-unit": "phpunit --colors=always --coverage-html=test/coverage --coverage-clover=test/coverage/clover.xml",
+    "test-serialize": "phpunit --testsuite serializer-test --colors=always",
     "post-autoload-dump": [
       "mkdir -p data/cache data/log && chmod 0777 data/cache data/log"
     ],
     "test": [
       "@composer validate --strict",
-      "@phpunit",
+      "@test-unit",
       "@coverage-check",
+      "@test-serialize",
       "@phpcs",
       "@phpstan"
     ]

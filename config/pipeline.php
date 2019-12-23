@@ -23,7 +23,7 @@ use Zend\Expressive\Router\Middleware\RouteMiddleware;
 use Zend\Stratigility\Middleware\ErrorHandler;
 
 return function (Application $app, MiddlewareFactory $factory, ContainerInterface $container): void {
-//    $app->pipe(Middleware\MetaMiddleware::class);
+    $app->pipe(Middleware\MetaMiddleware::class);
     $app->pipe(ErrorHandler::class);
 
     $app->pipe(ServerUrlMiddleware::class);
@@ -32,8 +32,6 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->pipe(ImplicitHeadMiddleware::class);
     $app->pipe(ImplicitOptionsMiddleware::class);
 
-//    $app->pipe(Middleware\AgentMiddleware::class);
-//    $app->pipe(Middleware\RequestDeserializerMiddleware::class);
     $app->pipe(Middleware\CorsHeaderMiddleware::class);
     $app->pipe(Middleware\ResponseSerializerMiddleware::class);
 

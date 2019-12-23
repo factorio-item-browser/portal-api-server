@@ -16,4 +16,9 @@ interface RouteName
      * The route for fetching search results.
      */
     public const SEARCH = 'search';
+
+    /**
+     * The route for fetching additional styles for icons.
+     */
+    public const STYLE_ICONS = 'style.icons';
 }

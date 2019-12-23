@@ -12,7 +12,7 @@ use FactorioItemBrowser\Api\Client\Request\Search\SearchQueryRequest;
 use FactorioItemBrowser\Api\Client\Response\Search\SearchQueryResponse;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultsData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -65,7 +65,8 @@ class SearchHandler implements RequestHandlerInterface
             (int) ($request->getQueryParams()['indexOfFirstResult'] ?? 0),
             (int) ($request->getQueryParams()['numberOfResults'] ?? 0),
         );
-        $result = $this->createResultData($searchQueryResponse);
+        $result = $this->createResultsData($searchQueryResponse);
+        $result->setQuery($request->getQueryParams()['query'] ?? '');
 
         return new TransferResponse($result);
     }
@@ -96,14 +97,14 @@ class SearchHandler implements RequestHandlerInterface
     }
 
     /**
-     * Creates the result data from the search query response.
+     * Creates the results data from the search query response.
      * @param SearchQueryResponse $searchQueryResponse
-     * @return SearchResultData
+     * @return SearchResultsData
      * @throws PortalApiServerException
      */
-    protected function createResultData(SearchQueryResponse $searchQueryResponse): SearchResultData
+    protected function createResultsData(SearchQueryResponse $searchQueryResponse): SearchResultsData
     {
-        $result = new SearchResultData();
+        $result = new SearchResultsData();
         try {
             $this->mapperManager->map($searchQueryResponse, $result);
         } catch (MapperException $e) {

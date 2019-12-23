@@ -1,0 +1,7 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    values:
+      type: array<string,array<string>>
+      inline: true

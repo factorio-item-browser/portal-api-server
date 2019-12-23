@@ -10,6 +10,8 @@ info:
 tags:
   - name: Search
     description: Requests related with searching for items, recipes etc.
+  - name: Style
+    description: Requests related to additional styles provided by the server.
 
 paths:
   /search:
@@ -29,6 +31,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchResultData"
+
+  /style/icons:
+    post:
+      summary: Returns the icons as stylesheet.
+      operationId: style.icons
+      tags:
+        - Style
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NamesByTypes"
+        required: true
+      responses:
+        200:
+          description: The stylesheet for the requested icons.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IconsStyleData"
 
 components:
   parameters:
@@ -82,6 +104,27 @@ components:
           description: The total number of recipes available for the entity.
           example: 42
 
+    IconsStyleData:
+      type: object
+      properties:
+        processedEntities:
+          $ref: "#/components/schemas/NamesByTypes"
+        style:
+          type: string
+          description: The style representing the icons of the requested entities.
+          example: ".example-style { background: red; }"
+
+    NamesByTypes:
+      type: object
+      description: The names of entities grouped by their type.
+      additionalProperties:
+        type: array
+        items:
+          type: string
+      example:
+        item: ["iron-plate", "steel-plate"]
+        fluid: ["heavy-oil"]
+
     RecipeData:
       type: object
       properties:
@@ -130,6 +173,10 @@ components:
     SearchResultData:
       type: object
       properties:
+        query:
+          type: string
+          description: The query used for the search.
+          example: iron
         results:
           type: array
           items:

@@ -10,7 +10,7 @@ use BluePsyduck\MapperManager\MapperManagerInterface;
 use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
 use FactorioItemBrowser\Api\Client\Response\Search\SearchQueryResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\EntityData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultsData;
 
 /**
  * The mapper of the search query response.
@@ -50,13 +50,13 @@ class SearchQueryResponseMapper implements StaticMapperInterface, MapperManagerA
      */
     public function getSupportedDestinationClass(): string
     {
-        return SearchResultData::class;
+        return SearchResultsData::class;
     }
 
     /**
      * Maps the source object to the destination one.
      * @param SearchQueryResponse $source
-     * @param SearchResultData $destination
+     * @param SearchResultsData $destination
      */
     public function map($source, $destination): void
     {

@@ -1,0 +1,8 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    processedEntities:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes
+    style:
+      type: string

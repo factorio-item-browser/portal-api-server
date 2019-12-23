@@ -18,4 +18,5 @@ use Zend\Expressive\MiddlewareFactory;
 
 return function (Application $app, MiddlewareFactory $factory, ContainerInterface $container): void {
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
+    $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);
 };

@@ -1,7 +1,9 @@
-FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultData:
+FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultsData:
   access_type: public_method
   exclusion_policy: all
   properties:
+    query:
+      type: string
     results:
       type: array<FactorioItemBrowser\PortalApi\Server\Transfer\EntityData>
     numberOfResults:

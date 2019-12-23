@@ -19,6 +19,9 @@ return [
         'factories' => [
             Handler\NotFoundHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
+            Handler\Style\IconsHandler::class => AutoWireFactory::class,
+
+            Helper\IconsStyleBuilder::class => AutoWireFactory::class,
 
             Mapper\GenericEntityMapper::class => AutoWireFactory::class,
             Mapper\RecipeItemMapper::class => AutoWireFactory::class,

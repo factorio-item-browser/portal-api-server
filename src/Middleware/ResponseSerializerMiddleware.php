@@ -47,6 +47,7 @@ class ResponseSerializerMiddleware implements MiddlewareInterface
             $serializedResponse = $this->serializer->serialize($response->getTransfer(), 'json');
             $response = $response->withSerializedResponse($serializedResponse);
         }
+        $response = $response->withHeader('Access-Control-Allow-Origin', '*'); // @todo Put into config.
         return $response;
     }
 }

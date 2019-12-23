@@ -32,6 +32,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->pipe(ImplicitHeadMiddleware::class);
     $app->pipe(ImplicitOptionsMiddleware::class);
 
+    $app->pipe(Middleware\ApiClientMiddleware::class);
     $app->pipe(Middleware\CorsHeaderMiddleware::class);
     $app->pipe(Middleware\ResponseSerializerMiddleware::class);
 

@@ -31,4 +31,9 @@ interface ConfigKey
      * The key holding the cache directory to use.
      */
     public const CACHE_DIR = 'cache-dir';
+
+    /**
+     * The keys holding the number of recipes to return per result.
+     */
+    public const NUMBER_OF_RECIPES_PER_RESULT = 'number-of-recipes-per-result';
 }

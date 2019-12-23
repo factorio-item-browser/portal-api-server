@@ -70,10 +70,6 @@ class IconsHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // @todo Move to middleware.
-        $this->apiClient->setModNames(['base']);
-        $this->apiClient->setLocale('de');
-
         $namesByTypes = $this->parseRequestBody($request);
 
         $request = new GenericIconRequest();

@@ -13,6 +13,16 @@ namespace FactorioItemBrowser\PortalApi\Server\Constant;
 interface RouteName
 {
     /**
+     * The route for fetching recipes having a certain ingredient.
+     */
+    public const ITEM_INGREDIENTS = 'item.ingredients';
+
+    /**
+     * The route for fetching recipes having a certain product.
+     */
+    public const ITEM_PRODUCTS = 'item.products';
+    
+    /**
      * The route for fetching search results.
      */
     public const SEARCH = 'search';

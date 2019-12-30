@@ -8,12 +8,51 @@ info:
   description: The API used by the portal frontend to receive any data from the backend.
 
 tags:
+  - name: Item
+    description: Requests related to item details.
   - name: Search
     description: Requests related with searching for items, recipes etc.
   - name: Style
     description: Requests related to additional styles provided by the server.
 
 paths:
+  /{type}/{name}/ingredients:
+    get:
+      summary: Returns the recipes where the requested item is an ingredient of.
+      operationId: item.ingredients
+      tags:
+        - Item
+      parameters:
+        - $ref: "#/components/parameters/type"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/indexOfFirstResult"
+        - $ref: "#/components/parameters/numberOfResults"
+      responses:
+        200:
+          description: The list of matched recipes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemRecipesData"
+  /{type}/{name}/products:
+    get:
+      summary: Returns the recipes where the requested item is a product of.
+      operationId: item.products
+      tags:
+        - Item
+      parameters:
+        - $ref: "#/components/parameters/type"
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/indexOfFirstResult"
+        - $ref: "#/components/parameters/numberOfResults"
+      responses:
+        200:
+          description: The list of matched recipes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemRecipesData"
+
   /search:
     get:
       summary: Searches for entities matching a query.
@@ -54,6 +93,26 @@ paths:
 
 components:
   parameters:
+    type:
+      name: type
+      in: path
+      description: The type of the item or fluid.
+      required: true
+      schema:
+        type: string
+        enum:
+          - item
+          - fluid
+        example: item
+    name:
+      name: name
+      in: path
+      description: The name of the item or fluid.
+      required: true
+      schema:
+        type: string
+        example: copper-wire
+
     indexOfFirstResult:
       name: indexOfFirstResult
       in: query
@@ -113,6 +172,38 @@ components:
           type: string
           description: The style representing the icons of the requested entities.
           example: ".example-style { background: red; }"
+
+    ItemRecipesData:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - item
+            - fluid
+          description: The type of the requested item or fluid.
+          example: item
+        name:
+          type: string
+          description: The name of the requested item or fluid.
+          example: copper-wire
+        label:
+          type: string
+          description: The translated label of the requested item or fluid.
+          example: Kupferkabel
+        description:
+          type: string
+          description: The translated description of the requested item or fluid.
+          example: Kann mit Linke Maustaste zum Verbinden und Trennen von Strommasten und Stromschaltern verwendet werden.
+        results:
+          type: array
+          description: The recipes related to the requested item.
+          items:
+            $ref: "#/components/schemas/EntityData"
+        numberOfResults:
+          type: integer
+          description: The total number of recipes available for the item.
+          example: 42
 
     NamesByTypes:
       type: object

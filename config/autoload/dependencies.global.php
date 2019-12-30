@@ -23,15 +23,20 @@ return [
             ErrorResponseGenerator::class => Response\ErrorResponseGenerator::class,
         ],
         'factories' => [
+            Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
+            Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
 
             Helper\IconsStyleBuilder::class => AutoWireFactory::class,
+            Helper\RecipeSelector::class => AutoWireFactory::class,
 
             Mapper\GenericEntityMapper::class => AutoWireFactory::class,
+            Mapper\ItemRecipesMapper::class => AutoWireFactory::class,
             Mapper\RecipeItemMapper::class => AutoWireFactory::class,
             Mapper\RecipeMapper::class => AutoWireFactory::class,
+            Mapper\RecipeToEntityMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
 
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,

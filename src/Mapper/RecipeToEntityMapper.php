@@ -8,20 +8,19 @@ use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\Mapper\DynamicMapperInterface;
 use BluePsyduck\MapperManager\MapperManagerAwareInterface;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntity;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
 use FactorioItemBrowser\Api\Client\Entity\Recipe;
+use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector;
 use FactorioItemBrowser\PortalApi\Server\Transfer\EntityData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData;
 
 /**
- * The mapper of the generic entities.
+ * The mapper for mapping recipes to entities.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class GenericEntityMapper implements DynamicMapperInterface, MapperManagerAwareInterface
+class RecipeToEntityMapper implements DynamicMapperInterface, MapperManagerAwareInterface
 {
     /**
      * The mapper manager.
@@ -61,26 +60,23 @@ class GenericEntityMapper implements DynamicMapperInterface, MapperManagerAwareI
      */
     public function supports($source, $destination): bool
     {
-        return ($source instanceof GenericEntity && !$source instanceof Recipe)
-            && $destination instanceof EntityData;
+        return $source instanceof Recipe && $destination instanceof EntityData;
     }
 
     /**
      * Maps the source object to the destination one.
-     * @param GenericEntity $source
+     * @param Recipe $source
      * @param EntityData $destination
      */
     public function map($source, $destination): void
     {
-        $destination->setType($source->getType())
-                    ->setName($source->getName())
-                    ->setLabel($source->getLabel());
+        $recipes = $this->recipeSelector->select($source);
 
-        if ($source instanceof GenericEntityWithRecipes) {
-            $recipes = $this->recipeSelector->selectArray($source->getRecipes());
-            $destination->setRecipes(array_map([$this, 'mapRecipe'], $recipes))
-                        ->setNumberOfRecipes($source->getTotalNumberOfRecipes());
-        }
+        $destination->setType(EntityType::RECIPE)
+                    ->setName($source->getName())
+                    ->setLabel($source->getLabel())
+                    ->setRecipes(array_map([$this, 'mapRecipe'], $recipes))
+                    ->setNumberOfRecipes(1);
     }
 
     /**

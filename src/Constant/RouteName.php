@@ -28,6 +28,11 @@ interface RouteName
     public const RECIPE_DETAILS = 'recipe.details';
 
     /**
+     * The route for fetching the machines able to craft a recipe.
+     */
+    public const RECIPE_MACHINES = 'recipe.machines';
+
+    /**
      * The route for fetching search results.
      */
     public const SEARCH = 'search';

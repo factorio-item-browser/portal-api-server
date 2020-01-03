@@ -1,0 +1,20 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\MachineData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    name:
+      type: string
+    label:
+      type: string
+    craftingSpeed:
+      type: float
+    numberOfItems:
+      type: int
+    numberOfFluids:
+      type: int
+    numberOfModules:
+      type: int
+    energyUsage:
+      type: float
+    energyUsageUnit:
+      type: string

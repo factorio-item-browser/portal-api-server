@@ -71,6 +71,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/RecipeDetailsData"
 
+  /recipe/{name}/machines:
+    get:
+      summary: Returns a list of machines able to craft the specified recipe.
+      operationId: recipe.machines
+      tags:
+        - Recipe
+      parameters:
+        - $ref: "#/components/parameters/name"
+        - $ref: "#/components/parameters/indexOfFirstResult"
+        - $ref: "#/components/parameters/numberOfResults"
+      responses:
+        200:
+          description: The list of machines.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipeMachinesData"
+
   /search:
     get:
       summary: Searches for entities matching a query.
@@ -226,6 +244,53 @@ components:
           description: The total number of recipes available for the item.
           example: 42
 
+    MachineData:
+      type: object
+      description: The data of a machine.
+      properties:
+        name:
+          type: string
+          description: The name of the machine.
+          example: assembling-machine-1
+        label:
+          type: string
+          description: The translated label of the machine.
+          example: Montagemaschine 1
+        craftingSpeed:
+          type: number
+          description: The crafting speed of the machine.
+          example: 13.37
+        numberOfItems:
+          type: number
+          description: The number of items supported by the machine. 255 for unlimited.
+          example: 42
+        numberOfFluids:
+          type: number
+          description: The number of fluids supported by the machine.
+          example: 21
+        numberOfModules:
+          type: number
+          description: The number of module slots the machine has.
+          example: 69
+        energyUsage:
+          type: number
+          description: The energy usage of the machine.
+          example: 1337
+        energyUsageUnit:
+          type: string
+          enum:
+            - W
+            - kW
+            - MW
+            - GW
+            - TW
+            - PW
+            - EW
+            - ZW
+            - YW
+          description: The unit of the energyUsage value.
+          example: kW
+
     NamesByTypes:
       type: object
       description: The names of entities grouped by their type.
@@ -301,6 +366,20 @@ components:
         amount:
           type: number
           description: The amount of the item in the recipe.
+          example: 42
+
+    RecipeMachinesData:
+      type: object
+      description: The data containing the machines for a recipe.
+      properties:
+        results:
+          type: array
+          description: The machines able to craft the recipe.
+          items:
+            $ref: "#/components/schemas/MachineData"
+        numberOfResults:
+          type: integer
+          description: The total number of machines.
           example: 42
 
     SearchResultData:

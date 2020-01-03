@@ -7,12 +7,12 @@ namespace FactorioItemBrowser\PortalApi\Server\Exception;
 use Throwable;
 
 /**
- * The exception thrown when an item unknown to the API server is encountered.
+ * The exception thrown when an entity unknown to the API server is encountered.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class UnknownItemException extends PortalApiServerException
+class UnknownEntityException extends PortalApiServerException
 {
     /**
      * The message template of the exception.

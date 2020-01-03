@@ -21,7 +21,12 @@ interface RouteName
      * The route for fetching recipes having a certain product.
      */
     public const ITEM_PRODUCTS = 'item.products';
-    
+
+    /**
+     * The route for fetching the details of a recipe.
+     */
+    public const RECIPE_DETAILS = 'recipe.details';
+
     /**
      * The route for fetching search results.
      */

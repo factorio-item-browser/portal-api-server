@@ -11,7 +11,7 @@ use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownItemException;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Item\AbstractRecipesHandler;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ItemRecipesData;
@@ -167,7 +167,7 @@ class AbstractRecipesHandlerTest extends TestCase
                 ->method('getQueryParams')
                 ->willReturn($queryParams);
 
-        $this->expectException(UnknownItemException::class);
+        $this->expectException(UnknownEntityException::class);
 
         /* @var AbstractRecipesHandler&MockObject $handler */
         $handler = $this->getMockBuilder(AbstractRecipesHandler::class)

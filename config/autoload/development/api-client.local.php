@@ -16,7 +16,6 @@ use FactorioItemBrowser\Api\Client\Constant\ConfigKey;
 return [
     ConfigKey::PROJECT => [
         ConfigKey::API_CLIENT => [
-            ConfigKey::CACHE_DIR => 'data/cache/api-client',
             ConfigKey::OPTIONS => [
                 ConfigKey::OPTION_API_URL => 'http://fib-as-php',
                 ConfigKey::OPTION_ACCESS_KEY => 'debug',

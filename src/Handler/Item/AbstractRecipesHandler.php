@@ -10,7 +10,7 @@ use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownItemException;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ItemRecipesData;
 use Psr\Http\Message\ResponseInterface;
@@ -65,7 +65,7 @@ abstract class AbstractRecipesHandler implements RequestHandlerInterface
 
         $item = $this->fetchData($type, $name, $indexOfFirstResult, $numberOfResults);
         if ($item === null) {
-            throw new UnknownItemException($type, $name);
+            throw new UnknownEntityException($type, $name);
         }
 
         $itemRecipesData = $this->createItemRecipesData($item);

@@ -19,7 +19,6 @@ return [
             ConfigKey::ALLOWED_ORIGINS => [
                 'http://localhost:8080',
             ],
-//            ConfigKey::CACHE_DIR => '../../data/cache/portal-api-server'
         ]
     ]
 ];

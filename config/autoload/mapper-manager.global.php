@@ -18,6 +18,7 @@ return [
         ConfigKey::MAPPERS => [
             Mapper\GenericEntityMapper::class,
             Mapper\ItemRecipesMapper::class,
+            Mapper\RecipeDetailsMapper::class,
             Mapper\RecipeItemMapper::class,
             Mapper\RecipeMapper::class,
             Mapper\RecipeToEntityMapper::class,

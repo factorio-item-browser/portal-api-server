@@ -10,6 +10,8 @@ info:
 tags:
   - name: Item
     description: Requests related to item details.
+  - name: Recipe
+    description: Requests related to recipe details.
   - name: Search
     description: Requests related with searching for items, recipes etc.
   - name: Style
@@ -52,6 +54,22 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ItemRecipesData"
+
+  /recipe/{name}:
+    get:
+      summary: Returns the detauls of the recipe.
+      operationId: recipe.details
+      tags:
+        - Recipe
+      parameters:
+        - $ref: "#/components/parameters/name"
+      responses:
+        200:
+          description: The recipe details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecipeDetailsData"
 
   /search:
     get:
@@ -107,11 +125,11 @@ components:
     name:
       name: name
       in: path
-      description: The name of the item or fluid.
+      description: The name of the item, fluid or recipe.
       required: true
       schema:
         type: string
-        example: copper-wire
+        example: copper-cable
 
     indexOfFirstResult:
       name: indexOfFirstResult
@@ -141,6 +159,7 @@ components:
   schemas:
     EntityData:
       type: object
+      description: The data of an entity.
       properties:
         type:
           type: string
@@ -165,6 +184,7 @@ components:
 
     IconsStyleData:
       type: object
+      description: The data containing the generated style.
       properties:
         processedEntities:
           $ref: "#/components/schemas/NamesByTypes"
@@ -175,6 +195,7 @@ components:
 
     ItemRecipesData:
       type: object
+      description: The data containing recipes with a certain item.
       properties:
         type:
           type: string
@@ -186,7 +207,7 @@ components:
         name:
           type: string
           description: The name of the requested item or fluid.
-          example: copper-wire
+          example: copper-cable
         label:
           type: string
           description: The translated label of the requested item or fluid.
@@ -218,6 +239,7 @@ components:
 
     RecipeData:
       type: object
+      description: The data of a single recipe.
       properties:
         craftingTime:
           type: number
@@ -238,8 +260,28 @@ components:
           description: Whether the recipe is used in the expensive mode.
           example: false
 
+    RecipeDetailsData:
+      type: object
+      description: The data containing the details of a recipe.
+      properties:
+        name:
+          type: string
+          description: The name of the recipe.
+          example: copper-cable
+        label:
+          type: string
+          description: The translated label of the recipe.
+        description:
+          type: string
+          description: The translated description of the recipe.
+        recipe:
+          $ref: "#/components/schemas/RecipeData"
+        expensiveRecipe:
+          $ref: "#/components/schemas/RecipeData"
+
     RecipeItemData:
       type: object
+      description: The data of an item being part of a recipe.
       properties:
         type:
           type: string
@@ -263,6 +305,7 @@ components:
 
     SearchResultData:
       type: object
+      description: The data containing results of the search.
       properties:
         query:
           type: string

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 
 /**
- *
+ * The object representing a recipe for crafting.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3

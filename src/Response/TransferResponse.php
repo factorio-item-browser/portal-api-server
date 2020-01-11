@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Response;
 
-use Zend\Diactoros\Response;
-use Zend\Diactoros\Response\InjectContentTypeTrait;
-use Zend\Diactoros\Stream;
+use Laminas\Diactoros\Response;
+use Laminas\Diactoros\Response\InjectContentTypeTrait;
+use Laminas\Diactoros\Stream;
 
 /**
  *

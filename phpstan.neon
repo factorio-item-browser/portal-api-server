@@ -7,7 +7,7 @@ parameters:
 
   ignoreErrors:
     - '#Dynamic call to static method PHPUnit\\Framework\\.*#'
-    - '#Parameter \#1 \$message of method Zend\\Log\\LoggerInterface::.*\(\) expects string, .* given.#'
+    - '#Parameter \#1 \$message of method Laminas\\Log\\LoggerInterface::.*\(\) expects string, .* given.#'
     - '#.* should be contravariant with parameter .* \(object\) of method BluePsyduck\\MapperManager\\Mapper\\MapperInterface\:\:map\(\)#'
 
 includes:

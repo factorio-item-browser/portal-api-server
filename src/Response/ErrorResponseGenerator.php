@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Response;
 
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
+use Laminas\Diactoros\Response\JsonResponse;
+use Laminas\Log\LoggerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
-use Zend\Diactoros\Response\JsonResponse;
-use Zend\Log\LoggerInterface;
 
 /**
  * The class generating the error response.

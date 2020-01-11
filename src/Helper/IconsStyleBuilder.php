@@ -6,7 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
 use FactorioItemBrowser\Api\Client\Entity\Icon;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
-use Zend\Escaper\Escaper;
+use Laminas\Escaper\Escaper;
 
 /**
  * The class building up the styles used for the icons.

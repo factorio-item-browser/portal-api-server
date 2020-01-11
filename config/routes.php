@@ -12,9 +12,9 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server;
 
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
+use Mezzio\Application;
+use Mezzio\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
-use Zend\Expressive\Application;
-use Zend\Expressive\MiddlewareFactory;
 
 return function (Application $app, MiddlewareFactory $factory, ContainerInterface $container): void {
     $app->get('/{type:item|fluid}/{name}/ingredients', Handler\Item\IngredientsHandler::class, RouteName::ITEM_INGREDIENTS);

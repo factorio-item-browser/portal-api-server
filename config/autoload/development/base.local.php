@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * The configuration file for Zend Expressive.
+ * The base configuration file when developing.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -11,10 +11,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
-use Zend\ConfigAggregator\ConfigAggregator;
+use Laminas\ConfigAggregator\ConfigAggregator;
 
 return [
-    ConfigAggregator::ENABLE_CACHE => true,
-    'debug' => false,
-    'version' => '1.0.0',
+    ConfigAggregator::ENABLE_CACHE => false,
+    'debug' => true,
 ];

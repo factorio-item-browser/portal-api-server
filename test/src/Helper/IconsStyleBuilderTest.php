@@ -9,10 +9,10 @@ use FactorioItemBrowser\Api\Client\Entity\Entity;
 use FactorioItemBrowser\Api\Client\Entity\Icon;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleBuilder;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
+use Laminas\Escaper\Escaper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
-use Zend\Escaper\Escaper;
 
 /**
  * The PHPUnit test of the IconsStyleBuilder class.

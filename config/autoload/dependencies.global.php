@@ -11,11 +11,12 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
-use BluePsyduck\ZendAutoWireFactory\AutoWireFactory;
+use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
-use Zend\Expressive\Middleware\ErrorResponseGenerator;
-use function BluePsyduck\ZendAutoWireFactory\readConfig;
+use Mezzio\Middleware\ErrorResponseGenerator;
+
+use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 
 return [
     'dependencies' => [

@@ -15,9 +15,12 @@
   "require": {
     "php": "^7.3",
     "ext-json": "*",
+    "ext-pdo": "*",
+    "bluepsyduck/container-interop-doctrine-migrations": "^1.0",
     "bluepsyduck/mapper-manager": "^1.1",
     "bluepsyduck/laminas-autowire-factory": "^1.0",
     "doctrine/cache": "^1.10",
+    "doctrine/orm": "^2.6",
     "factorio-item-browser/api-client": "dev-project-phoenix",
     "laminas/laminas-config-aggregator": "^1.0",
     "laminas/laminas-diactoros": "^2.2",
@@ -27,11 +30,14 @@
     "laminas/laminas-servicemanager": "^3.3",
     "mezzio/mezzio": "^3.0",
     "mezzio/mezzio-fastroute": "^3.0",
-    "mezzio/mezzio-helpers": "^5.0"
+    "mezzio/mezzio-helpers": "^5.0",
+    "ramsey/uuid": "^3.8",
+    "ramsey/uuid-doctrine": "^1.5"
   },
   "require-dev": {
     "bluepsyduck/test-helper": "^1.0",
     "phpstan/phpstan": "^0.12",
+    "phpstan/phpstan-doctrine": "^0.12",
     "phpstan/phpstan-phpunit": "^0.12",
     "phpstan/phpstan-strict-rules": "^0.12",
     "phpunit/phpunit": "^8.0",

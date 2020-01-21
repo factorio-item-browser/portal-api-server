@@ -11,7 +11,10 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
+use BluePsyduck\ContainerInteropDoctrineMigrations\MigrationsConfigurationFactory;
 use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
+use ContainerInteropDoctrine\EntityManagerFactory;
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
@@ -51,6 +54,10 @@ return [
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
 
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,
+
+            // 3rd-party dependencies
+            EntityManagerInterface::class => EntityManagerFactory::class,
+            'doctrine.migrations.orm_default' => MigrationsConfigurationFactory::class,
 
             // Auto-wire helpers
             SerializerInterface::class . ' $portalApiServerSerializer' => Serializer\SerializerFactory::class,

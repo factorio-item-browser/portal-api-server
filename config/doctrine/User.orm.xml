@@ -1,0 +1,38 @@
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
+>
+    <entity name="FactorioItemBrowser\PortalApi\Server\Entity\User">
+        <options>
+            <option name="comment">The table holding the users of the portal.</option>
+        </options>
+
+        <id name="id" type="uuid_binary">
+            <generator strategy="CUSTOM" />
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
+            <options>
+                <option name="comment">The ID of the user.</option>
+            </options>
+        </id>
+
+        <field name="locale" length="5">
+            <options>
+                <option name="comment">The locale used by the user.</option>
+            </options>
+        </field>
+
+        <field name="lastVisitTime" type="datetime" version="true">
+            <options>
+                <option name="comment">The time when the user last visited.</option>
+            </options>
+        </field>
+
+        <one-to-many field="settings" target-entity="Setting" mapped-by="user" />
+
+        <one-to-one field="currentSetting" target-entity="Setting">
+            <join-column name="currentSettingId" />
+        </one-to-one>
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,50 @@
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
+>
+    <entity name="FactorioItemBrowser\PortalApi\Server\Entity\Setting">
+        <options>
+            <option name="comment">The table holding the settings of the users.</option>
+        </options>
+
+        <id name="id" type="uuid_binary">
+            <generator strategy="CUSTOM" />
+            <custom-id-generator class="Ramsey\Uuid\Doctrine\UuidGenerator"/>
+            <options>
+                <option name="comment">The ID of the setting.</option>
+            </options>
+        </id>
+
+        <many-to-one field="user" target-entity="User" inversed-by="settings">
+            <join-column name="userId" nullable="false" />
+        </many-to-one>
+
+        <field name="combinationId" type="uuid_binary">
+            <options>
+                <option name="comment">The ID of the combination used for this setting.</option>
+            </options>
+        </field>
+
+        <field name="modNames" type="json">
+            <options>
+                <option name="comment">The mod names used for this setting.</option>
+            </options>
+        </field>
+
+        <field name="recipeMode" type="enum_recipe_mode">
+            <options>
+                <option name="comment">The recipe mode used for this setting.</option>
+            </options>
+        </field>
+
+        <field name="apiAuthorizationToken" type="text" length="65535">
+            <options>
+                <option name="comment">The API authorization token used for this setting.</option>
+            </options>
+        </field>
+
+        <one-to-many field="sidebarEntities" target-entity="SidebarEntity" mapped-by="setting" />
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,47 @@
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
+>
+    <entity name="FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity">
+        <options>
+            <option name="comment">The table holding the sidebar entities.</option>
+        </options>
+
+        <id name="setting" association-key="true" />
+        <id name="type" type="enum_sidebar_entity_type">
+            <options>
+                <option name="comment">The type of the sidebar entity.</option>
+            </options>
+        </id>
+        <id name="name" length="255">
+            <options>
+                <option name="comment">The name of the sidebar entity.</option>
+            </options>
+        </id>
+
+        <many-to-one field="setting" target-entity="Setting">
+            <join-column name="settingId" nullable="false" />
+        </many-to-one>
+
+        <field name="label" type="text" length="65535">
+            <options>
+                <option name="comment">The translated label of the sidebar entity.</option>
+            </options>
+        </field>
+
+        <field name="pinnedPosition" type="integer">
+            <options>
+                <option name="unsigned">true</option>
+                <option name="comment">The pinned position of the entity in the sidebar. 0 if not pinned.</option>
+            </options>
+        </field>
+
+        <field name="lastViewTime" type="datetime" version="true">
+            <options>
+                <option name="comment">The time when the entity was last viewed.</option>
+            </options>
+        </field>
+    </entity>
+</doctrine-mapping>

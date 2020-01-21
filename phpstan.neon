@@ -11,6 +11,7 @@ parameters:
     - '#.* should be contravariant with parameter .* \(object\) of method BluePsyduck\\MapperManager\\Mapper\\MapperInterface\:\:map\(\)#'
 
 includes:
+  - vendor/phpstan/phpstan-doctrine/extension.neon
   - vendor/phpstan/phpstan-phpunit/extension.neon
   - vendor/phpstan/phpstan-phpunit/rules.neon
   - vendor/phpstan/phpstan-strict-rules/rules.neon

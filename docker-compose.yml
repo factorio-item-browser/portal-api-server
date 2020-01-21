@@ -15,6 +15,14 @@ services:
       FIB_ENV: development
       SSH_AUTH_SOCK: /ssh-agent
 
+  mysql:
+    container_name: fib-pa-mysql
+    image: bluepsyduck/mysql
+    networks:
+    - network-fib
+    ports:
+    - 13376:3306
+
 networks:
   network-fib:
     name: network-fib

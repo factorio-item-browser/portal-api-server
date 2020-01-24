@@ -41,6 +41,12 @@ class Setting
     protected $modNames = [];
 
     /**
+     * The locale used by this setting.
+     * @var string
+     */
+    protected $locale = '';
+
+    /**
      * The recipe mode used for this setting.
      * @var string
      */
@@ -144,6 +150,26 @@ class Setting
     public function getModNames(): array
     {
         return $this->modNames;
+    }
+
+    /**
+     * Sets the locale used by this setting.
+     * @param string $locale
+     * @return $this
+     */
+    public function setLocale(string $locale): self
+    {
+        $this->locale = $locale;
+        return $this;
+    }
+
+    /**
+     * Returns the locale used by this setting.
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
     }
 
     /**

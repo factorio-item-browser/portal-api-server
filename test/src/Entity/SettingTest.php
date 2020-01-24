@@ -92,6 +92,20 @@ class SettingTest extends TestCase
     }
 
     /**
+     * Tests the setting and getting the locale.
+     * @covers ::getLocale
+     * @covers ::setLocale
+     */
+    public function testSetAndGetLocale(): void
+    {
+        $locale = 'abc';
+        $entity = new Setting();
+
+        $this->assertSame($entity, $entity->setLocale($locale));
+        $this->assertSame($locale, $entity->getLocale());
+    }
+
+    /**
      * Tests the setting and getting the recipe mode.
      * @covers ::getRecipeMode
      * @covers ::setRecipeMode

@@ -33,6 +33,12 @@
             </options>
         </field>
 
+        <field name="locale" length="5">
+            <options>
+                <option name="comment">The locale used by the user.</option>
+            </options>
+        </field>
+
         <field name="recipeMode" type="enum_recipe_mode">
             <options>
                 <option name="comment">The recipe mode used for this setting.</option>

@@ -17,12 +17,6 @@
             </options>
         </id>
 
-        <field name="locale" length="5">
-            <options>
-                <option name="comment">The locale used by the user.</option>
-            </options>
-        </field>
-
         <field name="lastVisitTime" type="datetime" version="true">
             <options>
                 <option name="comment">The time when the user last visited.</option>

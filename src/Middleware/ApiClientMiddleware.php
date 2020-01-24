@@ -6,7 +6,6 @@ namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -33,22 +32,14 @@ class ApiClientMiddleware implements MiddlewareInterface
     protected $currentSetting;
 
     /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
-
-    /**
      * Initializes the middleware.
      * @param ApiClientInterface $apiClient
      * @param Setting $currentSetting
-     * @param User $currentUser
      */
-    public function __construct(ApiClientInterface $apiClient, Setting $currentSetting, User $currentUser)
+    public function __construct(ApiClientInterface $apiClient, Setting $currentSetting)
     {
         $this->apiClient = $apiClient;
         $this->currentSetting = $currentSetting;
-        $this->currentUser = $currentUser;
     }
 
     /**
@@ -59,7 +50,7 @@ class ApiClientMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->apiClient->setLocale($this->currentUser->getLocale());
+        $this->apiClient->setLocale($this->currentSetting->getLocale());
         $this->apiClient->setModNames($this->currentSetting->getModNames());
         $this->apiClient->setAuthorizationToken($this->currentSetting->getApiAuthorizationToken());
 

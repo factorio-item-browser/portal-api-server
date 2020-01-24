@@ -49,20 +49,6 @@ class UserTest extends TestCase
     }
 
     /**
-     * Tests the setting and getting the locale.
-     * @covers ::getLocale
-     * @covers ::setLocale
-     */
-    public function testSetAndGetLocale(): void
-    {
-        $locale = 'abc';
-        $entity = new User();
-
-        $this->assertSame($entity, $entity->setLocale($locale));
-        $this->assertSame($locale, $entity->getLocale());
-    }
-
-    /**
      * Tests the setting and getting the last visit time.
      * @covers ::getLastVisitTime
      * @covers ::setLastVisitTime

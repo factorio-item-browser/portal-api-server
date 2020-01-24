@@ -24,12 +24,6 @@ class User
     protected $id;
 
     /**
-     * The locale used by the user.
-     * @var string
-     */
-    protected $locale = '';
-
-    /**
      * The time when the user last visited.
      * @var DateTimeInterface
      */
@@ -73,26 +67,6 @@ class User
     public function getId(): UuidInterface
     {
         return $this->id;
-    }
-
-    /**
-     * Sets the locale used by the user.
-     * @param string $locale
-     * @return $this
-     */
-    public function setLocale(string $locale): self
-    {
-        $this->locale = $locale;
-        return $this;
-    }
-
-    /**
-     * Returns the locale used by the user.
-     * @return string
-     */
-    public function getLocale(): string
-    {
-        return $this->locale;
     }
 
     /**

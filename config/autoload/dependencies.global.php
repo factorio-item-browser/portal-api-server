@@ -52,6 +52,9 @@ return [
             Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,
             Middleware\MetaMiddleware::class => AutoWireFactory::class,
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
+            Middleware\SessionMiddleware::class => AutoWireFactory::class,
+
+            Repository\UserRepository::class => AutoWireFactory::class,
 
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,
 

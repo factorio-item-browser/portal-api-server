@@ -19,6 +19,7 @@
     "bluepsyduck/container-interop-doctrine-migrations": "^1.0",
     "bluepsyduck/mapper-manager": "^1.1",
     "bluepsyduck/laminas-autowire-factory": "^1.0",
+    "dflydev/fig-cookies": "^2.0",
     "doctrine/cache": "^1.10",
     "doctrine/orm": "^2.6",
     "factorio-item-browser/api-client": "dev-project-phoenix",

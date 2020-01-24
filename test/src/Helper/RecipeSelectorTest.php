@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 
+use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Client\Entity\Recipe;
 use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use ReflectionException;
 
 /**
  * The PHPUnit test of the RecipeSelector class.
@@ -20,6 +23,37 @@ use PHPUnit\Framework\TestCase;
  */
 class RecipeSelectorTest extends TestCase
 {
+    use ReflectionTrait;
+
+    /**
+     * The mocked current setting.
+     * @var Setting&MockObject
+     */
+    protected $currentSetting;
+
+    /**
+     * Sets up the test case.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->currentSetting = $this->createMock(Setting::class);
+    }
+
+    /**
+     * Tests the constructing.
+     * @throws ReflectionException
+     * @covers ::__construct
+     */
+    public function testConstruct(): void
+    {
+        $selector = new RecipeSelector($this->currentSetting);
+
+        $this->assertSame($this->currentSetting, $this->extractProperty($selector, 'currentSetting'));
+    }
+
+
     /**
      * Provides the data for the select test.
      * @return array<mixed>
@@ -65,22 +99,20 @@ class RecipeSelectorTest extends TestCase
     /**
      * Tests the select method.
      * @param Recipe $recipe
-     * @param string $preferredMode
+     * @param string $recipeMode
      * @param array<Recipe> $expectedResult
      * @covers ::select
      * @dataProvider provideSelect
      */
-    public function testSelect(Recipe $recipe, string $preferredMode, array $expectedResult): void
+    public function testSelect(Recipe $recipe, string $recipeMode, array $expectedResult): void
     {
-        /* @var RecipeSelector&MockObject $selector */
-        $selector = $this->getMockBuilder(RecipeSelector::class)
-                         ->onlyMethods(['getPreferredMode'])
-                         ->getMock();
-        $selector->expects($this->once())
-                 ->method('getPreferredMode')
-                 ->willReturn($preferredMode);
+        $this->currentSetting->expects($this->once())
+                             ->method('getRecipeMode')
+                             ->willReturn($recipeMode);
 
+        $selector = new RecipeSelector($this->currentSetting);
         $result = $selector->select($recipe);
+
         $this->assertEquals($expectedResult, $result);
     }
 
@@ -109,6 +141,7 @@ class RecipeSelectorTest extends TestCase
         /* @var RecipeSelector&MockObject $selector */
         $selector = $this->getMockBuilder(RecipeSelector::class)
                          ->onlyMethods(['select'])
+                         ->setConstructorArgs([$this->currentSetting])
                          ->getMock();
         $selector->expects($this->exactly(2))
                  ->method('select')

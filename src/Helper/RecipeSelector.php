@@ -7,6 +7,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Helper;
 use FactorioItemBrowser\Api\Client\Entity\Recipe;
 use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 
 /**
  * The class helping with selecting the recipes to be shown in the frontend.
@@ -16,6 +17,21 @@ use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
  */
 class RecipeSelector
 {
+    /**
+     * The current user setting.
+     * @var Setting
+     */
+    protected $currentSetting;
+
+    /**
+     * Initializes the recipe selector.
+     * @param Setting $currentSetting
+     */
+    public function __construct(Setting $currentSetting)
+    {
+        $this->currentSetting = $currentSetting;
+    }
+
     /**
      * Selects the recipe versions to actually show in the frontend.
      * @param Recipe $recipe
@@ -29,7 +45,7 @@ class RecipeSelector
             $expensiveRecipe = $recipe->getExpensiveVersion();
         }
 
-        $preferredMode = $this->getPreferredMode();
+        $preferredMode = $this->currentSetting->getRecipeMode();
         if ($preferredMode === RecipeMode::HYBRID) {
             return array_values(array_filter([$normalRecipe, $expensiveRecipe]));
         }
@@ -53,15 +69,5 @@ class RecipeSelector
             $result = array_merge($result, $this->select($recipe));
         }
         return $result;
-    }
-
-    /**
-     * Returns the recipe mode preferred by the user.
-     * @return string
-     */
-    protected function getPreferredMode(): string
-    {
-        // @todo Read recipe mode from user settings.
-        return RecipeMode::HYBRID;
     }
 }

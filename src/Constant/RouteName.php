@@ -38,6 +38,11 @@ interface RouteName
     public const SEARCH = 'search';
 
     /**
+     * The route for sending the sidebar entities to the server.
+     */
+    public const SIDEBAR_ENTITIES = 'sidebar.entities';
+
+    /**
      * The route for fetching additional styles for icons.
      */
     public const STYLE_ICONS = 'style.icons';

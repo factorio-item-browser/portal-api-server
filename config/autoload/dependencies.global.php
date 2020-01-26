@@ -33,6 +33,7 @@ return [
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
             Handler\Recipe\MachinesHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
+            Handler\Sidebar\EntitiesHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
 
             Helper\IconsStyleBuilder::class => AutoWireFactory::class,

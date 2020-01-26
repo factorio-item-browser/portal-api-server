@@ -1,0 +1,14 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    type:
+      type: string
+    name:
+      type: string
+    label:
+      type: string
+    pinnedPosition:
+      type: int
+    lastViewTime:
+      type: DateTimeImmutable<'Y-m-d\TH:i:s.vP'>

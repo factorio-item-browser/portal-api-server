@@ -14,6 +14,8 @@ tags:
     description: Requests related to recipe details.
   - name: Search
     description: Requests related with searching for items, recipes etc.
+  - name: Sidebar
+    description: Requests related to the sidebar of the browser.
   - name: Style
     description: Requests related to additional styles provided by the server.
 
@@ -106,6 +108,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchResultData"
+
+  /sidebar/entities:
+    put:
+      summary: Sends changes to the sidebar to the server.
+      operationId: sidebar.entities
+      tags:
+        - Sidebar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/SidebarEntityData"
+      responses:
+        204:
+          description: The chnages were successfully processed on the server.
 
   /style/icons:
     post:
@@ -400,3 +419,32 @@ components:
           description: The total number of search results.
           example: 42
 
+    SidebarEntityData:
+      type: object
+      description: The data representing an entity of the sidebar.
+      properties:
+        type:
+          type: string
+          enum:
+            - item
+            - fluid
+            - recipe
+          description: The type of the entity.
+          example: item
+        name:
+          type: string
+          description: The name of the entity.
+          example: electronic-circuit
+        label:
+          type: string
+          description: The translated label of the entity.
+          example: Elektronischer Schaltkreis
+        pinnedPosition:
+          type: integer
+          description: The position of the entity in the pinned list. 0 if not pinned.
+          example: 7
+        lastViewTime:
+          type: string
+          format: date-time
+          description: The timestamp when the entity was last viewed.
+          example: "2038-01-19T03:14:07.000Z"

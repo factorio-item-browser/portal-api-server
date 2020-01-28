@@ -6,12 +6,8 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use FactorioItemBrowser\Common\Constant\Constant;
-use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
-use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -29,12 +25,20 @@ class UserRepository
     protected $entityManager;
 
     /**
+     * The setting repository.
+     * @var SettingRepository
+     */
+    protected $settingRepository;
+
+    /**
      * Initializes the repository.
      * @param EntityManagerInterface $entityManager
+     * @param SettingRepository $settingRepository
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, SettingRepository $settingRepository)
     {
         $this->entityManager = $entityManager;
+        $this->settingRepository = $settingRepository;
     }
 
     /**
@@ -64,16 +68,11 @@ class UserRepository
      */
     public function createUser(): User
     {
-        $setting = new Setting();
-        $setting->setModNames([Constant::MOD_NAME_BASE])
-                ->setRecipeMode(RecipeMode::HYBRID)
-                ->setCombinationId(Uuid::fromString('2F4A45FAA509A9D1AAE6FFCF984A7A76'));
-
         $user = new User();
-        $user->setCurrentSetting($setting);
-        $user->getSettings()->add($setting);
+        $defaultSetting = $this->settingRepository->createDefaultSetting($user);
 
-        $setting->setUser($user);
+        $user->getSettings()->add($defaultSetting);
+        $user->setCurrentSetting($defaultSetting);
 
         return $user;
     }
@@ -86,9 +85,11 @@ class UserRepository
     {
         $this->entityManager->persist($user);
         if ($user->getCurrentSetting() !== null) {
+            foreach ($user->getCurrentSetting()->getSidebarEntities() as $sidebarEntity) {
+                $this->entityManager->persist($sidebarEntity);
+            }
             $this->entityManager->persist($user->getCurrentSetting());
         }
-
         $this->entityManager->flush();
     }
 }

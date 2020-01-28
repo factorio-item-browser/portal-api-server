@@ -48,6 +48,7 @@ return [
             Mapper\RecipeMapper::class => AutoWireFactory::class,
             Mapper\RecipeToEntityMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
+            Mapper\SidebarEntityDataMapper::class => AutoWireFactory::class,
 
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,
             Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,
@@ -55,6 +56,8 @@ return [
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
             Middleware\SessionMiddleware::class => AutoWireFactory::class,
 
+            Repository\SettingRepository::class => AutoWireFactory::class,
+            Repository\SidebarEntityRepository::class => AutoWireFactory::class,
             Repository\UserRepository::class => AutoWireFactory::class,
 
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,

@@ -25,6 +25,7 @@ return [
             Mapper\RecipeMapper::class,
             Mapper\RecipeToEntityMapper::class,
             Mapper\SearchQueryResponseMapper::class,
+            Mapper\SidebarEntityDataMapper::class,
         ],
     ],
 ];

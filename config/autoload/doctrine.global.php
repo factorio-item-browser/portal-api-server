@@ -45,6 +45,7 @@ return [
         'types' => [
             Doctrine\Type\EnumTypeRecipeMode::NAME => Doctrine\Type\EnumTypeRecipeMode::class,
             Doctrine\Type\EnumTypeSidebarEntityType::NAME => Doctrine\Type\EnumTypeSidebarEntityType::class,
+            Doctrine\Type\TimestampType::NAME => Doctrine\Type\TimestampType::class,
 
             UuidBinaryType::NAME => UuidBinaryType::class,
         ],

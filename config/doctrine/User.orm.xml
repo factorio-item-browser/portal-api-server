@@ -17,7 +17,7 @@
             </options>
         </id>
 
-        <field name="lastVisitTime" type="datetime" version="true">
+        <field name="lastVisitTime" type="timestamp">
             <options>
                 <option name="comment">The time when the user last visited.</option>
             </options>

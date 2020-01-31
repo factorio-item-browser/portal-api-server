@@ -38,7 +38,7 @@
             </options>
         </field>
 
-        <field name="lastViewTime" type="datetime" version="true">
+        <field name="lastViewTime" type="timestamp">
             <options>
                 <option name="comment">The time when the entity was last viewed.</option>
             </options>

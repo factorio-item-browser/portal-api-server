@@ -48,21 +48,28 @@ class CorsHeaderMiddlewareTest extends TestCase
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
+        /* @var ResponseInterface&MockObject $response4 */
+        $response4 = $this->createMock(ResponseInterface::class);
+
         /* @var ResponseInterface&MockObject $response3 */
         $response3 = $this->createMock(ResponseInterface::class);
+        $response3->expects($this->once())
+                  ->method('withHeader')
+                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('def'))
+                  ->willReturn($response4);
 
         /* @var ResponseInterface&MockObject $response2 */
         $response2 = $this->createMock(ResponseInterface::class);
         $response2->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('def'))
+                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('abc'))
                   ->willReturn($response3);
 
         /* @var ResponseInterface&MockObject $response1 */
         $response1 = $this->createMock(ResponseInterface::class);
         $response1->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('abc'))
+                  ->with($this->identicalTo('Access-Control-Allow-Credentials'), $this->identicalTo('true'))
                   ->willReturn($response2);
 
         /* @var RequestHandlerInterface&MockObject $handler */
@@ -75,6 +82,6 @@ class CorsHeaderMiddlewareTest extends TestCase
         $middleware = new CorsHeaderMiddleware($allowedOrigins);
         $result = $middleware->process($request, $handler);
 
-        $this->assertSame($response3, $result);
+        $this->assertSame($response4, $result);
     }
 }

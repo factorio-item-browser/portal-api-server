@@ -6,43 +6,51 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
 use DateTimeImmutable;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
-use FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityDataMapper;
+use FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 /**
- * The PHPUnit test of the SidebarEntityDataMapper class.
+ * The PHPUnit test of the SidebarEntityMapper class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityDataMapper
+ * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityMapper
  */
-class SidebarEntityDataMapperTest extends TestCase
+class SidebarEntityMapperTest extends TestCase
 {
     /**
-     * Tests the getSupportedSourceClass method.
-     * @covers ::getSupportedSourceClass
+     * Provides the data for the supports test.
+     * @return array<mixed>
      */
-    public function testGetSupportedSourceClass(): void
+    public function provideSupports(): array
     {
-        $expectedResult = SidebarEntityData::class;
+        return [
+            [new SidebarEntity(), new SidebarEntity(), true],
+            [new SidebarEntity(), new SidebarEntityData(), true],
+            [new SidebarEntityData(), new SidebarEntity(), true],
+            [new SidebarEntityData(), new SidebarEntityData(), true],
 
-        $mapper = new SidebarEntityDataMapper();
-        $result = $mapper->getSupportedSourceClass();
-
-        $this->assertSame($expectedResult, $result);
+            [new SidebarEntity(), new stdClass(), false],
+            [new SidebarEntityData(), new stdClass(), false],
+            [new stdClass(), new SidebarEntity(), false],
+            [new stdClass(), new SidebarEntityData(), false],
+        ];
     }
 
     /**
-     * Tests the getSupportedDestinationClass method.
-     * @covers ::getSupportedDestinationClass
+     * Tests the supports method.
+     * @param object $source
+     * @param object $destination
+     * @param bool $expectedResult
+     * @covers ::supports
+     * @dataProvider provideSupports
      */
-    public function testGetSupportedDestinationClass(): void
+    public function testSupports(object $source, object $destination, bool $expectedResult): void
     {
-        $expectedResult = SidebarEntity::class;
-
-        $mapper = new SidebarEntityDataMapper();
-        $result = $mapper->getSupportedDestinationClass();
+        $mapper = new SidebarEntityMapper();
+        $result = $mapper->supports($source, $destination);
 
         $this->assertSame($expectedResult, $result);
     }
@@ -71,7 +79,7 @@ class SidebarEntityDataMapperTest extends TestCase
 
         $destination = new SidebarEntity();
 
-        $mapper = new SidebarEntityDataMapper();
+        $mapper = new SidebarEntityMapper();
         $mapper->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);

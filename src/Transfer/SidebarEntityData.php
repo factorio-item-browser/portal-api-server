@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 
-use DateTimeImmutable;
+use DateTime;
 use DateTimeInterface;
 
 /**
@@ -50,7 +50,7 @@ class SidebarEntityData
      */
     public function __construct()
     {
-        $this->lastViewTime = new DateTimeImmutable();
+        $this->lastViewTime = new DateTime();
     }
 
     /**

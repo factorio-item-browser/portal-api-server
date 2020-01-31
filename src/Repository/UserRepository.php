@@ -6,7 +6,6 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
-use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
 use Ramsey\Uuid\UuidInterface;
@@ -52,7 +51,7 @@ class UserRepository
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->select('u', 's')
                      ->from(User::class, 'u')
-                     ->leftJoin(Setting::class, 's', 'WITH', 'u.currentSetting = s')
+                     ->leftJoin('u.currentSetting', 's')
                      ->where('u.id = :userId')
                      ->setParameter('userId', $userId, UuidBinaryType::NAME);
 

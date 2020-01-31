@@ -33,6 +33,7 @@ return [
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
             Handler\Recipe\MachinesHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
+            Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Sidebar\EntitiesHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
 
@@ -48,7 +49,7 @@ return [
             Mapper\RecipeMapper::class => AutoWireFactory::class,
             Mapper\RecipeToEntityMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
-            Mapper\SidebarEntityDataMapper::class => AutoWireFactory::class,
+            Mapper\SidebarEntityMapper::class => AutoWireFactory::class,
 
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,
             Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,

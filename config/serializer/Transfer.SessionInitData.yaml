@@ -1,0 +1,5 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    sidebarEntities: array<FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData>

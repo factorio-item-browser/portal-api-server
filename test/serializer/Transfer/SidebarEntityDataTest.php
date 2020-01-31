@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
-use DateTimeImmutable;
+use DateTime;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
@@ -29,7 +29,7 @@ class SidebarEntityDataTest extends SerializerTestCase
                ->setName('def')
                ->setLabel('ghi')
                ->setPinnedPosition(42)
-               ->setLastViewTime(new DateTimeImmutable('2038-01-19 03:14:07.123'));
+               ->setLastViewTime(new DateTime('2038-01-19 03:14:07.123'));
         return $object;
     }
 

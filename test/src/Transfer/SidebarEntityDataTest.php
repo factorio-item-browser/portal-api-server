@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
-use DateTimeImmutable;
+use DateTime;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\TestCase;
 
@@ -25,7 +25,7 @@ class SidebarEntityDataTest extends TestCase
     {
         $transfer = new SidebarEntityData();
 
-        $this->assertInstanceOf(DateTimeImmutable::class, $transfer->getLastViewTime());
+        $this->assertInstanceOf(DateTime::class, $transfer->getLastViewTime());
     }
 
     /**
@@ -91,7 +91,7 @@ class SidebarEntityDataTest extends TestCase
      */
     public function testSetAndGetLastViewTime(): void
     {
-        $lastViewTime = new DateTimeImmutable('2038-01-19 03:14:07');
+        $lastViewTime = new DateTime('2038-01-19 03:14:07');
         $transfer = new SidebarEntityData();
 
         $this->assertSame($transfer, $transfer->setLastViewTime($lastViewTime));

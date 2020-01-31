@@ -22,6 +22,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/recipe/{name}', Handler\Recipe\DetailsHandler::class, RouteName::RECIPE_DETAILS);
     $app->get('/recipe/{name}/machines', Handler\Recipe\MachinesHandler::class, RouteName::RECIPE_MACHINES);
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
+    $app->get('/session/init', Handler\Session\InitHandler::class, RouteName::SESSION_INIT);
     $app->post('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);
 };

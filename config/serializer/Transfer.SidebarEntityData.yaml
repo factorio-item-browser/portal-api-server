@@ -11,4 +11,4 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData:
     pinnedPosition:
       type: int
     lastViewTime:
-      type: DateTimeImmutable<'Y-m-d\TH:i:s.vP'>
+      type: DateTime<'Y-m-d\TH:i:s.vP'>

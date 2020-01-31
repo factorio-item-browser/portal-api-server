@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Common\Constant\Constant;
+use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
@@ -65,7 +66,9 @@ class SettingRepository
     {
         $setting = $this->createSetting($user, 'Vanilla');
         $setting->setModNames([Constant::MOD_NAME_BASE])
-                ->setCombinationId(Uuid::fromString('2F4A45FAA509A9D1AAE6FFCF984A7A76'));
+                ->setCombinationId(Uuid::fromString('2F4A45FAA509A9D1AAE6FFCF984A7A76'))
+                ->setRecipeMode(RecipeMode::HYBRID)
+                ->setLocale('en');
         return $setting;
     }
 

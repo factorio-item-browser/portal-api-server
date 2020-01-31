@@ -105,6 +105,9 @@ class SessionMiddleware implements MiddlewareInterface
         }
         if ($result === null) {
             $result = $this->userRepository->createUser();
+            if ($userId !== null) {
+                $result->setId($userId);
+            }
         }
         return $result;
     }

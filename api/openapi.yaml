@@ -110,7 +110,7 @@ paths:
                 $ref: "#/components/schemas/SearchResultData"
 
   /sidebar/entities:
-    put:
+    post:
       summary: Sends changes to the sidebar to the server.
       operationId: sidebar.entities
       tags:

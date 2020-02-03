@@ -8,6 +8,8 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use FactorioItemBrowser\Common\Constant\Constant;
+use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
@@ -15,6 +17,7 @@ use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SidebarEntityRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -69,7 +72,6 @@ class SettingRepositoryTest extends TestCase
 
     /**
      * Tests the createSetting method.
-     * @throws ReflectionException
      * @covers ::createSetting
      */
     public function testCreateSetting(): void
@@ -84,6 +86,28 @@ class SettingRepositoryTest extends TestCase
 
         $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
         $result = $repository->createSetting($user, $name);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the createDefaultSetting method.
+     * @covers ::createDefaultSetting
+     */
+    public function testCreateDefaultSetting(): void
+    {
+        /* @var User&MockObject $user */
+        $user = $this->createMock(User::class);
+
+        $expectedResult = new Setting();
+        $expectedResult->setUser($user)
+                       ->setModNames([Constant::MOD_NAME_BASE])
+                       ->setCombinationId(Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'))
+                       ->setRecipeMode(RecipeMode::HYBRID)
+                       ->setLocale('en');
+
+        $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
+        $result = $repository->createDefaultSetting($user);
 
         $this->assertEquals($expectedResult, $result);
     }

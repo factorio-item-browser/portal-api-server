@@ -21,6 +21,31 @@ use Ramsey\Uuid\Uuid;
 class SettingRepository
 {
     /**
+     * The name of the default setting.
+     */
+    protected const DEFAULT_NAME = 'Vanilla';
+
+    /**
+     * The mod names of the default setting.
+     */
+    protected const DEFAULT_MOD_NAMES = [Constant::MOD_NAME_BASE];
+
+    /**
+     * The combination id of the default setting.
+     */
+    protected const DEFAULT_COMBINATION_ID = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+
+    /**
+     * The recipe mode of the default setting.
+     */
+    protected const DEFAULT_RECIPE_MODE = RecipeMode::HYBRID;
+
+    /**
+     * The locale of the default setting.
+     */
+    protected const DEFAULT_LOCALE = 'en';
+
+    /**
      * The entity manager.
      * @var EntityManagerInterface
      */
@@ -64,11 +89,11 @@ class SettingRepository
      */
     public function createDefaultSetting(User $user): Setting
     {
-        $setting = $this->createSetting($user, 'Vanilla');
-        $setting->setModNames([Constant::MOD_NAME_BASE])
-                ->setCombinationId(Uuid::fromString('2F4A45FAA509A9D1AAE6FFCF984A7A76'))
-                ->setRecipeMode(RecipeMode::HYBRID)
-                ->setLocale('en');
+        $setting = $this->createSetting($user, self::DEFAULT_NAME);
+        $setting->setModNames(self::DEFAULT_MOD_NAMES)
+                ->setCombinationId(Uuid::fromString(self::DEFAULT_COMBINATION_ID))
+                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
+                ->setLocale(self::DEFAULT_LOCALE);
         return $setting;
     }
 

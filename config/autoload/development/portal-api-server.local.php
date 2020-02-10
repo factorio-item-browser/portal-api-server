@@ -19,6 +19,7 @@ return [
             ConfigKey::ALLOWED_ORIGINS => [
                 'http://localhost:8080',
             ],
+            ConfigKey::SESSION_COOKIE_NAME => 'FIB',
             ConfigKey::SESSION_COOKIE_DOMAIN => 'localhost',
             ConfigKey::SESSION_COOKIE_PATH => '/',
             ConfigKey::SESSION_COOKIE_LIFETIME => '+30 days',

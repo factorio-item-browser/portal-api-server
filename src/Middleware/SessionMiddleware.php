@@ -28,8 +28,6 @@ use Ramsey\Uuid\UuidInterface;
  */
 class SessionMiddleware implements MiddlewareInterface
 {
-    protected const COOKIE_NAME = 'FIB';
-
     /**
      * The service manager.
      * @var ServiceManager
@@ -41,6 +39,12 @@ class SessionMiddleware implements MiddlewareInterface
      * @var UserRepository
      */
     protected $userRepository;
+
+    /**
+     * The name to use for the cookie.
+     * @var string
+     */
+    protected $cookieName;
 
     /**
      * The domain to use for the cookie.
@@ -64,6 +68,7 @@ class SessionMiddleware implements MiddlewareInterface
      * Initializes the middleware.
      * @param ServiceManager $serviceManager
      * @param UserRepository $userRepository
+     * @param string $sessionCookieName
      * @param string $sessionCookieDomain
      * @param string $sessionCookiePath
      * @param string $sessionCookieLifeTime
@@ -71,12 +76,14 @@ class SessionMiddleware implements MiddlewareInterface
     public function __construct(
         ServiceManager $serviceManager,
         UserRepository $userRepository,
+        string $sessionCookieName,
         string $sessionCookieDomain,
         string $sessionCookiePath,
         string $sessionCookieLifeTime
     ) {
         $this->serviceManager = $serviceManager;
         $this->userRepository = $userRepository;
+        $this->cookieName = $sessionCookieName;
         $this->cookieDomain = $sessionCookieDomain;
         $this->cookiePath = $sessionCookiePath;
         $this->cookieLifeTime = $sessionCookieLifeTime;
@@ -111,7 +118,7 @@ class SessionMiddleware implements MiddlewareInterface
     {
         $result = null;
         try {
-            $cookieValue = FigRequestCookies::get($request, self::COOKIE_NAME)->getValue();
+            $cookieValue = FigRequestCookies::get($request, $this->cookieName)->getValue();
             if ($cookieValue !== null) {
                 $result = Uuid::fromString($cookieValue);
             }
@@ -161,7 +168,7 @@ class SessionMiddleware implements MiddlewareInterface
      */
     protected function createCookie(UuidInterface $userId): SetCookie
     {
-        return SetCookie::create(self::COOKIE_NAME, $userId->toString())
+        return SetCookie::create($this->cookieName, $userId->toString())
             ->withDomain($this->cookieDomain)
             ->withPath($this->cookiePath)
             ->withExpires(new DateTime($this->cookieLifeTime));

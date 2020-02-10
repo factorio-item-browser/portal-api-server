@@ -38,6 +38,11 @@ interface ConfigKey
     public const NUMBER_OF_RECIPES_PER_RESULT = 'number-of-recipes-per-result';
 
     /**
+     * The key holding the name of the session cookie.
+     */
+    public const SESSION_COOKIE_NAME = 'session-cookie-name';
+
+    /**
      * The key holding the domain to use for the session cookie.
      */
     public const SESSION_COOKIE_DOMAIN = 'session-cookie-domain';

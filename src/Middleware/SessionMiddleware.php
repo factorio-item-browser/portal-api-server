@@ -43,14 +43,43 @@ class SessionMiddleware implements MiddlewareInterface
     protected $userRepository;
 
     /**
+     * The domain to use for the cookie.
+     * @var string
+     */
+    protected $cookieDomain;
+
+    /**
+     * The path to use for the cookie.
+     * @var string
+     */
+    protected $cookiePath;
+
+    /**
+     * The lifetime to use for the cookie.
+     * @var string
+     */
+    protected $cookieLifeTime;
+
+    /**
      * Initializes the middleware.
      * @param ServiceManager $serviceManager
      * @param UserRepository $userRepository
+     * @param string $sessionCookieDomain
+     * @param string $sessionCookiePath
+     * @param string $sessionCookieLifeTime
      */
-    public function __construct(ServiceManager $serviceManager, UserRepository $userRepository)
-    {
+    public function __construct(
+        ServiceManager $serviceManager,
+        UserRepository $userRepository,
+        string $sessionCookieDomain,
+        string $sessionCookiePath,
+        string $sessionCookieLifeTime
+    ) {
         $this->serviceManager = $serviceManager;
         $this->userRepository = $userRepository;
+        $this->cookieDomain = $sessionCookieDomain;
+        $this->cookiePath = $sessionCookiePath;
+        $this->cookieLifeTime = $sessionCookieLifeTime;
     }
 
     /**
@@ -133,9 +162,9 @@ class SessionMiddleware implements MiddlewareInterface
     protected function createCookie(UuidInterface $userId): SetCookie
     {
         return SetCookie::create(self::COOKIE_NAME, $userId->toString())
-            ->withDomain('localhost')
-            ->withPath('/')
-            ->withExpires(new DateTime('+30 days'));
+            ->withDomain($this->cookieDomain)
+            ->withPath($this->cookiePath)
+            ->withExpires(new DateTime($this->cookieLifeTime));
     }
 
     /**

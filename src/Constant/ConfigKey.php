@@ -33,7 +33,22 @@ interface ConfigKey
     public const CACHE_DIR = 'cache-dir';
 
     /**
-     * The keys holding the number of recipes to return per result.
+     * The key holding the number of recipes to return per result.
      */
     public const NUMBER_OF_RECIPES_PER_RESULT = 'number-of-recipes-per-result';
+
+    /**
+     * The key holding the domain to use for the session cookie.
+     */
+    public const SESSION_COOKIE_DOMAIN = 'session-cookie-domain';
+
+    /**
+     * The key holding the path for the session cookie.
+     */
+    public const SESSION_COOKIE_PATH = 'session-cookie-path';
+
+    /**
+     * The key holding the lifetime for the session cookie.
+     */
+    public const SESSION_COOKIE_LIFETIME = 'session-cookie-lifetime';
 }

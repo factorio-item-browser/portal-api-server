@@ -36,6 +36,8 @@ return [
             Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Sidebar\EntitiesHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
+            Handler\Tooltip\ItemHandler::class => AutoWireFactory::class,
+            Handler\Tooltip\RecipeHandler::class => AutoWireFactory::class,
 
             Helper\IconsStyleBuilder::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,

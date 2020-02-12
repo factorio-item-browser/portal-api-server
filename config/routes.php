@@ -25,4 +25,6 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/session/init', Handler\Session\InitHandler::class, RouteName::SESSION_INIT);
     $app->post('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);
+    $app->get('/tooltip/{type:item|fluid}/{name}', Handler\Tooltip\ItemHandler::class, RouteName::TOOLTIP_ITEM);
+    $app->get('/tooltip/recipe/{name}', Handler\Tooltip\RecipeHandler::class, RouteName::TOOLTIP_RECIPE);
 };

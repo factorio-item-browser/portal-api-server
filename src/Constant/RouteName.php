@@ -51,4 +51,14 @@ interface RouteName
      * The route for fetching additional styles for icons.
      */
     public const STYLE_ICONS = 'style.icons';
+
+    /**
+     * The route for fetching the tooltip data of an item or fluid.
+     */
+    public const TOOLTIP_ITEM = 'tooltip.item';
+
+    /**
+     * The route for fetching the tooltip data of a recipe.
+     */
+    public const TOOLTIP_RECIPE = 'tooltip.recipe';
 }

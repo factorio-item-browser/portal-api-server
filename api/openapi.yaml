@@ -20,6 +20,8 @@ tags:
     description: Requests related to the sidebar of the browser.
   - name: Style
     description: Requests related to additional styles provided by the server.
+  - name: Tooltip
+    description: Requests related to providing tooltip data.
 
 paths:
   /{type}/{name}/ingredients:
@@ -161,6 +163,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IconsStyleData"
+
+  /tooltip/{type}/{name}:
+    get:
+      summary: Returns the tooltip data to show for the specified item or fluid.
+      operationId: tooltip.item
+      tags:
+        - Tooltip
+      parameters:
+        - $ref: "#/components/parameters/type"
+        - $ref: "#/components/parameters/name"
+      responses:
+        200:
+          description: The data for the tooltip.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityData"
+
+  /tooltip/recipe/{name}:
+    get:
+      summary: Returns the tooltip data to show for the specified recipe.
+      operationId: tooltip.recipe
+      tags:
+        - Tooltip
+      parameters:
+        - $ref: "#/components/parameters/name"
+      responses:
+        200:
+          description: The data for the tooltip.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityData"
 
 components:
   parameters:

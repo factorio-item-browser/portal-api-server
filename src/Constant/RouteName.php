@@ -23,6 +23,11 @@ interface RouteName
     public const ITEM_PRODUCTS = 'item.products';
 
     /**
+     * The route for fetching random items.
+     */
+    public const RANDOM = 'random';
+
+    /**
      * The route for fetching the details of a recipe.
      */
     public const RECIPE_DETAILS = 'recipe.details';

@@ -19,18 +19,18 @@ class TransferResponse extends Response
     use InjectContentTypeTrait;
 
     /**
-     * The transfer object of the response.
-     * @var object
+     * The transfer data of the response.
+     * @var mixed
      */
     protected $transfer;
 
     /**
      * Initializes the response.
-     * @param object $transfer
+     * @param mixed $transfer
      * @param int $status
      * @param array<string> $headers
      */
-    public function __construct(object $transfer, $status = 200, array $headers = [])
+    public function __construct($transfer, $status = 200, array $headers = [])
     {
         parent::__construct('php://memory', $status, $this->injectContentType('application/json', $headers));
 
@@ -38,10 +38,10 @@ class TransferResponse extends Response
     }
 
     /**
-     * Returns the transfer object of the response.
-     * @return object
+     * Returns the transfer data of the response.
+     * @return mixed
      */
-    public function getTransfer(): object
+    public function getTransfer()
     {
         return $this->transfer;
     }

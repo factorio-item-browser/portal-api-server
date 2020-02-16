@@ -30,6 +30,7 @@ return [
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
+            Handler\RandomHandler::class => AutoWireFactory::class,
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
             Handler\Recipe\MachinesHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,

@@ -19,6 +19,7 @@ use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
 
+use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
 use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 
 return [
@@ -69,6 +70,7 @@ return [
             // 3rd-party dependencies
             EntityManagerInterface::class => EntityManagerFactory::class,
             'doctrine.migrations.orm_default' => MigrationsConfigurationFactory::class,
+            ImplicitOptionsMiddleware::class => Middleware\ImplicitOptionsMiddlewareFactory::class,
 
             // Auto-wire helpers
             SerializerInterface::class . ' $portalApiServerSerializer' => Serializer\SerializerFactory::class,

@@ -48,6 +48,16 @@ interface RouteName
     public const SESSION_INIT = 'session.init';
 
     /**
+     * The route for requesting the details of a setting.
+     */
+    public const SETTINGS_DETAILS = 'settings.details';
+
+    /**
+     * The route for requesting the settings list.
+     */
+    public const SETTINGS_LIST = 'settings.list';
+
+    /**
      * The route for sending the sidebar entities to the server.
      */
     public const SIDEBAR_ENTITIES = 'sidebar.entities';

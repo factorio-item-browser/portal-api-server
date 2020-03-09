@@ -1,0 +1,12 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\ModData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    name:
+      type: string
+    label:
+      type: string
+    author:
+      type: string
+    version:
+      type: string

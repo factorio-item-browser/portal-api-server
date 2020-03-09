@@ -16,6 +16,8 @@ tags:
     description: Requests related with searching for items, recipes etc.
   - name: Session
     description: Requests related to the session handling.
+  - name: Settings
+    description: Requests realted to the setting handling.
   - name: Sidebar
     description: Requests related to the sidebar of the browser.
   - name: Style
@@ -146,6 +148,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessionInitData"
 
+  /settings:
+    get:
+      summary: Returns a list of available settings of the current user.
+      operationId: settings.list
+      tags:
+        - Settings
+      responses:
+        200:
+          description: The list of available settings.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingsListData"
+
+  /settings/{setting-id}:
+    get:
+      summary: Returns the details of the specified setting.
+      operationId: settings.details
+      tags:
+        - Settings
+      parameters:
+        - $ref: "#/components/parameters/setting-id"
+      responses:
+        200:
+          description: The details of the requested setting.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingDetailsData"
+
   /sidebar/entities:
     post:
       summary: Sends changes to the sidebar to the server.
@@ -237,6 +269,14 @@ components:
       schema:
         type: string
         example: copper-cable
+    setting-id:
+      name: setting-id
+      in: path
+      description: The id of the setting.
+      required: true
+      schema:
+        type: string
+        example: 84ad3867-d5fe-495d-af32-a4709ab3c2b7
 
     indexOfFirstResult:
       name: indexOfFirstResult
@@ -380,6 +420,27 @@ components:
           description: The unit of the energyUsage value.
           example: kW
 
+    ModData:
+      type: object
+      description: The data of a mod.
+      properties:
+        name:
+          type: string
+          description: The name of the mod.
+          example: base
+        label:
+          type: string
+          description: The translated label of the mod.
+          example: Base mod
+        author:
+          type: string
+          description: The author of the mod.
+          example: Factorio team
+        version:
+          type: string
+          description: The version of the mod.
+          example: 1.2.3
+
     NamesByTypes:
       type: object
       description: The names of entities grouped by their type.
@@ -498,6 +559,43 @@ components:
           description: The sidebar entities of the session.
           items:
             $ref: "#/components/schemas/SidebarEntityData"
+
+    SettingDetailsData:
+      allOf:
+        - $ref: "#/components/schemas/SettingMetaData"
+        - type: object
+          description: The detailed data of a setting of mods.
+          properties:
+            mods:
+              type: array
+              description: The mods used by the setting.
+              items:
+                $ref: "#/components/schemas/ModData"
+
+    SettingMetaData:
+      type: object
+      description: The meta data of a setting of mods.
+      properties:
+        id:
+          type: string
+          description: The internal id of the setting.
+          example: 84ad3867-d5fe-495d-af32-a4709ab3c2b7
+        name:
+          type: string
+          description: The name of the setting.
+          example: Vanilla
+
+    SettingsListData:
+      type: object
+      description: The data of the list of available settings.
+      properties:
+        settings:
+          type: array
+          description: The list of available settings.
+          items:
+            $ref: "#/components/schemas/SettingMetaData"
+        currentSetting:
+          $ref: "#/components/schemas/SettingDetailsData"
 
     SidebarEntityData:
       type: object

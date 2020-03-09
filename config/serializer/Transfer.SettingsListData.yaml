@@ -1,0 +1,8 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SettingsListData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    settings:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData>
+    currentSetting:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData

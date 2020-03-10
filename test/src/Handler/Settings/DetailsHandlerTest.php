@@ -6,12 +6,14 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
+use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\Mod;
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\DetailsHandler;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
@@ -19,6 +21,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -133,5 +136,100 @@ class DetailsHandlerTest extends TestCase
 
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertSame($settingDetails, $result->getTransfer());
+    }
+
+    /**
+     * Tests the findSetting method.
+     * @throws ReflectionException
+     * @covers ::findSetting
+     */
+    public function testFindSetting(): void
+    {
+        /* @var UuidInterface&MockObject $settingId */
+        $settingId = $this->createMock(UuidInterface::class);
+
+        /* @var UuidInterface&MockObject $uuid1 */
+        $uuid1 = $this->createMock(UuidInterface::class);
+        $uuid1->expects($this->once())
+              ->method('compareTo')
+              ->with($this->identicalTo($settingId))
+              ->willReturn(1);
+
+        /* @var UuidInterface&MockObject $uuid2 */
+        $uuid2 = $this->createMock(UuidInterface::class);
+        $uuid2->expects($this->once())
+              ->method('compareTo')
+              ->with($this->identicalTo($settingId))
+              ->willReturn(0);
+
+        /* @var Setting&MockObject $setting1 */
+        $setting1 = $this->createMock(Setting::class);
+        $setting1->expects($this->once())
+                 ->method('getId')
+                 ->willReturn($uuid1);
+
+        /* @var Setting&MockObject $setting2 */
+        $setting2 = $this->createMock(Setting::class);
+        $setting2->expects($this->once())
+                 ->method('getId')
+                 ->willReturn($uuid2);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettings')
+                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
+
+        $handler = new DetailsHandler($this->apiClientFactory, $this->currentUser, $this->mapperManager);
+        $result = $this->invokeMethod($handler, 'findSetting', $settingId);
+
+        $this->assertSame($setting2, $result);
+    }
+
+    /**
+     * Tests the findSetting method.
+     * @throws ReflectionException
+     * @covers ::findSetting
+     */
+    public function testFindSettingWithoutMatch(): void
+    {
+        /* @var UuidInterface&MockObject $settingId */
+        $settingId = $this->createMock(UuidInterface::class);
+        $settingId->expects($this->once())
+                  ->method('toString')
+                  ->willReturn('abc');
+
+        /* @var UuidInterface&MockObject $uuid1 */
+        $uuid1 = $this->createMock(UuidInterface::class);
+        $uuid1->expects($this->once())
+              ->method('compareTo')
+              ->with($this->identicalTo($settingId))
+              ->willReturn(1);
+
+        /* @var UuidInterface&MockObject $uuid2 */
+        $uuid2 = $this->createMock(UuidInterface::class);
+        $uuid2->expects($this->once())
+              ->method('compareTo')
+              ->with($this->identicalTo($settingId))
+              ->willReturn(-1);
+
+        /* @var Setting&MockObject $setting1 */
+        $setting1 = $this->createMock(Setting::class);
+        $setting1->expects($this->once())
+                 ->method('getId')
+                 ->willReturn($uuid1);
+
+        /* @var Setting&MockObject $setting2 */
+        $setting2 = $this->createMock(Setting::class);
+        $setting2->expects($this->once())
+                 ->method('getId')
+                 ->willReturn($uuid2);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettings')
+                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
+
+        $this->expectException(UnknownEntityException::class);
+
+        $handler = new DetailsHandler($this->apiClientFactory, $this->currentUser, $this->mapperManager);
+        $this->invokeMethod($handler, 'findSetting', $settingId);
     }
 }

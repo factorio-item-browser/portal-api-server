@@ -6,7 +6,7 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
-use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\Mod;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
@@ -115,15 +115,9 @@ class ListHandlerTest extends TestCase
         $expectedTransfer->setSettings([$settingMeta1, $settingMeta2])
                          ->setCurrentSetting($settingDetails);
 
-        /* @var Collection&MockObject $settingsCollection */
-        $settingsCollection = $this->createMock(Collection::class);
-        $settingsCollection->expects($this->once())
-                           ->method('toArray')
-                           ->willReturn([$setting1, $setting2]);
-
         $this->currentUser->expects($this->once())
                           ->method('getSettings')
-                          ->willReturn($settingsCollection);
+                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
 
         /* @var ListHandler&MockObject $handler */
         $handler = $this->getMockBuilder(ListHandler::class)

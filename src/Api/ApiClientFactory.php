@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Api;
 
+use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Laminas\ServiceManager\ServiceManager;
@@ -17,17 +18,31 @@ use Laminas\ServiceManager\ServiceManager;
 class ApiClientFactory
 {
     /**
+     * The entity manager.
+     * @var EntityManagerInterface
+     */
+    protected $entityManager;
+
+    /**
      * The service manager.
      * @var ServiceManager
      */
     protected $serviceManager;
 
     /**
+     * The API clients and their corresponding settings.
+     * @var array<mixed>
+     */
+    protected $clientsAndSettings = [];
+
+    /**
      * Initializes the factory.
+     * @param EntityManagerInterface $entityManager
      * @param ServiceManager $serviceManager
      */
-    public function __construct(ServiceManager $serviceManager)
+    public function __construct(EntityManagerInterface $entityManager, ServiceManager $serviceManager)
     {
+        $this->entityManager = $entityManager;
         $this->serviceManager = $serviceManager;
     }
 
@@ -53,5 +68,23 @@ class ApiClientFactory
         $apiClient->setLocale($setting->getLocale());
         $apiClient->setModNames($setting->getModNames());
         $apiClient->setAuthorizationToken($setting->getApiAuthorizationToken());
+
+        $this->clientsAndSettings[] = [$apiClient, $setting];
+    }
+
+    /**
+     * Persists the authorization tokens into the setting entities.
+     */
+    public function persistAuthorizationTokens(): void
+    {
+        foreach ($this->clientsAndSettings as [$apiClient, $setting]) {
+            /** @var ApiClientInterface $apiClient */
+            /** @var Setting $setting */
+            $authorizationToken = $apiClient->getAuthorizationToken();
+            if ($setting->getApiAuthorizationToken() !== $authorizationToken) {
+                $setting->setApiAuthorizationToken($authorizationToken);
+                $this->entityManager->persist($setting);
+            }
+        }
     }
 }

@@ -76,8 +76,6 @@ class ApiClientMiddlewareTest extends TestCase
      */
     public function testProcess(): void
     {
-        $newApiAuthorizationToken = 'abc';
-
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         /* @var ResponseInterface&MockObject $response */
@@ -90,17 +88,11 @@ class ApiClientMiddlewareTest extends TestCase
                 ->with($this->identicalTo($request))
                 ->willReturn($response);
 
-        $this->currentSetting->expects($this->once())
-                             ->method('setApiAuthorizationToken')
-                             ->with($this->identicalTo($newApiAuthorizationToken));
-
-        $this->apiClient->expects($this->once())
-                        ->method('getAuthorizationToken')
-                        ->willReturn($newApiAuthorizationToken);
-
         $this->apiClientFactory->expects($this->once())
                                ->method('configure')
                                ->with($this->identicalTo($this->apiClient), $this->identicalTo($this->currentSetting));
+        $this->apiClientFactory->expects($this->once())
+                               ->method('persistAuthorizationTokens');
 
         $middleware = new ApiClientMiddleware($this->apiClientFactory, $this->apiClient, $this->currentSetting);
         $result = $middleware->process($request, $handler);

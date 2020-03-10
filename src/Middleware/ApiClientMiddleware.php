@@ -63,10 +63,8 @@ class ApiClientMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $this->apiClientFactory->configure($this->apiClient, $this->currentSetting);
-
         $response = $handler->handle($request);
-
-        $this->currentSetting->setApiAuthorizationToken($this->apiClient->getAuthorizationToken());
+        $this->apiClientFactory->persistAuthorizationTokens();
         return $response;
     }
 }

@@ -46,7 +46,7 @@ abstract class AbstractSettingsHandler
      * Fetches the mods of the current setting.
      * @param ApiClientInterface $apiClient
      * @return array|Mod[]
-     * @throws FailedApiRequestException
+     * @throws PortalApiServerException
      */
     protected function fetchMods(ApiClientInterface $apiClient): array
     {
@@ -84,7 +84,7 @@ abstract class AbstractSettingsHandler
      * @param Setting $setting
      * @param array|Mod[] $mods
      * @return SettingDetailsData
-     * @throws MappingException
+     * @throws PortalApiServerException
      */
     protected function mapSettingDetails(Setting $setting, array $mods): SettingDetailsData
     {

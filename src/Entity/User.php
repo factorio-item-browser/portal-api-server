@@ -91,7 +91,7 @@ class User
 
     /**
      * Returns the settings of the user.
-     * @return Collection<int,Setting>
+     * @return Collection<int,Setting>|Setting[]
      */
     public function getSettings(): Collection
     {

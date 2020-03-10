@@ -69,7 +69,6 @@ class InitHandlerTest extends TestCase
 
     /**
      * Tests the handle method.
-     * @throws ReflectionException
      * @covers ::handle
      */
     public function testHandle(): void

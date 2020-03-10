@@ -28,6 +28,8 @@ return [
             ErrorResponseGenerator::class => Response\ErrorResponseGenerator::class,
         ],
         'factories' => [
+            Api\ApiClientFactory::class => AutoWireFactory::class,
+
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,

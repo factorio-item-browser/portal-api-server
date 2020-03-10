@@ -6,6 +6,7 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Middleware;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
+use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Middleware\ApiClientMiddleware;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -27,6 +28,12 @@ class ApiClientMiddlewareTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked api client factory.
+     * @var ApiClientFactory&MockObject
+     */
+    protected $apiClientFactory;
+
+    /**
      * The mocked api client.
      * @var ApiClientInterface&MockObject
      */
@@ -45,6 +52,7 @@ class ApiClientMiddlewareTest extends TestCase
     {
         parent::setUp();
 
+        $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
         $this->apiClient = $this->createMock(ApiClientInterface::class);
         $this->currentSetting = $this->createMock(Setting::class);
     }
@@ -56,7 +64,7 @@ class ApiClientMiddlewareTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $middleware = new ApiClientMiddleware($this->apiClient, $this->currentSetting);
+        $middleware = new ApiClientMiddleware($this->apiClientFactory, $this->apiClient, $this->currentSetting);
 
         $this->assertSame($this->apiClient, $this->extractProperty($middleware, 'apiClient'));
         $this->assertSame($this->currentSetting, $this->extractProperty($middleware, 'currentSetting'));
@@ -68,10 +76,7 @@ class ApiClientMiddlewareTest extends TestCase
      */
     public function testProcess(): void
     {
-        $locale = 'abc';
-        $modNames = ['def', 'ghi'];
-        $apiAuthorizationToken = 'jkl';
-        $newApiAuthorizationToken = 'mno';
+        $newApiAuthorizationToken = 'abc';
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -86,32 +91,18 @@ class ApiClientMiddlewareTest extends TestCase
                 ->willReturn($response);
 
         $this->currentSetting->expects($this->once())
-                             ->method('getLocale')
-                             ->willReturn($locale);
-        $this->currentSetting->expects($this->once())
-                             ->method('getModNames')
-                             ->willReturn($modNames);
-        $this->currentSetting->expects($this->once())
-                             ->method('getApiAuthorizationToken')
-                             ->willReturn($apiAuthorizationToken);
-        $this->currentSetting->expects($this->once())
                              ->method('setApiAuthorizationToken')
                              ->with($this->identicalTo($newApiAuthorizationToken));
 
         $this->apiClient->expects($this->once())
-                        ->method('setLocale')
-                        ->with($this->identicalTo($locale));
-        $this->apiClient->expects($this->once())
-                        ->method('setModNames')
-                        ->with($this->identicalTo($modNames));
-        $this->apiClient->expects($this->once())
-                        ->method('setAuthorizationToken')
-                        ->with($this->identicalTo($apiAuthorizationToken));
-        $this->apiClient->expects($this->once())
                         ->method('getAuthorizationToken')
                         ->willReturn($newApiAuthorizationToken);
 
-        $middleware = new ApiClientMiddleware($this->apiClient, $this->currentSetting);
+        $this->apiClientFactory->expects($this->once())
+                               ->method('configure')
+                               ->with($this->identicalTo($this->apiClient), $this->identicalTo($this->currentSetting));
+
+        $middleware = new ApiClientMiddleware($this->apiClientFactory, $this->apiClient, $this->currentSetting);
         $result = $middleware->process($request, $handler);
 
         $this->assertSame($response, $result);

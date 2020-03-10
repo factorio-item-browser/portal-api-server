@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
+use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,6 +21,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 class ApiClientMiddleware implements MiddlewareInterface
 {
     /**
+     * The api client factory.
+     * @var ApiClientFactory
+     */
+    protected $apiClientFactory;
+
+    /**
      * The api client.
      * @var ApiClientInterface
      */
@@ -33,11 +40,16 @@ class ApiClientMiddleware implements MiddlewareInterface
 
     /**
      * Initializes the middleware.
+     * @param ApiClientFactory $apiClientFactory
      * @param ApiClientInterface $apiClient
      * @param Setting $currentSetting
      */
-    public function __construct(ApiClientInterface $apiClient, Setting $currentSetting)
-    {
+    public function __construct(
+        ApiClientFactory $apiClientFactory,
+        ApiClientInterface $apiClient,
+        Setting $currentSetting
+    ) {
+        $this->apiClientFactory = $apiClientFactory;
         $this->apiClient = $apiClient;
         $this->currentSetting = $currentSetting;
     }
@@ -50,9 +62,7 @@ class ApiClientMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->apiClient->setLocale($this->currentSetting->getLocale());
-        $this->apiClient->setModNames($this->currentSetting->getModNames());
-        $this->apiClient->setAuthorizationToken($this->currentSetting->getApiAuthorizationToken());
+        $this->apiClientFactory->configure($this->apiClient, $this->currentSetting);
 
         $response = $handler->handle($request);
 

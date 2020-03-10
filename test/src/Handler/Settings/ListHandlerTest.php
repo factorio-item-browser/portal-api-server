@@ -160,5 +160,4 @@ class ListHandlerTest extends TestCase
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertEquals($expectedTransfer, $result->getTransfer());
     }
-
 }

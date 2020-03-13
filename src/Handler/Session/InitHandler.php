@@ -12,6 +12,7 @@ use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -52,13 +53,32 @@ class InitHandler implements RequestHandlerInterface
      * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws PortalApiServerException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $data = new SessionInitData();
-        $data->setSidebarEntities($this->getCurrentSidebarEntities());
+        $data->setSetting($this->mapSetting($this->currentSetting))
+             ->setSidebarEntities($this->getCurrentSidebarEntities());
 
         return new TransferResponse($data);
+    }
+
+    /**
+     * Maps the meta data of the setting.
+     * @param Setting $setting
+     * @return SettingMetaData
+     * @throws PortalApiServerException
+     */
+    protected function mapSetting(Setting $setting): SettingMetaData
+    {
+        $settingData = new SettingMetaData();
+        try {
+            $this->mapperManager->map($setting, $settingData);
+        } catch (MapperException $e) {
+            throw new MappingException($e);
+        }
+        return $settingData;
     }
 
     /**

@@ -13,10 +13,36 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SessionInitData
 {
     /**
+     * The current setting meta data.
+     * @var SettingMetaData
+     */
+    protected $setting;
+
+    /**
      * The sidebar entities of the session.
      * @var array<SidebarEntityData>
      */
     protected $sidebarEntities = [];
+
+    /**
+     * Sets the current setting meta data.
+     * @param SettingMetaData $setting
+     * @return $this
+     */
+    public function setSetting(SettingMetaData $setting): self
+    {
+        $this->setting = $setting;
+        return $this;
+    }
+
+    /**
+     * Returns the current setting meta data.
+     * @return SettingMetaData
+     */
+    public function getSetting(): SettingMetaData
+    {
+        return $this->setting;
+    }
 
     /**
      * Sets the sidebar entities of the session.

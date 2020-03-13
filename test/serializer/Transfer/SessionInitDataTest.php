@@ -7,6 +7,7 @@ namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 use DateTime;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
 
@@ -25,6 +26,10 @@ class SessionInitDataTest extends SerializerTestCase
      */
     protected function getObject(): object
     {
+        $setting = new SettingMetaData();
+        $setting->setId('stu')
+                ->setName('vwx');
+
         $sidebarEntity1 = new SidebarEntityData();
         $sidebarEntity1->setType('abc')
                        ->setName('def')
@@ -40,7 +45,8 @@ class SessionInitDataTest extends SerializerTestCase
                        ->setLastViewTime(new DateTime('2038-01-19 03:14:07.123'));
 
         $object = new SessionInitData();
-        $object->setSidebarEntities([$sidebarEntity1, $sidebarEntity2]);
+        $object->setSetting($setting)
+               ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2]);
         return $object;
     }
 
@@ -51,6 +57,10 @@ class SessionInitDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
+            'setting' => [
+                'id' => 'stu',
+                'name' => 'vwx',
+            ],
             'sidebarEntities' => [
                 [
                     'type' => 'abc',

@@ -18,8 +18,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
-
 use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
+
 use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 
 return [
@@ -67,6 +67,7 @@ return [
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
             Middleware\SessionMiddleware::class => AutoWireFactory::class,
 
+            Repository\CombinationRepository::class => AutoWireFactory::class,
             Repository\SettingRepository::class => AutoWireFactory::class,
             Repository\SidebarEntityRepository::class => AutoWireFactory::class,
             Repository\UserRepository::class => AutoWireFactory::class,

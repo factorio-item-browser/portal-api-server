@@ -132,6 +132,7 @@ class SessionMiddleware implements MiddlewareInterface
      * Fetches the user to the specified id.
      * @param UuidInterface|null $userId
      * @return User
+     * @throws Exception
      */
     protected function fetchUser(?UuidInterface $userId): User
     {

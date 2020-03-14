@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -63,32 +64,32 @@ class SettingTest extends TestCase
     }
 
     /**
-     * Tests the setting and getting the combination id.
-     * @covers ::getCombinationId
-     * @covers ::setCombinationId
+     * Tests the setting and getting the combination.
+     * @covers ::getCombination
+     * @covers ::setCombination
      */
-    public function testSetAndGetCombinationId(): void
+    public function testSetAndGetCombination(): void
     {
-        /* @var UuidInterface&MockObject $combinationId */
-        $combinationId = $this->createMock(UuidInterface::class);
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
         $entity = new Setting();
 
-        $this->assertSame($entity, $entity->setCombinationId($combinationId));
-        $this->assertSame($combinationId, $entity->getCombinationId());
+        $this->assertSame($entity, $entity->setCombination($combination));
+        $this->assertSame($combination, $entity->getCombination());
     }
 
     /**
-     * Tests the setting and getting the mod names.
-     * @covers ::getModNames
-     * @covers ::setModNames
+     * Tests the setting and getting the name.
+     * @covers ::getName
+     * @covers ::setName
      */
-    public function testSetAndGetModNames(): void
+    public function testSetAndGetName(): void
     {
-        $modNames = ['abc', 'def'];
+        $name = 'abc';
         $entity = new Setting();
 
-        $this->assertSame($entity, $entity->setModNames($modNames));
-        $this->assertSame($modNames, $entity->getModNames());
+        $this->assertSame($entity, $entity->setName($name));
+        $this->assertSame($name, $entity->getName());
     }
 
     /**

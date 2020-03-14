@@ -21,15 +21,13 @@
             <join-column name="userId" nullable="false" />
         </many-to-one>
 
-        <field name="combinationId" type="uuid_binary">
-            <options>
-                <option name="comment">The ID of the combination used for this setting.</option>
-            </options>
-        </field>
+        <many-to-one field="combination" target-entity="Combination" fetch="EAGER">
+            <join-column name="combinationId" nullable="false" />
+        </many-to-one>
 
-        <field name="modNames" type="json">
+        <field name="name" length="255">
             <options>
-                <option name="comment">The mod names used for this setting.</option>
+                <option name="comment">The name of the setting.</option>
             </options>
         </field>
 

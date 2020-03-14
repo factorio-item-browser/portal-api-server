@@ -29,16 +29,16 @@ class Setting
     protected $user;
 
     /**
-     * The ID of the combination used for this setting.
-     * @var UuidInterface
+     * The combination used for this setting.
+     * @var Combination
      */
-    protected $combinationId;
+    protected $combination;
 
     /**
-     * The mod names used for this setting.
-     * @var array|string[]
+     * The name of the setting.
+     * @var string
      */
-    protected $modNames = [];
+    protected $name = '';
 
     /**
      * The locale used by this setting.
@@ -113,43 +113,43 @@ class Setting
     }
 
     /**
-     * Sets the ID of the combination used for this setting.
-     * @param UuidInterface $combinationId
+     * Sets the combination used for this setting..
+     * @param Combination $combination
      * @return $this
      */
-    public function setCombinationId(UuidInterface $combinationId): self
+    public function setCombination(Combination $combination): self
     {
-        $this->combinationId = $combinationId;
+        $this->combination = $combination;
         return $this;
     }
 
     /**
-     * Returns the ID of the combination used for this setting.
-     * @return UuidInterface
+     * Returns the combination used for this setting.
+     * @return Combination
      */
-    public function getCombinationId(): UuidInterface
+    public function getCombination(): Combination
     {
-        return $this->combinationId;
+        return $this->combination;
     }
 
     /**
-     * Sets the mod names used for this setting.
-     * @param array|string[] $modNames
+     * Sets the name of the setting.
+     * @param string $name
      * @return $this
      */
-    public function setModNames(array $modNames): self
+    public function setName(string $name): self
     {
-        $this->modNames = $modNames;
+        $this->name = $name;
         return $this;
     }
 
     /**
-     * Returns the mod names used for this setting.
-     * @return array|string[]
+     * Returns the name of the setting.
+     * @return string
      */
-    public function getModNames(): array
+    public function getName(): string
     {
-        return $this->modNames;
+        return $this->name;
     }
 
     /**

@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
+use Exception;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
 use Ramsey\Uuid\UuidInterface;
@@ -49,9 +50,10 @@ class UserRepository
     public function getUser(UuidInterface $userId): ?User
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->select('u', 's')
+        $queryBuilder->select('u', 's', 'c')
                      ->from(User::class, 'u')
                      ->leftJoin('u.currentSetting', 's')
+                     ->leftJoin('s.combination', 'c')
                      ->where('u.id = :userId')
                      ->setParameter('userId', $userId, UuidBinaryType::NAME);
 
@@ -66,6 +68,7 @@ class UserRepository
     /**
      * Creates a new user with default settings with the specified user id.
      * @return User
+     * @throws Exception
      */
     public function createUser(): User
     {

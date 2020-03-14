@@ -35,6 +35,6 @@ class SettingMapper implements DynamicMapperInterface
     public function map($source, $destination): void
     {
         $destination->setId($source->getId()->toString())
-                    ->setName('NOT YET IMPLEMENTED');
+                    ->setName($source->getName());
     }
 }

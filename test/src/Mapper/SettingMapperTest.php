@@ -60,12 +60,12 @@ class SettingMapperTest extends TestCase
         $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
 
         $source = new Setting();
-        $source->setId(Uuid::fromString($settingId));
+        $source->setId(Uuid::fromString($settingId))
+               ->setName('abc');
 
         $expectedDestination = new SettingMetaData();
         $expectedDestination->setId($settingId)
-                            ->setName('NOT YET IMPLEMENTED');
-
+                            ->setName('abc');
 
         $destination = new SettingMetaData();
 

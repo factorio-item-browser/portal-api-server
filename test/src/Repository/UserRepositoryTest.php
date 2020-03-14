@@ -8,6 +8,7 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
+use Exception;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
@@ -86,15 +87,18 @@ class UserRepositoryTest extends TestCase
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->once())
                      ->method('select')
-                     ->with($this->identicalTo('u'), $this->identicalTo('s'))
+                     ->with($this->identicalTo('u'), $this->identicalTo('s'), $this->identicalTo('c'))
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('from')
                      ->with($this->identicalTo(User::class), $this->identicalTo('u'))
                      ->willReturnSelf();
-        $queryBuilder->expects($this->once())
+        $queryBuilder->expects($this->exactly(2))
                      ->method('leftJoin')
-                     ->with($this->identicalTo('u.currentSetting'), $this->identicalTo('s'))
+                     ->withConsecutive(
+                         [$this->identicalTo('u.currentSetting'), $this->identicalTo('s')],
+                         [$this->identicalTo('s.combination'), $this->identicalTo('c')]
+                     )
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('where')
@@ -126,6 +130,7 @@ class UserRepositoryTest extends TestCase
     /**
      * Tests the createUser method.
      * @covers ::createUser
+     * @throws Exception
      */
     public function testCreateUser(): void
     {

@@ -8,6 +8,7 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -111,14 +112,20 @@ class ApiClientFactoryTest extends TestCase
         /* @var ApiClientInterface&MockObject $apiClient2 */
         $apiClient2 = $this->createMock(ApiClientInterface::class);
 
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
+        $combination->expects($this->once())
+                    ->method('getModNames')
+                    ->willReturn($modNames);
+
         /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
         $setting->expects($this->once())
                 ->method('getLocale')
                 ->willReturn($locale);
         $setting->expects($this->once())
-                ->method('getModNames')
-                ->willReturn($modNames);
+                ->method('getCombination')
+                ->willReturn($combination);
         $setting->expects($this->once())
                 ->method('getApiAuthorizationToken')
                 ->willReturn($authorizationToken);

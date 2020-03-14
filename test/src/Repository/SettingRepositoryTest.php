@@ -8,16 +8,15 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FactorioItemBrowser\Common\Constant\Constant;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
-use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SidebarEntityRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -30,6 +29,12 @@ use ReflectionException;
 class SettingRepositoryTest extends TestCase
 {
     use ReflectionTrait;
+
+    /**
+     * The mocked combination repository.
+     * @var CombinationRepository&MockObject
+     */
+    protected $combinationRepository;
 
     /**
      * The mocked entity manager.
@@ -50,6 +55,7 @@ class SettingRepositoryTest extends TestCase
     {
         parent::setUp();
 
+        $this->combinationRepository = $this->createMock(CombinationRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->sidebarEntityRepository = $this->createMock(SidebarEntityRepository::class);
     }
@@ -61,7 +67,11 @@ class SettingRepositoryTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
+        $repository = new SettingRepository(
+            $this->combinationRepository,
+            $this->entityManager,
+            $this->sidebarEntityRepository
+        );
 
         $this->assertSame($this->entityManager, $this->extractProperty($repository, 'entityManager'));
         $this->assertSame(
@@ -73,6 +83,7 @@ class SettingRepositoryTest extends TestCase
     /**
      * Tests the createSetting method.
      * @covers ::createSetting
+     * @throws Exception
      */
     public function testCreateSetting(): void
     {
@@ -80,36 +91,51 @@ class SettingRepositoryTest extends TestCase
 
         /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
 
-        $expectedResult = new Setting();
-        $expectedResult->setUser($user);
+        $repository = new SettingRepository(
+            $this->combinationRepository,
+            $this->entityManager,
+            $this->sidebarEntityRepository
+        );
+        $result = $repository->createSetting($user, $combination, $name);
 
-        $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
-        $result = $repository->createSetting($user, $name);
-
-        $this->assertEquals($expectedResult, $result);
+        $result->getId(); // Asserted by type-hint.
+        $this->assertSame($user, $result->getUser());
+        $this->assertSame($combination, $result->getCombination());
+        $this->assertSame($name, $result->getName());
     }
 
     /**
      * Tests the createDefaultSetting method.
      * @covers ::createDefaultSetting
+     * @throws Exception
      */
     public function testCreateDefaultSetting(): void
     {
         /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
+        /* @var Combination&MockObject $$defaultCombination */
+        $defaultCombination = $this->createMock(Combination::class);
 
-        $expectedResult = new Setting();
-        $expectedResult->setUser($user)
-                       ->setModNames([Constant::MOD_NAME_BASE])
-                       ->setCombinationId(Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'))
-                       ->setRecipeMode(RecipeMode::HYBRID)
-                       ->setLocale('en');
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getDefaultCombination')
+                                    ->willReturn($defaultCombination);
 
-        $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
+        $repository = new SettingRepository(
+            $this->combinationRepository,
+            $this->entityManager,
+            $this->sidebarEntityRepository
+        );
         $result = $repository->createDefaultSetting($user);
 
-        $this->assertEquals($expectedResult, $result);
+        $result->getId(); // Asserted by type-hint.
+        $this->assertSame($user, $result->getUser());
+        $this->assertSame($defaultCombination, $result->getCombination());
+        $this->assertSame('Vanilla', $result->getName());
+        $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
+        $this->assertSame('en', $result->getLocale());
     }
 
     /**
@@ -137,7 +163,11 @@ class SettingRepositoryTest extends TestCase
         $destination->setType('foo')
                     ->setName('bar');
 
-        $repository = new SettingRepository($this->entityManager, $this->sidebarEntityRepository);
+        $repository = new SettingRepository(
+            $this->combinationRepository,
+            $this->entityManager,
+            $this->sidebarEntityRepository
+        );
         $this->invokeMethod($repository, 'hydrateSidebarEntity', $source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);

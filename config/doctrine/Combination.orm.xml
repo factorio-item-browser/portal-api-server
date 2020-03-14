@@ -1,0 +1,30 @@
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd"
+>
+    <entity name="FactorioItemBrowser\PortalApi\Server\Entity\Combination">
+        <options>
+            <option name="comment">The table holding the combinations.</option>
+        </options>
+
+        <id name="id" type="uuid_binary">
+            <options>
+                <option name="comment">The ID of the combination.</option>
+            </options>
+        </id>
+
+        <field name="modNames" type="json">
+            <options>
+                <option name="comment">The mod names used for this setting.</option>
+            </options>
+        </field>
+
+        <field name="isAvailable" type="boolean">
+            <options>
+                <option name="comment">Whether the data for the combination is already available..</option>
+            </options>
+        </field>
+    </entity>
+</doctrine-mapping>

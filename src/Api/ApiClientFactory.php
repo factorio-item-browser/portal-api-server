@@ -66,7 +66,7 @@ class ApiClientFactory
     public function configure(ApiClientInterface $apiClient, Setting $setting): void
     {
         $apiClient->setLocale($setting->getLocale());
-        $apiClient->setModNames($setting->getModNames());
+        $apiClient->setModNames($setting->getCombination()->getModNames());
         $apiClient->setAuthorizationToken($setting->getApiAuthorizationToken());
 
         $this->clientsAndSettings[] = [$apiClient, $setting];

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
-use FactorioItemBrowser\Common\Constant\Constant;
+use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
@@ -26,16 +27,6 @@ class SettingRepository
     protected const DEFAULT_NAME = 'Vanilla';
 
     /**
-     * The mod names of the default setting.
-     */
-    protected const DEFAULT_MOD_NAMES = [Constant::MOD_NAME_BASE];
-
-    /**
-     * The combination id of the default setting.
-     */
-    protected const DEFAULT_COMBINATION_ID = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
-
-    /**
      * The recipe mode of the default setting.
      */
     protected const DEFAULT_RECIPE_MODE = RecipeMode::HYBRID;
@@ -44,6 +35,12 @@ class SettingRepository
      * The locale of the default setting.
      */
     protected const DEFAULT_LOCALE = 'en';
+
+    /**
+     * The combination repository.
+     * @var CombinationRepository
+     */
+    protected $combinationRepository;
 
     /**
      * The entity manager.
@@ -59,11 +56,16 @@ class SettingRepository
 
     /**
      * Initializes the repository.
+     * @param CombinationRepository $combinationRepository
      * @param EntityManagerInterface $entityManager
      * @param SidebarEntityRepository $sidebarEntityRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, SidebarEntityRepository $sidebarEntityRepository)
-    {
+    public function __construct(
+        CombinationRepository $combinationRepository,
+        EntityManagerInterface $entityManager,
+        SidebarEntityRepository $sidebarEntityRepository
+    ) {
+        $this->combinationRepository = $combinationRepository;
         $this->entityManager = $entityManager;
         $this->sidebarEntityRepository = $sidebarEntityRepository;
     }
@@ -71,14 +73,18 @@ class SettingRepository
     /**
      * Creates a new setting for the specified user.
      * @param User $user
+     * @param Combination $combination
      * @param string $name
      * @return Setting
+     * @throws Exception
      */
-    public function createSetting(User $user, string $name): Setting
+    public function createSetting(User $user, Combination $combination, string $name): Setting
     {
         $setting = new Setting();
-        $setting->setUser($user)
-                /*->setName($name)*/; // @todo Add name to database table.
+        $setting->setId(Uuid::uuid4())
+                ->setUser($user)
+                ->setCombination($combination)
+                ->setName($name);
         return $setting;
     }
 
@@ -86,13 +92,13 @@ class SettingRepository
      * Creates a default setting instance for the user.
      * @param User $user
      * @return Setting
+     * @throws Exception
      */
     public function createDefaultSetting(User $user): Setting
     {
-        $setting = $this->createSetting($user, self::DEFAULT_NAME);
-        $setting->setModNames(self::DEFAULT_MOD_NAMES)
-                ->setCombinationId(Uuid::fromString(self::DEFAULT_COMBINATION_ID))
-                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
+        $defaultCombination = $this->combinationRepository->getDefaultCombination();
+        $setting = $this->createSetting($user, $defaultCombination, self::DEFAULT_NAME);
+        $setting->setRecipeMode(self::DEFAULT_RECIPE_MODE)
                 ->setLocale(self::DEFAULT_LOCALE);
         return $setting;
     }

@@ -137,6 +137,10 @@ class UserRepositoryTest extends TestCase
         /* @var Setting&MockObject $defaultSetting */
         $defaultSetting = $this->createMock(Setting::class);
 
+        $this->entityManager->expects($this->once())
+                            ->method('persist')
+                            ->with($this->equalTo(new User()));
+
         $this->settingRepository->expects($this->once())
                                 ->method('createDefaultSetting')
                                 ->with($this->equalTo(new User()))

@@ -85,6 +85,8 @@ class SettingRepository
                 ->setUser($user)
                 ->setCombination($combination)
                 ->setName($name);
+
+        $this->entityManager->persist($setting);
         return $setting;
     }
 

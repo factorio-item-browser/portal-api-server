@@ -573,6 +573,18 @@ components:
               description: The mods used by the setting.
               items:
                 $ref: "#/components/schemas/ModData"
+            locale:
+              type: string
+              description: The locale of the setting.
+              example: en
+            recipeMode:
+              type: string
+              enum:
+                - hybrid
+                - normal
+                - expensive
+              description: The recipe mode of the setting.
+              example: hybrid
 
     SettingMetaData:
       type: object

@@ -74,4 +74,32 @@ class SettingMapperTest extends TestCase
 
         $this->assertEquals($expectedDestination, $destination);
     }
+
+    /**
+     * Tests the map method.
+     * @covers ::map
+     */
+    public function testMapWithDetails(): void
+    {
+        $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
+
+        $source = new Setting();
+        $source->setId(Uuid::fromString($settingId))
+               ->setName('abc')
+               ->setLocale('def')
+               ->setRecipeMode('ghi');
+
+        $expectedDestination = new SettingDetailsData();
+        $expectedDestination->setId($settingId)
+                            ->setName('abc')
+                            ->setLocale('def')
+                            ->setRecipeMode('ghi');
+
+        $destination = new SettingDetailsData();
+
+        $mapper = new SettingMapper();
+        $mapper->map($source, $destination);
+
+        $this->assertEquals($expectedDestination, $destination);
+    }
 }

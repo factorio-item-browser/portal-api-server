@@ -73,11 +73,12 @@ class UserRepository
     public function createUser(): User
     {
         $user = new User();
+        $this->entityManager->persist($user);
+
         $defaultSetting = $this->settingRepository->createDefaultSetting($user);
 
         $user->getSettings()->add($defaultSetting);
         $user->setCurrentSetting($defaultSetting);
-
         return $user;
     }
 

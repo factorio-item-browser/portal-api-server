@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
 use BluePsyduck\MapperManager\Mapper\DynamicMapperInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 
 /**
@@ -36,5 +37,10 @@ class SettingMapper implements DynamicMapperInterface
     {
         $destination->setId($source->getId()->toString())
                     ->setName($source->getName());
+
+        if ($destination instanceof SettingDetailsData) {
+            $destination->setLocale($source->getLocale())
+                        ->setRecipeMode($source->getRecipeMode());
+        }
     }
 }

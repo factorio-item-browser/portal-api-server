@@ -19,6 +19,18 @@ class SettingDetailsData extends SettingMetaData
     protected $mods = [];
 
     /**
+     * The locale of the setting.
+     * @var string
+     */
+    protected $locale = '';
+
+    /**
+     * The recipe mode of the setting.
+     * @var string
+     */
+    protected $recipeMode = '';
+
+    /**
      * Sets the mods of the setting.
      * @param array|ModData[] $mods
      * @return $this
@@ -36,5 +48,45 @@ class SettingDetailsData extends SettingMetaData
     public function getMods(): array
     {
         return $this->mods;
+    }
+
+    /**
+     * Sets the locale of the setting.
+     * @param string $locale
+     * @return $this
+     */
+    public function setLocale(string $locale): self
+    {
+        $this->locale = $locale;
+        return $this;
+    }
+
+    /**
+     * Returns the locale of the setting.
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
+    }
+
+    /**
+     * Sets the recipe mode of the setting.
+     * @param string $recipeMode
+     * @return $this
+     */
+    public function setRecipeMode(string $recipeMode): self
+    {
+        $this->recipeMode = $recipeMode;
+        return $this;
+    }
+
+    /**
+     * Returns the recipe mode of the setting.
+     * @return string
+     */
+    public function getRecipeMode(): string
+    {
+        return $this->recipeMode;
     }
 }

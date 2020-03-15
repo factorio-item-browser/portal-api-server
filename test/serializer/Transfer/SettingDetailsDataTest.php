@@ -37,7 +37,9 @@ class SettingDetailsDataTest extends SerializerTestCase
         $object = new SettingDetailsData();
         $object->setId('yza')
                ->setName('bcd')
-               ->setMods([$mod1, $mod2]);
+               ->setMods([$mod1, $mod2])
+               ->setLocale('efg')
+               ->setRecipeMode('hij');
 
         return $object;
     }
@@ -65,6 +67,8 @@ class SettingDetailsDataTest extends SerializerTestCase
                     'version' => 'vwx',
                 ],
             ],
+            'locale' => 'efg',
+            'recipeMode' => 'hij',
         ];
     }
 

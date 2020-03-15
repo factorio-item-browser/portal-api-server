@@ -33,7 +33,9 @@ class SettingsListDataTest extends SerializerTestCase
 
         $currentSetting = new SettingDetailsData();
         $currentSetting->setId('mno')
-                       ->setName('pqr');
+                       ->setName('pqr')
+                       ->setLocale('stu')
+                       ->setRecipeMode('vwx');
 
         $object = new SettingsListData();
         $object->setSettings([$setting1, $setting2])
@@ -63,6 +65,8 @@ class SettingsListDataTest extends SerializerTestCase
                 'id' => 'mno',
                 'name' => 'pqr',
                 'mods' => [],
+                'locale' => 'stu',
+                'recipeMode' => 'vwx',
             ],
         ];
     }

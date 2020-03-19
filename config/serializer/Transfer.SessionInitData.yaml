@@ -2,5 +2,9 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
   access_type: public_method
   exclusion_policy: all
   properties:
-    setting: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
-    sidebarEntities: array<FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData>
+    settingName:
+      type: string
+    locale:
+      type: string
+    sidebarEntities:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData>

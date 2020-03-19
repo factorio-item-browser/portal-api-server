@@ -90,9 +90,6 @@ class UserRepository
     {
         $this->entityManager->persist($user);
         if ($user->getCurrentSetting() !== null) {
-            foreach ($user->getCurrentSetting()->getSidebarEntities() as $sidebarEntity) {
-                $this->entityManager->persist($sidebarEntity);
-            }
             $this->entityManager->persist($user->getCurrentSetting());
         }
         $this->entityManager->flush();

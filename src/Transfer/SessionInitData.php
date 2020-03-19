@@ -13,10 +13,16 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SessionInitData
 {
     /**
-     * The current setting meta data.
-     * @var SettingMetaData
+     * The name of the currently loaded setting.
+     * @var string
      */
-    protected $setting;
+    protected $settingName = '';
+
+    /**
+     * The locale to use for the page.
+     * @var string
+     */
+    protected $locale = '';
 
     /**
      * The sidebar entities of the session.
@@ -25,23 +31,43 @@ class SessionInitData
     protected $sidebarEntities = [];
 
     /**
-     * Sets the current setting meta data.
-     * @param SettingMetaData $setting
+     * Sets the name of the currently loaded setting.
+     * @param string $settingName
      * @return $this
      */
-    public function setSetting(SettingMetaData $setting): self
+    public function setSettingName(string $settingName): self
     {
-        $this->setting = $setting;
+        $this->settingName = $settingName;
         return $this;
     }
 
     /**
-     * Returns the current setting meta data.
-     * @return SettingMetaData
+     * Returns the name of the currently loaded setting.
+     * @return string
      */
-    public function getSetting(): SettingMetaData
+    public function getSettingName(): string
     {
-        return $this->setting;
+        return $this->settingName;
+    }
+
+    /**
+     * Sets the locale to use for the page.
+     * @param string $locale
+     * @return $this
+     */
+    public function setLocale(string $locale): self
+    {
+        $this->locale = $locale;
+        return $this;
+    }
+
+    /**
+     * Returns the locale to use for the page.
+     * @return string
+     */
+    public function getLocale(): string
+    {
+        return $this->locale;
     }
 
     /**

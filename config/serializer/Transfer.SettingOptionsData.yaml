@@ -1,0 +1,8 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SettingOptionsData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    locale:
+      type: string
+    recipeMode:
+      type: string

@@ -12,7 +12,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Sidebar\EntitiesHandler;
-use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
+use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use JMS\Serializer\SerializerInterface;
 use Laminas\Diactoros\Response\EmptyResponse;
@@ -52,10 +52,10 @@ class EntitiesHandlerTest extends TestCase
     protected $serializer;
 
     /**
-     * The mocked setting repository.
-     * @var SettingRepository&MockObject
+     * The mocked sidebar entities helper.
+     * @var SidebarEntitiesHelper&MockObject
      */
-    protected $settingRepository;
+    protected $sidebarEntitiesHelper;
 
     /**
      * Sets up the test case.
@@ -67,7 +67,7 @@ class EntitiesHandlerTest extends TestCase
         $this->currentSetting = $this->createMock(Setting::class);
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
-        $this->settingRepository = $this->createMock(SettingRepository::class);
+        $this->sidebarEntitiesHelper = $this->createMock(SidebarEntitiesHelper::class);
     }
 
     /**
@@ -81,13 +81,13 @@ class EntitiesHandlerTest extends TestCase
             $this->currentSetting,
             $this->mapperManager,
             $this->serializer,
-            $this->settingRepository
+            $this->sidebarEntitiesHelper
         );
 
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->mapperManager, $this->extractProperty($handler, 'mapperManager'));
         $this->assertSame($this->serializer, $this->extractProperty($handler, 'serializer'));
-        $this->assertSame($this->settingRepository, $this->extractProperty($handler, 'settingRepository'));
+        $this->assertSame($this->sidebarEntitiesHelper, $this->extractProperty($handler, 'sidebarEntitiesHelper'));
     }
 
     /**
@@ -105,9 +105,9 @@ class EntitiesHandlerTest extends TestCase
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
 
-        $this->settingRepository->expects($this->once())
-                                ->method('replaceSidebarEntities')
-                                ->with($this->identicalTo($this->currentSetting), $this->identicalTo($newEntities));
+        $this->sidebarEntitiesHelper->expects($this->once())
+                                    ->method('replaceEntities')
+                                    ->with($this->identicalTo($this->currentSetting), $this->identicalTo($newEntities));
 
         /* @var EntitiesHandler&MockObject $handler */
         $handler = $this->getMockBuilder(EntitiesHandler::class)
@@ -116,7 +116,7 @@ class EntitiesHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->mapperManager,
                             $this->serializer,
-                            $this->settingRepository,
+                            $this->sidebarEntitiesHelper,
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -179,7 +179,7 @@ class EntitiesHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->mapperManager,
                             $this->serializer,
-                            $this->settingRepository,
+                            $this->sidebarEntitiesHelper,
                         ])
                         ->getMock();
         $handler->expects($this->exactly(2))
@@ -237,7 +237,7 @@ class EntitiesHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->mapperManager,
                             $this->serializer,
-                            $this->settingRepository,
+                            $this->sidebarEntitiesHelper,
                         ])
                         ->getMock();
         $handler->expects($this->never())
@@ -264,7 +264,7 @@ class EntitiesHandlerTest extends TestCase
             $this->currentSetting,
             $this->mapperManager,
             $this->serializer,
-            $this->settingRepository
+            $this->sidebarEntitiesHelper
         );
 
         $this->invokeMethod($handler, 'mapEntity', $sidebarEntityData);

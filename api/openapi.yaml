@@ -177,6 +177,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SettingDetailsData"
+    post:
+      summary: Saves changes to the specified setting.
+      operationId: settings.save
+      tags:
+        - Settings
+      parameters:
+        - $ref: "#/components/parameters/setting-id"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingOptionsData"
+      responses:
+        204:
+          description: The chnages were successfully processed on the server.
 
   /sidebar/entities:
     post:
@@ -554,8 +569,12 @@ components:
       type: object
       description: The data to initialize the session.
       properties:
-        setting:
-          $ref: "#/components/schemas/SettingMetaData"
+        settingName:
+          type: string
+          description: The name of the currently loaded setting.
+        locale:
+          type: string
+          description: The locale to use for the page.
         sidebarEntities:
           type: array
           description: The sidebar entities of the session.
@@ -565,6 +584,7 @@ components:
     SettingDetailsData:
       allOf:
         - $ref: "#/components/schemas/SettingMetaData"
+        - $ref: "#/components/schemas/SettingOptionsData"
         - type: object
           description: The detailed data of a setting of mods.
           properties:
@@ -573,18 +593,6 @@ components:
               description: The mods used by the setting.
               items:
                 $ref: "#/components/schemas/ModData"
-            locale:
-              type: string
-              description: The locale of the setting.
-              example: en
-            recipeMode:
-              type: string
-              enum:
-                - hybrid
-                - normal
-                - expensive
-              description: The recipe mode of the setting.
-              example: hybrid
 
     SettingMetaData:
       type: object
@@ -598,6 +606,23 @@ components:
           type: string
           description: The name of the setting.
           example: Vanilla
+
+    SettingOptionsData:
+      type: object
+      description: The options of the setting.
+      properties:
+        locale:
+          type: string
+          description: The locale of the setting.
+          example: en
+        recipeMode:
+          type: string
+          enum:
+            - hybrid
+            - normal
+            - expensive
+          description: The recipe mode of the setting.
+          example: hybrid
 
     SettingsListData:
       type: object

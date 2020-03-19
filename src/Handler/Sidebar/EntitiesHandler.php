@@ -11,7 +11,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
+use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use JMS\Serializer\SerializerInterface;
 use Laminas\Diactoros\Response\EmptyResponse;
@@ -46,28 +46,28 @@ class EntitiesHandler implements RequestHandlerInterface
     protected $serializer;
 
     /**
-     * The setting repository.
-     * @var SettingRepository
+     * The sidebar entities helper.
+     * @var SidebarEntitiesHelper
      */
-    protected $settingRepository;
+    protected $sidebarEntitiesHelper;
 
     /**
      * Initializes the handler.
      * @param Setting $currentSetting
      * @param MapperManagerInterface $mapperManager
      * @param SerializerInterface $portalApiServerSerializer
-     * @param SettingRepository $settingRepository
+     * @param SidebarEntitiesHelper $sidebarEntitiesHelper
      */
     public function __construct(
         Setting $currentSetting,
         MapperManagerInterface $mapperManager,
         SerializerInterface $portalApiServerSerializer,
-        SettingRepository $settingRepository
+        SidebarEntitiesHelper $sidebarEntitiesHelper
     ) {
         $this->currentSetting = $currentSetting;
         $this->mapperManager = $mapperManager;
         $this->serializer = $portalApiServerSerializer;
-        $this->settingRepository = $settingRepository;
+        $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
     }
 
     /**
@@ -79,7 +79,7 @@ class EntitiesHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $newEntities = $this->parseRequestBody($request);
-        $this->settingRepository->replaceSidebarEntities($this->currentSetting, $newEntities);
+        $this->sidebarEntitiesHelper->replaceEntities($this->currentSetting, $newEntities);
 
         return new EmptyResponse();
     }

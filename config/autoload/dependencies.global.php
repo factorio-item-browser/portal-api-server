@@ -40,6 +40,7 @@ return [
             Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Settings\DetailsHandler::class => AutoWireFactory::class,
             Handler\Settings\ListHandler::class => AutoWireFactory::class,
+            Handler\Settings\SaveHandler::class => AutoWireFactory::class,
             Handler\Sidebar\EntitiesHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
             Handler\Tooltip\ItemHandler::class => AutoWireFactory::class,
@@ -47,6 +48,7 @@ return [
 
             Helper\IconsStyleBuilder::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
+            Helper\SidebarEntitiesHelper::class => AutoWireFactory::class,
 
             Mapper\GenericEntityMapper::class => AutoWireFactory::class,
             Mapper\ItemRecipesMapper::class => AutoWireFactory::class,

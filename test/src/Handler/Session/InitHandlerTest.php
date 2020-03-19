@@ -11,11 +11,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
-use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Session\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -71,13 +69,12 @@ class InitHandlerTest extends TestCase
 
     /**
      * Tests the handle method.
-     * @throws PortalApiServerException
      * @covers ::handle
      */
     public function testHandle(): void
     {
-        /* @var SettingMetaData&MockObject $settingMetaData */
-        $settingMetaData = $this->createMock(SettingMetaData::class);
+        $settingName = 'abc';
+        $locale = 'def';
 
         $sidebarEntities = [
             $this->createMock(SidebarEntityData::class),
@@ -85,21 +82,25 @@ class InitHandlerTest extends TestCase
         ];
 
         $expectedTransfer = new SessionInitData();
-        $expectedTransfer->setSetting($settingMetaData)
+        $expectedTransfer->setSettingName($settingName)
+                         ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities);
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
 
+        $this->currentSetting->expects($this->once())
+                             ->method('getName')
+                             ->willReturn($settingName);
+        $this->currentSetting->expects($this->once())
+                             ->method('getLocale')
+                             ->willReturn($locale);
+
         /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
-                        ->onlyMethods(['mapSetting', 'getCurrentSidebarEntities'])
+                        ->onlyMethods(['getCurrentSidebarEntities'])
                         ->setConstructorArgs([$this->currentSetting, $this->mapperManager])
                         ->getMock();
-        $handler->expects($this->once())
-                ->method('mapSetting')
-                ->with($this->identicalTo($this->currentSetting))
-                ->willReturn($settingMetaData);
         $handler->expects($this->once())
                 ->method('getCurrentSidebarEntities')
                 ->willReturn($sidebarEntities);
@@ -109,45 +110,6 @@ class InitHandlerTest extends TestCase
 
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertEquals($expectedTransfer, $result->getTransfer());
-    }
-
-    /**
-     * Tests the mapSetting method.
-     * @throws ReflectionException
-     * @covers ::mapSetting
-     */
-    public function testMapSetting(): void
-    {
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
-
-        $this->mapperManager->expects($this->once())
-                            ->method('map')
-                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingMetaData::class));
-
-        $handler = new InitHandler($this->currentSetting, $this->mapperManager);
-        $this->invokeMethod($handler, 'mapSetting', $setting);
-    }
-
-    /**
-     * Tests the mapSetting method.
-     * @throws ReflectionException
-     * @covers ::mapSetting
-     */
-    public function testMapSettingWithException(): void
-    {
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
-
-        $this->mapperManager->expects($this->once())
-                            ->method('map')
-                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingMetaData::class))
-                            ->willThrowException($this->createMock(MapperException::class));
-
-        $this->expectException(MappingException::class);
-
-        $handler = new InitHandler($this->currentSetting, $this->mapperManager);
-        $this->invokeMethod($handler, 'mapSetting', $setting);
     }
 
     /**

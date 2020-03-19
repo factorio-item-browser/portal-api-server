@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Repository;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
-use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
-use FactorioItemBrowser\PortalApi\Server\Repository\SidebarEntityRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -43,12 +40,6 @@ class SettingRepositoryTest extends TestCase
     protected $entityManager;
 
     /**
-     * The mocked sidebar entity repository.
-     * @var SidebarEntityRepository&MockObject
-     */
-    protected $sidebarEntityRepository;
-
-    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -57,7 +48,6 @@ class SettingRepositoryTest extends TestCase
 
         $this->combinationRepository = $this->createMock(CombinationRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->sidebarEntityRepository = $this->createMock(SidebarEntityRepository::class);
     }
 
     /**
@@ -69,15 +59,11 @@ class SettingRepositoryTest extends TestCase
     {
         $repository = new SettingRepository(
             $this->combinationRepository,
-            $this->entityManager,
-            $this->sidebarEntityRepository
+            $this->entityManager
         );
 
+        $this->assertSame($this->combinationRepository, $this->extractProperty($repository, 'combinationRepository'));
         $this->assertSame($this->entityManager, $this->extractProperty($repository, 'entityManager'));
-        $this->assertSame(
-            $this->sidebarEntityRepository,
-            $this->extractProperty($repository, 'sidebarEntityRepository')
-        );
     }
 
     /**
@@ -96,8 +82,7 @@ class SettingRepositoryTest extends TestCase
 
         $repository = new SettingRepository(
             $this->combinationRepository,
-            $this->entityManager,
-            $this->sidebarEntityRepository
+            $this->entityManager
         );
         $result = $repository->createSetting($user, $combination, $name);
 
@@ -125,8 +110,7 @@ class SettingRepositoryTest extends TestCase
 
         $repository = new SettingRepository(
             $this->combinationRepository,
-            $this->entityManager,
-            $this->sidebarEntityRepository
+            $this->entityManager
         );
         $result = $repository->createDefaultSetting($user);
 
@@ -136,40 +120,5 @@ class SettingRepositoryTest extends TestCase
         $this->assertSame('Vanilla', $result->getName());
         $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
         $this->assertSame('en', $result->getLocale());
-    }
-
-    /**
-     * Tests the hydrateSidebarEntity method.
-     * @throws Exception
-     * @covers ::hydrateSidebarEntity
-     */
-    public function testHydrateSidebarEntity(): void
-    {
-        $lastViewTime = new DateTimeImmutable('2038-01-19 03:14:07');
-
-        $source = new SidebarEntity();
-        $source->setLabel('abc')
-               ->setPinnedPosition(42)
-               ->setLastViewTime($lastViewTime);
-
-        $expectedDestination = new SidebarEntity();
-        $expectedDestination->setType('foo')
-                            ->setName('bar')
-                            ->setLabel('abc')
-                            ->setPinnedPosition(42)
-                            ->setLastViewTime($lastViewTime);
-
-        $destination = new SidebarEntity();
-        $destination->setType('foo')
-                    ->setName('bar');
-
-        $repository = new SettingRepository(
-            $this->combinationRepository,
-            $this->entityManager,
-            $this->sidebarEntityRepository
-        );
-        $this->invokeMethod($repository, 'hydrateSidebarEntity', $source, $destination);
-
-        $this->assertEquals($expectedDestination, $destination);
     }
 }

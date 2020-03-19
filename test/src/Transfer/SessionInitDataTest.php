@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,18 +18,31 @@ use PHPUnit\Framework\TestCase;
 class SessionInitDataTest extends TestCase
 {
     /**
-     * Tests the setting and getting the setting.
-     * @covers ::getSetting
-     * @covers ::setSetting
+     * Tests the setting and getting the setting name.
+     * @covers ::getSettingName
+     * @covers ::setSettingName
      */
-    public function testSetAndGetSetting(): void
+    public function testSetAndGetSettingName(): void
     {
-        /* @var SettingMetaData&MockObject $setting */
-        $setting = $this->createMock(SettingMetaData::class);
+        $settingName = 'abc';
         $transfer = new SessionInitData();
 
-        $this->assertSame($transfer, $transfer->setSetting($setting));
-        $this->assertSame($setting, $transfer->getSetting());
+        $this->assertSame($transfer, $transfer->setSettingName($settingName));
+        $this->assertSame($settingName, $transfer->getSettingName());
+    }
+
+    /**
+     * Tests the setting and getting the locale.
+     * @covers ::getLocale
+     * @covers ::setLocale
+     */
+    public function testSetAndGetLocale(): void
+    {
+        $locale = 'abc';
+        $transfer = new SessionInitData();
+
+        $this->assertSame($transfer, $transfer->setLocale($locale));
+        $this->assertSame($locale, $transfer->getLocale());
     }
 
     /**

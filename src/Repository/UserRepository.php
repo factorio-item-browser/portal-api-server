@@ -74,6 +74,7 @@ class UserRepository
     {
         $user = new User();
         $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $defaultSetting = $this->settingRepository->createDefaultSetting($user);
 

@@ -200,6 +200,8 @@ class UserRepositoryTest extends TestCase
         $this->entityManager->expects($this->once())
                             ->method('persist')
                             ->with($this->equalTo(new User()));
+        $this->entityManager->expects($this->once())
+                            ->method('flush');
 
         $this->settingRepository->expects($this->once())
                                 ->method('createDefaultSetting')

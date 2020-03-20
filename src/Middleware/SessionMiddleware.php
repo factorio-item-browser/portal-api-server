@@ -9,10 +9,14 @@ use Dflydev\FigCookies\FigRequestCookies;
 use Dflydev\FigCookies\FigResponseCookies;
 use Dflydev\FigCookies\SetCookie;
 use Exception;
+use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSessionException;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
 use Laminas\ServiceManager\ServiceManager;
+use Mezzio\Router\Route;
+use Mezzio\Router\RouteResult;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -28,6 +32,13 @@ use Ramsey\Uuid\UuidInterface;
  */
 class SessionMiddleware implements MiddlewareInterface
 {
+    /**
+     * The routes whitelisted to be valid without actual session.
+     */
+    protected const WHITELISTED_ROUTES = [
+        RouteName::SESSION_INIT,
+    ];
+
     /**
      * The service manager.
      * @var ServiceManager
@@ -98,21 +109,43 @@ class SessionMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $userId = $this->readUserIdFromCookie($request);
-        $user = $this->fetchUser($userId);
+        $user = $this->readUserFromRequest($request);
         $this->injectUserToServiceManager($user);
 
         $response = $handler->handle($request);
 
-        $this->userRepository->persist($user); // @todo Decide whether we actually want to persist the current user.
-        return $this->injectCookieIntoResponse($response, $this->createCookie($user->getId()));
+        $this->userRepository->persist($user);
+        return $this->injectCookieIntoResponse($response, $this->createCookie($user));
+    }
+
+    /**
+     * Reads the user from the request.
+     * @param ServerRequestInterface $request
+     * @return User
+     * @throws Exception
+     */
+    protected function readUserFromRequest(ServerRequestInterface $request): User
+    {
+        $user = null;
+        $userId = $this->readUserIdFromCookie($request);
+        if ($userId !== null) {
+            $user = $this->userRepository->getUser($userId);
+        }
+
+        if ($user === null) {
+            if (!$this->isRouteWhitelisted($request)) {
+                throw new MissingSessionException();
+            }
+            $user = $this->userRepository->createUser();
+        }
+
+        return $user;
     }
 
     /**
      * Reads the user id from the cookie.
      * @param ServerRequestInterface $request
      * @return UuidInterface|null
-     * @throws Exception
      */
     protected function readUserIdFromCookie(ServerRequestInterface $request): ?UuidInterface
     {
@@ -129,19 +162,19 @@ class SessionMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Fetches the user to the specified id.
-     * @param UuidInterface|null $userId
-     * @return User
-     * @throws Exception
+     * Returns whether the route is whitelisted to create new users.
+     * @param ServerRequestInterface $request
+     * @return bool
      */
-    protected function fetchUser(?UuidInterface $userId): User
+    protected function isRouteWhitelisted(ServerRequestInterface $request): bool
     {
-        $result = null;
-        if ($userId !== null) {
-            $result = $this->userRepository->getUser($userId);
-        }
-        if ($result === null) {
-            $result = $this->userRepository->createUser();
+        $result = false;
+
+        /** @var RouteResult $routeResult */
+        $routeResult = $request->getAttribute(RouteResult::class);
+        $route = $routeResult->getMatchedRoute();
+        if ($route instanceof Route) {
+            $result = in_array($route->getName(), self::WHITELISTED_ROUTES, true);
         }
         return $result;
     }
@@ -159,14 +192,14 @@ class SessionMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Creates the cookie with the user id to place into the response.
-     * @param UuidInterface $userId
+     * Creates the cookie for the user to place into the response.
+     * @param User $user
      * @return SetCookie
      * @throws Exception
      */
-    protected function createCookie(UuidInterface $userId): SetCookie
+    protected function createCookie(User $user): SetCookie
     {
-        return SetCookie::create($this->cookieName, $userId->toString())
+        return SetCookie::create($this->cookieName, $user->getId()->toString())
             ->withDomain($this->cookieDomain)
             ->withPath($this->cookiePath)
             ->withExpires(new DateTime($this->cookieLifeTime));

@@ -58,6 +58,11 @@ interface RouteName
     public const SETTINGS_LIST = 'settings.list';
 
     /**
+     * The route for saving changes of a setting.
+     */
+    public const SETTINGS_SAVE = 'settings.save';
+
+    /**
      * The route for sending the sidebar entities to the server.
      */
     public const SIDEBAR_ENTITIES = 'sidebar.entities';

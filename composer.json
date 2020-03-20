@@ -74,7 +74,7 @@
     "test": [
       "@composer validate --strict",
       "@test-unit",
-      "#@coverage-check",
+      "@coverage-check",
       "@test-serialize",
       "@phpcs",
       "@phpstan"

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
+use DateTime;
+use DateTimeInterface;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
 use Ramsey\Uuid\UuidInterface;
@@ -86,13 +90,105 @@ class UserRepository
     /**
      * Persists the user to the database.
      * @param User $user
+     * @throws Exception
      */
     public function persist(User $user): void
     {
+        $user->setLastVisitTime(new DateTime());
         $this->entityManager->persist($user);
         if ($user->getCurrentSetting() !== null) {
             $this->entityManager->persist($user->getCurrentSetting());
         }
         $this->entityManager->flush();
+    }
+
+    /**
+     * Cleans up old sessions.
+     * @param DateTimeInterface $timeCut
+     * @throws Exception
+     */
+    public function cleanupOldSessions(DateTimeInterface $timeCut): void
+    {
+        $userIds = $this->findUserIdsWithOldSession($timeCut);
+        if (count($userIds) > 0) {
+            $this->removeUsers($userIds);
+        }
+    }
+
+    /**
+     * Searches for users with old sessions and returns their ids.
+     * @param DateTimeInterface $timeCut
+     * @return array<UuidInterface>|UuidInterface[]
+     */
+    protected function findUserIdsWithOldSession(DateTimeInterface $timeCut): array
+    {
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->select('u.id')
+                     ->from(User::class, 'u')
+                     ->where('u.lastVisitTime < :timeCut')
+                     ->setParameter('timeCut', $timeCut);
+
+        $result = [];
+        foreach ($queryBuilder->getQuery()->getResult() as $row) {
+            $result[] = $row['id'];
+        }
+        return $result;
+    }
+
+    /**
+     * Removes all users with the specified ids from the database.
+     * @param array<UuidInterface>|UuidInterface[] $userIds
+     * @throws DBALException
+     */
+    public function removeUsers(array $userIds): void
+    {
+        $mappedUserIds = array_values(array_map(function (UuidInterface $userId): string {
+            return $userId->getBytes();
+        }, $userIds));
+
+        // 1. Set currentSetting of the users to NULL to break the circular references.
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->update(User::class, 'u')
+                     ->set('u.currentSetting', 'NULL')
+                     ->where('u.id IN (:userIds)')
+                     ->setParameter('userIds', $mappedUserIds);
+        $queryBuilder->getQuery()->execute();
+
+        // 2. Remove all sidebar entities of the users.
+        $this->removeSidebarEntities($userIds);
+
+        // 3. Remove all settings of the users.
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->delete(Setting::class, 's')
+                     ->where('s.user IN (:userIds)')
+                     ->setParameter('userIds', $mappedUserIds);
+        $queryBuilder->getQuery()->execute();
+
+        // 4. Remove the actual users.
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->delete(User::class, 'u')
+                     ->where('u.id IN (:userIds)')
+                     ->setParameter('userIds', $mappedUserIds);
+        $queryBuilder->getQuery()->execute();
+    }
+
+    /**
+     * Removes the sidebar entities of the specified user ids.
+     * Note: DQL does not support JOINs in DELETE statements, so we have to use a native query instead.
+     * @param array<UuidInterface>|UuidInterface[] $userIds
+     * @throws DBALException
+     */
+    protected function removeSidebarEntities(array $userIds): void
+    {
+        $mappedUserIds = array_values(array_map(function (UuidInterface $userId): string {
+            return $userId->getHex();
+        }, $userIds));
+        $placeholders = implode(',', array_fill(0, count($userIds), 'UNHEX(?)'));
+
+        $query = "DELETE se FROM `SidebarEntity` se INNER JOIN `Setting` s ON s.id = se.settingId "
+            . "WHERE s.userId IN ({$placeholders})";
+
+        $statement = $this->entityManager->getConnection()->prepare($query);
+        $statement->execute($mappedUserIds);
     }
 }

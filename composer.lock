@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ba14f4d077e03298e612a03cece7609",
+    "content-hash": "2aace2afc8e5d74e87404e66ad045e74",
     "packages": [
         {
             "name": "bluepsyduck/container-interop-doctrine-migrations",

@@ -30,6 +30,8 @@ return [
         'factories' => [
             Api\ApiClientFactory::class => AutoWireFactory::class,
 
+            Command\CleanSessionsCommand::class => AutoWireFactory::class,
+
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
@@ -91,6 +93,7 @@ return [
             'string $sessionCookieLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_LIFETIME),
             'string $sessionCookieName' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_NAME),
             'string $sessionCookiePath' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_PATH),
+            'string $sessionLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_LIFETIME),
             'string $version' => readConfig('version'),
         ],
     ],

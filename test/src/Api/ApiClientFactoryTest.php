@@ -13,6 +13,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -68,10 +69,16 @@ class ApiClientFactoryTest extends TestCase
      */
     public function testCreate(): void
     {
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
+        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
+
         /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('getId')
+                ->willReturn(Uuid::fromString($settingId));
 
         $this->serviceManager->expects($this->once())
                              ->method('build')
@@ -93,12 +100,52 @@ class ApiClientFactoryTest extends TestCase
     }
 
     /**
+     * Tests the create method.
+     * @throws ReflectionException
+     * @covers ::create
+     */
+    public function testCreateWithExistingClient(): void
+    {
+        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
+
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+
+        $apiClients = [
+            $settingId => $apiClient,
+        ];
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('getId')
+                ->willReturn(Uuid::fromString($settingId));
+
+        $this->serviceManager->expects($this->never())
+                             ->method('build');
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['configure'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->never())
+                ->method('configure');
+        $this->injectProperty($factory, 'apiClients', $apiClients);
+
+        $result = $factory->create($setting);
+
+        $this->assertSame($apiClient, $result);
+    }
+
+    /**
      * Tests the configure method.
      * @throws ReflectionException
      * @covers ::configure
      */
     public function testConfigure(): void
     {
+        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
         $locale = 'abc';
         $modNames = ['def', 'ghi'];
         $authorizationToken = 'jkl';
@@ -120,6 +167,9 @@ class ApiClientFactoryTest extends TestCase
 
         /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('getId')
+                ->willReturn(Uuid::fromString('0fe93664-3c62-4297-bf6a-55501e8770e3'));
         $setting->expects($this->once())
                 ->method('getLocale')
                 ->willReturn($locale);
@@ -145,22 +195,33 @@ class ApiClientFactoryTest extends TestCase
                   ->with($this->identicalTo($authorizationToken))
                   ->willReturnSelf();
 
-        $clientsAndSettings = [
-            [$apiClient1, $setting1],
-            [$apiClient2, $setting2],
+        $apiClients = [
+            'foo' => $apiClient1,
+            'bar' => $apiClient2,
         ];
-        $expectedClientsAndSettings = [
-            [$apiClient1, $setting1],
-            [$apiClient2, $setting2],
-            [$apiClient, $setting],
+        $expectedApiClients = [
+            'foo' => $apiClient1,
+            'bar' => $apiClient2,
+            $settingId => $apiClient,
         ];
-
+        $settings = [
+            'foo' => $setting1,
+            'bar' => $setting2,
+        ];
+        $expectedSettings = [
+            'foo' => $setting1,
+            'bar' => $setting2,
+            $settingId => $setting,
+        ];
+        
         $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
-        $this->injectProperty($factory, 'clientsAndSettings', $clientsAndSettings);
+        $this->injectProperty($factory, 'apiClients', $apiClients);
+        $this->injectProperty($factory, 'settings', $settings);
 
         $factory->configure($apiClient, $setting);
 
-        $this->assertEquals($expectedClientsAndSettings, $this->extractProperty($factory, 'clientsAndSettings'));
+        $this->assertEquals($expectedApiClients, $this->extractProperty($factory, 'apiClients'));
+        $this->assertEquals($expectedSettings, $this->extractProperty($factory, 'settings'));
     }
 
     /**
@@ -170,6 +231,9 @@ class ApiClientFactoryTest extends TestCase
      */
     public function testPersistAuthorizationTokens(): void
     {
+        $settingId1 = '0fe93664-3c62-4297-bf6a-55501e8770e3';
+        $settingId2 = 'b7fdb8cb-5522-486b-b224-279f647b68f4';
+
         /* @var ApiClientInterface&MockObject $apiClient1 */
         $apiClient1 = $this->createMock(ApiClientInterface::class);
         $apiClient1->expects($this->once())
@@ -199,17 +263,22 @@ class ApiClientFactoryTest extends TestCase
         $setting2->expects($this->never())
                  ->method('setApiAuthorizationToken');
 
+        $apiClients = [
+            $settingId1 => $apiClient1,
+            $settingId2 => $apiClient2,
+        ];
+        $settings = [
+            $settingId1 => $setting1,
+            $settingId2 => $setting2,
+        ];
+
         $this->entityManager->expects($this->once())
                             ->method('persist')
                             ->with($this->identicalTo($setting1));
 
-        $clientsAndSettings = [
-            [$apiClient1, $setting1],
-            [$apiClient2, $setting2],
-        ];
-
         $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
-        $this->injectProperty($factory, 'clientsAndSettings', $clientsAndSettings);
+        $this->injectProperty($factory, 'apiClients', $apiClients);
+        $this->injectProperty($factory, 'settings', $settings);
 
         $factory->persistAuthorizationTokens();
     }

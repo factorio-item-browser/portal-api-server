@@ -30,10 +30,16 @@ class ApiClientFactory
     protected $serviceManager;
 
     /**
-     * The API clients and their corresponding settings.
-     * @var array<mixed>
+     * The API clients which where created.
+     * @var array<string,ApiClientInterface>|ApiClientInterface[]
      */
-    protected $clientsAndSettings = [];
+    protected $apiClients = [];
+
+    /**
+     * The settings which were used to create the clients.
+     * @var array<string,Setting>|Setting[]
+     */
+    protected $settings = [];
 
     /**
      * Initializes the factory.
@@ -53,8 +59,13 @@ class ApiClientFactory
      */
     public function create(Setting $setting): ApiClientInterface
     {
+        $settingId = $setting->getId()->toString();
+        if (isset($this->apiClients[$settingId])) {
+            return $this->apiClients[$settingId];
+        }
+
         $apiClient = $this->serviceManager->build(ApiClientInterface::class);
-        $this->configure($apiClient, $setting);
+        $this->configure($apiClient, $setting); // Will set the client to the property.
         return $apiClient;
     }
 
@@ -69,7 +80,9 @@ class ApiClientFactory
         $apiClient->setModNames($setting->getCombination()->getModNames());
         $apiClient->setAuthorizationToken($setting->getApiAuthorizationToken());
 
-        $this->clientsAndSettings[] = [$apiClient, $setting];
+        $settingId = $setting->getId()->toString();
+        $this->apiClients[$settingId] = $apiClient;
+        $this->settings[$settingId] = $setting;
     }
 
     /**
@@ -77,9 +90,8 @@ class ApiClientFactory
      */
     public function persistAuthorizationTokens(): void
     {
-        foreach ($this->clientsAndSettings as [$apiClient, $setting]) {
-            /** @var ApiClientInterface $apiClient */
-            /** @var Setting $setting */
+        foreach ($this->apiClients as $settingId => $apiClient) {
+            $setting = $this->settings[$settingId];
             $authorizationToken = $apiClient->getAuthorizationToken();
             if ($setting->getApiAuthorizationToken() !== $authorizationToken) {
                 $setting->setApiAuthorizationToken($authorizationToken);

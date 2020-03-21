@@ -60,12 +60,8 @@ class ApiClientFactory
     public function create(Setting $setting): ApiClientInterface
     {
         $settingId = $setting->getId()->toString();
-        if (isset($this->apiClients[$settingId])) {
-            return $this->apiClients[$settingId];
-        }
-
-        $apiClient = $this->serviceManager->build(ApiClientInterface::class);
-        $this->configure($apiClient, $setting); // Will set the client to the property.
+        $apiClient = $this->apiClients[$settingId] ?? $this->serviceManager->build(ApiClientInterface::class);
+        $this->configure($apiClient, $setting);
         return $apiClient;
     }
 

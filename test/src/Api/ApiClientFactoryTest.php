@@ -129,8 +129,9 @@ class ApiClientFactoryTest extends TestCase
                         ->onlyMethods(['configure'])
                         ->setConstructorArgs([$this->entityManager, $this->serviceManager])
                         ->getMock();
-        $factory->expects($this->never())
-                ->method('configure');
+        $factory->expects($this->once())
+                ->method('configure')
+                ->with($this->identicalTo($apiClient));
         $this->injectProperty($factory, 'apiClients', $apiClients);
 
         $result = $factory->create($setting);

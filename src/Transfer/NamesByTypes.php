@@ -49,4 +49,15 @@ class NamesByTypes
     {
         return $this->values;
     }
+
+    /**
+     * Returns whether the specified type and name is present in the transfer object.
+     * @param string $type
+     * @param string $name
+     * @return bool
+     */
+    public function hasValue(string $type, string $name): bool
+    {
+        return in_array($name, $this->values[$type] ?? [], true);
+    }
 }

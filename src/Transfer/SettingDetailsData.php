@@ -13,12 +13,6 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SettingDetailsData extends SettingMetaData
 {
     /**
-     * The mods of the setting.
-     * @var array|ModData[]
-     */
-    protected $mods = [];
-
-    /**
      * The locale of the setting.
      * @var string
      */
@@ -31,23 +25,23 @@ class SettingDetailsData extends SettingMetaData
     protected $recipeMode = '';
 
     /**
-     * Sets the mods of the setting.
-     * @param array|ModData[] $mods
-     * @return $this
+     * The mods of the setting.
+     * @var array|ModData[]
      */
-    public function setMods(array $mods): self
-    {
-        $this->mods = $mods;
-        return $this;
-    }
+    protected $mods = [];
 
     /**
-     * Returns the mods of the setting.
-     * @return array|ModData[]
+     * The additional style required for the mod icons.
+     * @var IconsStyleData
      */
-    public function getMods(): array
+    protected $modIconsStyle;
+
+    /**
+     * Initializes the transfer object.
+     */
+    public function __construct()
     {
-        return $this->mods;
+        $this->modIconsStyle = new IconsStyleData();
     }
 
     /**
@@ -88,5 +82,45 @@ class SettingDetailsData extends SettingMetaData
     public function getRecipeMode(): string
     {
         return $this->recipeMode;
+    }
+
+    /**
+     * Sets the mods of the setting.
+     * @param array|ModData[] $mods
+     * @return $this
+     */
+    public function setMods(array $mods): self
+    {
+        $this->mods = $mods;
+        return $this;
+    }
+
+    /**
+     * Returns the mods of the setting.
+     * @return array|ModData[]
+     */
+    public function getMods(): array
+    {
+        return $this->mods;
+    }
+
+    /**
+     * Sets the additional style required for the mod icons.
+     * @param IconsStyleData $modIconsStyle
+     * @return $this
+     */
+    public function setModIconsStyle(IconsStyleData $modIconsStyle): self
+    {
+        $this->modIconsStyle = $modIconsStyle;
+        return $this;
+    }
+
+    /**
+     * Returns the additional style required for the mod icons.
+     * @return IconsStyleData
+     */
+    public function getModIconsStyle(): IconsStyleData
+    {
+        return $this->modIconsStyle;
     }
 }

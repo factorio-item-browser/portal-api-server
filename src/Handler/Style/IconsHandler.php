@@ -5,17 +5,13 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Style;
 
 use Exception;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\Entity;
 use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
-use FactorioItemBrowser\Api\Client\Request\Generic\GenericIconRequest;
-use FactorioItemBrowser\Api\Client\Response\Generic\GenericIconResponse;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleBuilder;
+use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleFetcher;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
 use JMS\Serializer\SerializerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -31,16 +27,16 @@ use Psr\Http\Server\RequestHandlerInterface;
 class IconsHandler implements RequestHandlerInterface
 {
     /**
-     * The API client.
-     * @var ApiClientInterface
+     * The current setting.
+     * @var Setting
      */
-    protected $apiClient;
+    protected $currentSetting;
 
     /**
-     * The icons style builder.
-     * @var IconsStyleBuilder
+     * The icons style fetcher.
+     * @var IconsStyleFetcher
      */
-    protected $iconsStyleBuilder;
+    protected $iconsStyleFetcher;
 
     /**
      * The serializer.
@@ -50,17 +46,17 @@ class IconsHandler implements RequestHandlerInterface
 
     /**
      * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param IconsStyleBuilder $iconsStyleBuilder
+     * @param Setting $currentSetting
+     * @param IconsStyleFetcher $iconsStyleFetcher
      * @param SerializerInterface $portalApiServerSerializer
      */
     public function __construct(
-        ApiClientInterface $apiClient,
-        IconsStyleBuilder $iconsStyleBuilder,
+        Setting $currentSetting,
+        IconsStyleFetcher $iconsStyleFetcher,
         SerializerInterface $portalApiServerSerializer
     ) {
-        $this->apiClient = $apiClient;
-        $this->iconsStyleBuilder = $iconsStyleBuilder;
+        $this->currentSetting = $currentSetting;
+        $this->iconsStyleFetcher = $iconsStyleFetcher;
         $this->serializer = $portalApiServerSerializer;
     }
 
@@ -73,8 +69,12 @@ class IconsHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $namesByTypes = $this->parseRequestBody($request);
-        $genericIconResponse = $this->fetchData($namesByTypes);
-        $iconsStyleData = $this->createIconsStyleData($genericIconResponse);
+        try {
+            $this->iconsStyleFetcher->request($this->currentSetting, $namesByTypes);
+            $iconsStyleData = $this->iconsStyleFetcher->process();
+        } catch (ApiClientException $e) {
+            throw new FailedApiRequestException($e);
+        }
         return new TransferResponse($iconsStyleData);
     }
 
@@ -92,51 +92,5 @@ class IconsHandler implements RequestHandlerInterface
         } catch (Exception $e) {
             throw new InvalidRequestException($e->getMessage(), $e);
         }
-    }
-
-    /**
-     * Fetches the data from the API.
-     * @param NamesByTypes $namesByTypes
-     * @return GenericIconResponse
-     * @throws PortalApiServerException
-     */
-    protected function fetchData(NamesByTypes $namesByTypes): GenericIconResponse
-    {
-        $request = new GenericIconRequest();
-
-        foreach ($namesByTypes->getValues() as $type => $names) {
-            foreach ($names as $name) {
-                $entity = new Entity();
-                $entity->setType($type)
-                       ->setName($name);
-
-                $request->addEntity($entity);
-            }
-        }
-
-        try {
-            /** @var GenericIconResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-        } catch (ApiClientException $e) {
-            throw new FailedApiRequestException($e);
-        }
-        return $response;
-    }
-
-    /**
-     * Creates the icons style data to send to the frontend.
-     * @param GenericIconResponse $genericIconResponse
-     * @return IconsStyleData
-     */
-    protected function createIconsStyleData(GenericIconResponse $genericIconResponse): IconsStyleData
-    {
-        foreach ($genericIconResponse->getIcons() as $icon) {
-            $this->iconsStyleBuilder->processIcon($icon);
-        }
-
-        $iconsStyleData = new IconsStyleData();
-        $iconsStyleData->setProcessedEntities($this->iconsStyleBuilder->getProcessedEntities())
-                       ->setStyle($this->iconsStyleBuilder->getStyle());
-        return $iconsStyleData;
     }
 }

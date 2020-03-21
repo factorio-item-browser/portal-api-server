@@ -48,7 +48,7 @@ return [
             Handler\Tooltip\ItemHandler::class => AutoWireFactory::class,
             Handler\Tooltip\RecipeHandler::class => AutoWireFactory::class,
 
-            Helper\IconsStyleBuilder::class => AutoWireFactory::class,
+            Helper\IconsStyleFetcher::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
             Helper\SidebarEntitiesHelper::class => AutoWireFactory::class,
 

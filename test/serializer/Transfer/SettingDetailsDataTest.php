@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
+use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
@@ -34,12 +35,16 @@ class SettingDetailsDataTest extends SerializerTestCase
              ->setAuthor('stu')
              ->setVersion('vwx');
 
+        $modIconsStyle = new IconsStyleData();
+        $modIconsStyle->setStyle('klm');
+
         $object = new SettingDetailsData();
         $object->setId('yza')
                ->setName('bcd')
-               ->setMods([$mod1, $mod2])
                ->setLocale('efg')
-               ->setRecipeMode('hij');
+               ->setRecipeMode('hij')
+               ->setMods([$mod1, $mod2])
+               ->setModIconsStyle($modIconsStyle);
 
         return $object;
     }
@@ -53,6 +58,8 @@ class SettingDetailsDataTest extends SerializerTestCase
         return [
             'id' => 'yza',
             'name' => 'bcd',
+            'locale' => 'efg',
+            'recipeMode' => 'hij',
             'mods' => [
                 [
                     'name' => 'abc',
@@ -67,8 +74,10 @@ class SettingDetailsDataTest extends SerializerTestCase
                     'version' => 'vwx',
                 ],
             ],
-            'locale' => 'efg',
-            'recipeMode' => 'hij',
+            'modIconsStyle' => [
+                'processedEntities' => [],
+                'style' => 'klm',
+            ],
         ];
     }
 

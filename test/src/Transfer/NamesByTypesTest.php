@@ -20,9 +20,10 @@ class NamesByTypesTest extends TestCase
      * Tests the setting, adding and getting the values.
      * @covers ::addValue
      * @covers ::getValues
+     * @covers ::hasValue
      * @covers ::setValues
      */
-    public function testSetAddAndGetValues(): void
+    public function testSetAddGetAndHasValues(): void
     {
         $values = [
             'abc' => ['def', 'ghi'],
@@ -46,7 +47,9 @@ class NamesByTypesTest extends TestCase
         $this->assertSame($transfer, $transfer->addValue('jkl', 'pqr'));
         $this->assertSame($expectedValues1, $transfer->getValues());
 
+        $this->assertFalse($transfer->hasValue('stu', 'vwx'));
         $this->assertSame($transfer, $transfer->addValue('stu', 'vwx'));
         $this->assertSame($expectedValues2, $transfer->getValues());
+        $this->assertTrue($transfer->hasValue('stu', 'vwx'));
     }
 }

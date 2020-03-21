@@ -2,9 +2,11 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData:
   access_type: public_method
   exclusion_policy: all
   properties:
-    mods:
-      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\ModData>
     locale:
       type: string
     recipeMode:
       type: string
+    mods:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\ModData>
+    modIconsStyle:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData

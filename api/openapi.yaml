@@ -593,6 +593,8 @@ components:
               description: The mods used by the setting.
               items:
                 $ref: "#/components/schemas/ModData"
+            modIconsStyle:
+              $ref: "#/components/schemas/IconsStyleData"
 
     SettingMetaData:
       type: object

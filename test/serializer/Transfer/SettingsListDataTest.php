@@ -64,9 +64,13 @@ class SettingsListDataTest extends SerializerTestCase
             'currentSetting' => [
                 'id' => 'mno',
                 'name' => 'pqr',
-                'mods' => [],
                 'locale' => 'stu',
                 'recipeMode' => 'vwx',
+                'mods' => [],
+                'modIconsStyle' => [
+                    'processedEntities' => [],
+                    'style' => '',
+                ],
             ],
         ];
     }

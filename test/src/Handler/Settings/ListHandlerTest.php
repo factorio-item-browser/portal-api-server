@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
-use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\Common\Collections\ArrayCollection;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\Mod;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\ListHandler;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
@@ -34,12 +32,6 @@ class ListHandlerTest extends TestCase
     use ReflectionTrait;
 
     /**
-     * The mocked api client.
-     * @var ApiClientInterface&MockObject
-     */
-    protected $apiClient;
-
-    /**
      * The mocked current setting.
      * @var Setting&MockObject
      */
@@ -52,10 +44,10 @@ class ListHandlerTest extends TestCase
     protected $currentUser;
 
     /**
-     * The mocked mapper manager.
-     * @var MapperManagerInterface&MockObject
+     * The mocked setting helper.
+     * @var SettingHelper&MockObject
      */
-    protected $mapperManager;
+    protected $settingHelper;
 
     /**
      * Sets up the test case.
@@ -64,10 +56,9 @@ class ListHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $this->apiClient = $this->createMock(ApiClientInterface::class);
         $this->currentSetting = $this->createMock(Setting::class);
         $this->currentUser = $this->createMock(User::class);
-        $this->mapperManager = $this->createMock(MapperManagerInterface::class);
+        $this->settingHelper = $this->createMock(SettingHelper::class);
     }
 
     /**
@@ -77,12 +68,10 @@ class ListHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $handler = new ListHandler($this->apiClient, $this->currentSetting, $this->currentUser, $this->mapperManager);
+        $handler = new ListHandler($this->currentSetting, $this->currentUser, $this->settingHelper);
 
-        $this->assertSame($this->apiClient, $this->extractProperty($handler, 'apiClient'));
-        $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
-        $this->assertSame($this->mapperManager, $this->extractProperty($handler, 'mapperManager'));
+        $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
     }
 
     /**
@@ -92,16 +81,10 @@ class ListHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $currentMods = [
-            $this->createMock(Mod::class),
-            $this->createMock(Mod::class),
-        ];
-
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         /* @var SettingDetailsData&MockObject $settingDetails */
         $settingDetails = $this->createMock(SettingDetailsData::class);
-
         /* @var Setting&MockObject $setting1 */
         $setting1 = $this->createMock(Setting::class);
         /* @var Setting&MockObject $setting2 */
@@ -119,34 +102,22 @@ class ListHandlerTest extends TestCase
                           ->method('getSettings')
                           ->willReturn(new ArrayCollection([$setting1, $setting2]));
 
-        /* @var ListHandler&MockObject $handler */
-        $handler = $this->getMockBuilder(ListHandler::class)
-                        ->onlyMethods(['fetchMods', 'mapSettingDetails', 'mapSettingMeta'])
-                        ->setConstructorArgs([
-                            $this->apiClient,
-                            $this->currentSetting,
-                            $this->currentUser,
-                            $this->mapperManager,
-                        ])
-                        ->getMock();
-        $handler->expects($this->once())
-                ->method('fetchMods')
-                ->with($this->identicalTo($this->apiClient))
-                ->willReturn($currentMods);
-        $handler->expects($this->once())
-                ->method('mapSettingDetails')
-                ->with($this->identicalTo($this->currentSetting), $this->identicalTo($currentMods))
-                ->willReturn($settingDetails);
-        $handler->expects($this->exactly(2))
-                ->method('mapSettingMeta')
-                ->withConsecutive(
-                    [$this->identicalTo($setting1)],
-                    [$this->identicalTo($setting2)]
-                )
-                ->willReturnOnConsecutiveCalls(
-                    $settingMeta1,
-                    $settingMeta2
-                );
+        $this->settingHelper->expects($this->exactly(2))
+                            ->method('createSettingMeta')
+                            ->withConsecutive(
+                                [$this->identicalTo($setting1)],
+                                [$this->identicalTo($setting2)]
+                            )
+                            ->willReturnOnConsecutiveCalls(
+                                $settingMeta1,
+                                $settingMeta2
+                            );
+        $this->settingHelper->expects($this->once())
+                            ->method('createSettingDetails')
+                            ->with($this->identicalTo($this->currentSetting))
+                            ->willReturn($settingDetails);
+
+        $handler = new ListHandler($this->currentSetting, $this->currentUser, $this->settingHelper);
 
         /* @var TransferResponse $result */
         $result = $handler->handle($request);

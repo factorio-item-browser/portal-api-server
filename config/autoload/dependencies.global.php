@@ -50,6 +50,7 @@ return [
 
             Helper\IconsStyleFetcher::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
+            Helper\SettingHelper::class => AutoWireFactory::class,
             Helper\SidebarEntitiesHelper::class => AutoWireFactory::class,
 
             Mapper\GenericEntityMapper::class => AutoWireFactory::class,

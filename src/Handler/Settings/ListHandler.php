@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
 
-use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingsListData;
 use Psr\Http\Message\ResponseInterface;
@@ -21,14 +20,8 @@ use Psr\Http\Server\RequestHandlerInterface;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class ListHandler extends AbstractSettingsHandler implements RequestHandlerInterface
+class ListHandler implements RequestHandlerInterface
 {
-    /**
-     * The API client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
-
     /**
      * The current setting.
      * @var Setting
@@ -42,23 +35,22 @@ class ListHandler extends AbstractSettingsHandler implements RequestHandlerInter
     protected $currentUser;
 
     /**
+     * The setting helper.
+     * @var SettingHelper
+     */
+    protected $settingHelper;
+
+    /**
      * Initializes the handler.
-     * @param ApiClientInterface $apiClient
      * @param Setting $currentSetting
      * @param User $currentUser
-     * @param MapperManagerInterface $mapperManager
+     * @param SettingHelper $settingHelper
      */
-    public function __construct(
-        ApiClientInterface $apiClient,
-        Setting $currentSetting,
-        User $currentUser,
-        MapperManagerInterface $mapperManager
-    ) {
-        parent::__construct($mapperManager);
-
-        $this->apiClient = $apiClient;
+    public function __construct(Setting $currentSetting, User $currentUser, SettingHelper $settingHelper)
+    {
         $this->currentSetting = $currentSetting;
         $this->currentUser = $currentUser;
+        $this->settingHelper = $settingHelper;
     }
 
     /**
@@ -69,13 +61,15 @@ class ListHandler extends AbstractSettingsHandler implements RequestHandlerInter
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $currentMods = $this->fetchMods($this->apiClient);
-        $settingDetails = $this->mapSettingDetails($this->currentSetting, $currentMods);
+        $settings = array_map(
+            [$this->settingHelper, 'createSettingMeta'],
+            $this->currentUser->getSettings()->toArray()
+        );
+        $currentSetting = $this->settingHelper->createSettingDetails($this->currentSetting);
 
-        $data = new SettingsListData();
-        $data->setSettings(array_map([$this, 'mapSettingMeta'], $this->currentUser->getSettings()->toArray()))
-             ->setCurrentSetting($settingDetails);
-
-        return new TransferResponse($data);
+        $settingList = new SettingsListData();
+        $settingList->setSettings($settings)
+                    ->setCurrentSetting($currentSetting);
+        return new TransferResponse($settingList);
     }
 }

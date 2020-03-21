@@ -6,11 +6,10 @@ namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
 
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
-use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingOptionsData;
 use JMS\Serializer\SerializerInterface;
@@ -19,10 +18,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 
 /**
- *
+ * The handler for saving changes in the options for a setting.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -51,6 +49,12 @@ class SaveHandler implements RequestHandlerInterface
     protected $serializer;
 
     /**
+     * The setting helper.
+     * @var SettingHelper
+     */
+    protected $settingHelper;
+
+    /**
      * The sidebar entities helper.
      * @var SidebarEntitiesHelper
      */
@@ -60,15 +64,18 @@ class SaveHandler implements RequestHandlerInterface
      * Initializes the handler.
      * @param User $currentUser
      * @param SerializerInterface $portalApiServerSerializer
+     * @param SettingHelper $settingHelper
      * @param SidebarEntitiesHelper $sidebarEntitiesHelper
      */
     public function __construct(
         User $currentUser,
         SerializerInterface $portalApiServerSerializer,
+        SettingHelper $settingHelper,
         SidebarEntitiesHelper $sidebarEntitiesHelper
     ) {
         $this->currentUser = $currentUser;
         $this->serializer = $portalApiServerSerializer;
+        $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
     }
 
@@ -82,7 +89,7 @@ class SaveHandler implements RequestHandlerInterface
     {
         $settingId = $request->getAttribute('setting-id', '');
         $requestOptions = $this->parseRequestBody($request);
-        $setting = $this->findSetting(Uuid::fromString($settingId));
+        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($settingId));
         $this->validateOptions($requestOptions);
 
         $setting->setLocale($requestOptions->getLocale())
@@ -108,23 +115,6 @@ class SaveHandler implements RequestHandlerInterface
         } catch (Exception $e) {
             throw new InvalidRequestException($e->getMessage(), $e);
         }
-    }
-
-    /**
-     * Finds the setting with the specified id.
-     * @param UuidInterface $settingId
-     * @return Setting
-     * @throws UnknownEntityException
-     */
-    protected function findSetting(UuidInterface $settingId): Setting
-    {
-        foreach ($this->currentUser->getSettings() as $setting) {
-            if ($setting->getId()->compareTo($settingId) === 0) {
-                return $setting;
-            }
-        }
-
-        throw new UnknownEntityException('setting', $settingId->toString());
     }
 
     /**

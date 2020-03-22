@@ -10,6 +10,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
@@ -38,14 +39,25 @@ class InitHandler implements RequestHandlerInterface
     protected $mapperManager;
 
     /**
+     * The setting helper.
+     * @var SettingHelper
+     */
+    protected $settingHelper;
+
+    /**
      * Initializes the handler.
      * @param Setting $currentSetting
      * @param MapperManagerInterface $mapperManager
+     * @param SettingHelper $settingHelper
      */
-    public function __construct(Setting $currentSetting, MapperManagerInterface $mapperManager)
-    {
+    public function __construct(
+        Setting $currentSetting,
+        MapperManagerInterface $mapperManager,
+        SettingHelper $settingHelper
+    ) {
         $this->currentSetting = $currentSetting;
         $this->mapperManager = $mapperManager;
+        $this->settingHelper = $settingHelper;
     }
 
     /**
@@ -57,6 +69,7 @@ class InitHandler implements RequestHandlerInterface
     {
         $data = new SessionInitData();
         $data->setSettingName($this->currentSetting->getName())
+             ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
              ->setSidebarEntities($this->getCurrentSidebarEntities());
 

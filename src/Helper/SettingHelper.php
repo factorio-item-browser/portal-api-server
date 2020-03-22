@@ -168,4 +168,21 @@ class SettingHelper
         }
         return $modData;
     }
+
+    /**
+     * Calculates a hash for the specified setting, accounting for all its options.
+     * @param Setting $setting
+     * @return string
+     */
+    public function calculateHash(Setting $setting): string
+    {
+        $data = [
+            $setting->getId()->toString(),
+            $setting->getCombination()->getId()->toString(),
+            $setting->getLocale(),
+            $setting->getRecipeMode(),
+        ];
+
+        return hash('md5', (string) json_encode($data));
+    }
 }

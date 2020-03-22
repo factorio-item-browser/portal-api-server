@@ -4,6 +4,8 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
   properties:
     settingName:
       type: string
+    settingHash:
+      type: string
     locale:
       type: string
     sidebarEntities:

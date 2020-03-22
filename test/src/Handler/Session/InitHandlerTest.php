@@ -12,6 +12,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Session\InitHandler;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
@@ -44,6 +45,12 @@ class InitHandlerTest extends TestCase
     protected $mapperManager;
 
     /**
+     * The mocked setting helper.
+     * @var SettingHelper&MockObject
+     */
+    protected $settingHelper;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -52,6 +59,7 @@ class InitHandlerTest extends TestCase
 
         $this->currentSetting = $this->createMock(Setting::class);
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
+        $this->settingHelper = $this->createMock(SettingHelper::class);
     }
 
     /**
@@ -61,10 +69,11 @@ class InitHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $handler = new InitHandler($this->currentSetting, $this->mapperManager);
+        $handler = new InitHandler($this->currentSetting, $this->mapperManager, $this->settingHelper);
 
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->mapperManager, $this->extractProperty($handler, 'mapperManager'));
+        $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
     }
 
     /**
@@ -74,7 +83,8 @@ class InitHandlerTest extends TestCase
     public function testHandle(): void
     {
         $settingName = 'abc';
-        $locale = 'def';
+        $settingHash = 'def';
+        $locale = 'ghi';
 
         $sidebarEntities = [
             $this->createMock(SidebarEntityData::class),
@@ -83,6 +93,7 @@ class InitHandlerTest extends TestCase
 
         $expectedTransfer = new SessionInitData();
         $expectedTransfer->setSettingName($settingName)
+                         ->setSettingHash($settingHash)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities);
 
@@ -96,10 +107,15 @@ class InitHandlerTest extends TestCase
                              ->method('getLocale')
                              ->willReturn($locale);
 
+        $this->settingHelper->expects($this->once())
+                            ->method('calculateHash')
+                            ->with($this->identicalTo($this->currentSetting))
+                            ->willReturn($settingHash);
+
         /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['getCurrentSidebarEntities'])
-                        ->setConstructorArgs([$this->currentSetting, $this->mapperManager])
+                        ->setConstructorArgs([$this->currentSetting, $this->mapperManager, $this->settingHelper])
                         ->getMock();
         $handler->expects($this->once())
                 ->method('getCurrentSidebarEntities')
@@ -137,7 +153,7 @@ class InitHandlerTest extends TestCase
         /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['mapSidebarEntity'])
-                        ->setConstructorArgs([$this->currentSetting, $this->mapperManager])
+                        ->setConstructorArgs([$this->currentSetting, $this->mapperManager, $this->settingHelper])
                         ->getMock();
         $handler->expects($this->exactly(2))
                 ->method('mapSidebarEntity')
@@ -169,7 +185,7 @@ class InitHandlerTest extends TestCase
                             ->method('map')
                             ->with($this->identicalTo($sidebarEntity), $this->isInstanceOf(SidebarEntityData::class));
 
-        $handler = new InitHandler($this->currentSetting, $this->mapperManager);
+        $handler = new InitHandler($this->currentSetting, $this->mapperManager, $this->settingHelper);
 
         $this->invokeMethod($handler, 'mapSidebarEntity', $sidebarEntity);
     }
@@ -191,7 +207,7 @@ class InitHandlerTest extends TestCase
 
         $this->expectException(MappingException::class);
 
-        $handler = new InitHandler($this->currentSetting, $this->mapperManager);
+        $handler = new InitHandler($this->currentSetting, $this->mapperManager, $this->settingHelper);
 
         $this->invokeMethod($handler, 'mapSidebarEntity', $sidebarEntity);
     }

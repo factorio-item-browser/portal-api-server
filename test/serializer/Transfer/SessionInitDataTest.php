@@ -41,7 +41,8 @@ class SessionInitDataTest extends SerializerTestCase
 
         $object = new SessionInitData();
         $object->setSettingName('stu')
-               ->setLocale('vwx')
+               ->setSettingHash('vwx')
+               ->setLocale('yza')
                ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2]);
         return $object;
     }
@@ -54,7 +55,8 @@ class SessionInitDataTest extends SerializerTestCase
     {
         return [
             'settingName' => 'stu',
-            'locale' => 'vwx',
+            'settingHash' => 'vwx',
+            'locale' => 'yza',
             'sidebarEntities' => [
                 [
                     'type' => 'abc',

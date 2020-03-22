@@ -19,6 +19,12 @@ class SessionInitData
     protected $settingName = '';
 
     /**
+     * The hash of the currently loaded setting.
+     * @var string
+     */
+    protected $settingHash = '';
+
+    /**
      * The locale to use for the page.
      * @var string
      */
@@ -48,6 +54,26 @@ class SessionInitData
     public function getSettingName(): string
     {
         return $this->settingName;
+    }
+
+    /**
+     * Sets the hash of the currently loaded setting.
+     * @param string $settingHash
+     * @return $this
+     */
+    public function setSettingHash(string $settingHash): self
+    {
+        $this->settingHash = $settingHash;
+        return $this;
+    }
+
+    /**
+     * Returns the hash of the currently loaded setting.
+     * @return string
+     */
+    public function getSettingHash(): string
+    {
+        return $this->settingHash;
     }
 
     /**

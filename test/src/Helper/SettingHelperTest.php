@@ -31,6 +31,7 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
@@ -535,5 +536,35 @@ class SettingHelperTest extends TestCase
             $this->mapperManager
         );
         $this->invokeMethod($helper, 'mapMod', $mod);
+    }
+
+    /**
+     * Tests the calculateHash method.
+     * @covers ::calculateHash
+     */
+    public function testCalculateHash(): void
+    {
+        $settingId = Uuid::fromString('03c44592-9276-43e4-a5ff-38b20cce8d7f');
+        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
+        $expectedResult = '2fe3342ec13860facaf0e20e94ee1f7d';
+
+        $combination = new Combination();
+        $combination->setId($combinationId);
+
+        $setting = new Setting();
+        $setting->setId($settingId)
+                ->setCombination($combination)
+                ->setLocale('abc')
+                ->setRecipeMode('def');
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->currentUser,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $result = $helper->calculateHash($setting);
+
+        $this->assertSame($expectedResult, $result);
     }
 }

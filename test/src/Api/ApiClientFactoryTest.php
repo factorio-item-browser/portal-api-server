@@ -140,6 +140,31 @@ class ApiClientFactoryTest extends TestCase
     }
 
     /**
+     * Tests the createForModNames method.
+     * @covers ::createForModNames
+     */
+    public function testCreateForModNames(): void
+    {
+        $modNames = ['abc', 'def'];
+
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+        $apiClient->expects($this->once())
+                  ->method('setModNames')
+                  ->with($this->identicalTo($modNames));
+
+        $this->serviceManager->expects($this->once())
+                             ->method('build')
+                             ->with($this->identicalTo(ApiClientInterface::class))
+                             ->willReturn($apiClient);
+
+        $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
+        $result = $factory->createForModNames($modNames);
+
+        $this->assertSame($apiClient, $result);
+    }
+
+    /**
      * Tests the configure method.
      * @throws ReflectionException
      * @covers ::configure

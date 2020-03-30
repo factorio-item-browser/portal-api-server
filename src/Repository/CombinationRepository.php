@@ -9,6 +9,7 @@ use Doctrine\ORM\NonUniqueResultException;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * The repository of the combinations.
@@ -63,5 +64,26 @@ class CombinationRepository
             throw new PortalApiServerException('Missing default combination in database', 500);
         }
         return $result;
+    }
+
+    /**
+     * Returns the combination with the specified id, if known.
+     * @param UuidInterface $combinationId
+     * @return Combination|null
+     */
+    public function getCombination(UuidInterface $combinationId): ?Combination
+    {
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->select('c')
+                     ->from(Combination::class, 'c')
+                     ->where('c.id = :combinationId')
+                     ->setParameter('combinationId', $combinationId, UuidBinaryType::NAME);
+
+        try {
+            return $queryBuilder->getQuery()->getOneOrNullResult();
+        } catch (NonUniqueResultException $e) {
+            // Can never happen, we are searching for the primary key.
+            return null;
+        }
     }
 }

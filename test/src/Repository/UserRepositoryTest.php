@@ -121,7 +121,6 @@ class UserRepositoryTest extends TestCase
                      ->method('getQuery')
                      ->willReturn($query);
 
-
         $this->entityManager->expects($this->once())
                             ->method('createQueryBuilder')
                             ->willReturn($queryBuilder);

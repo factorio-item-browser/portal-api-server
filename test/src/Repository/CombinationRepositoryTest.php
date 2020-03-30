@@ -15,6 +15,7 @@ use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Doctrine\UuidBinaryType;
+use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -155,5 +156,110 @@ class CombinationRepositoryTest extends TestCase
 
         $repository = new CombinationRepository($this->entityManager);
         $repository->getDefaultCombination();
+    }
+    
+    /**
+     * Tests the getCombination method.
+     * @covers ::getCombination
+     */
+    public function testGetCombination(): void
+    {
+        /* @var UuidInterface&MockObject $combinationId */
+        $combinationId = $this->createMock(UuidInterface::class);
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
+
+        /* @var AbstractQuery&MockObject $query */
+        $query = $this->createMock(AbstractQuery::class);
+        $query->expects($this->once())
+              ->method('getOneOrNullResult')
+              ->willReturn($combination);
+
+        /* @var QueryBuilder&MockObject $queryBuilder */
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->expects($this->once())
+                     ->method('select')
+                     ->with($this->identicalTo('c'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('from')
+                     ->with($this->identicalTo(Combination::class), $this->identicalTo('c'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('where')
+                     ->with($this->identicalTo('c.id = :combinationId'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('setParameter')
+                     ->with(
+                         $this->identicalTo('combinationId'),
+                         $this->identicalTo($combinationId),
+                         $this->identicalTo(UuidBinaryType::NAME)
+                     )
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('getQuery')
+                     ->willReturn($query);
+
+        $this->entityManager->expects($this->once())
+                            ->method('createQueryBuilder')
+                            ->willReturn($queryBuilder);
+
+        $repository = new CombinationRepository($this->entityManager);
+        $result = $repository->getCombination($combinationId);
+
+        $this->assertSame($combination, $result);
+    }
+    
+    /**
+     * Tests the getCombination method.
+     * @covers ::getCombination
+     */
+    public function testGetCombinationWithException(): void
+    {
+        /* @var UuidInterface&MockObject $combinationId */
+        $combinationId = $this->createMock(UuidInterface::class);
+
+        /* @var AbstractQuery&MockObject $query */
+        $query = $this->createMock(AbstractQuery::class);
+        $query->expects($this->once())
+              ->method('getOneOrNullResult')
+              ->willThrowException($this->createMock(NonUniqueResultException::class));
+
+        /* @var QueryBuilder&MockObject $queryBuilder */
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->expects($this->once())
+                     ->method('select')
+                     ->with($this->identicalTo('c'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('from')
+                     ->with($this->identicalTo(Combination::class), $this->identicalTo('c'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('where')
+                     ->with($this->identicalTo('c.id = :combinationId'))
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('setParameter')
+                     ->with(
+                         $this->identicalTo('combinationId'),
+                         $this->identicalTo($combinationId),
+                         $this->identicalTo(UuidBinaryType::NAME)
+                     )
+                     ->willReturnSelf();
+        $queryBuilder->expects($this->once())
+                     ->method('getQuery')
+                     ->willReturn($query);
+
+
+        $this->entityManager->expects($this->once())
+                            ->method('createQueryBuilder')
+                            ->willReturn($queryBuilder);
+
+        $repository = new CombinationRepository($this->entityManager);
+        $result = $repository->getCombination($combinationId);
+
+        $this->assertNull($result);
     }
 }

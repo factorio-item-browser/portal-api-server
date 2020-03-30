@@ -66,6 +66,20 @@ class ApiClientFactory
     }
 
     /**
+     * Creates an API client instance for the specified combination of mods.
+     * @param array<string> $modNames
+     * @return ApiClientInterface
+     */
+    public function createForModNames(array $modNames): ApiClientInterface
+    {
+        /* @var ApiClientInterface $apiClient */
+        $apiClient = $this->serviceManager->build(ApiClientInterface::class);
+        $apiClient->setModNames($modNames);
+
+        return $apiClient;
+    }
+
+    /**
      * Configures the API client to match the setting.
      * @param ApiClientInterface $apiClient
      * @param Setting $setting

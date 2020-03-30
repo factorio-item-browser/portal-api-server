@@ -43,11 +43,13 @@ return [
             Handler\Settings\DetailsHandler::class => AutoWireFactory::class,
             Handler\Settings\ListHandler::class => AutoWireFactory::class,
             Handler\Settings\SaveHandler::class => AutoWireFactory::class,
+            Handler\Settings\StatusHandler::class => AutoWireFactory::class,
             Handler\Sidebar\EntitiesHandler::class => AutoWireFactory::class,
             Handler\Style\IconsHandler::class => AutoWireFactory::class,
             Handler\Tooltip\ItemHandler::class => AutoWireFactory::class,
             Handler\Tooltip\RecipeHandler::class => AutoWireFactory::class,
 
+            Helper\CombinationHelper::class => AutoWireFactory::class,
             Helper\IconsStyleFetcher::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
             Helper\SettingHelper::class => AutoWireFactory::class,

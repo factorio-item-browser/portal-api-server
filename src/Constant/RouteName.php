@@ -63,6 +63,16 @@ interface RouteName
     public const SETTINGS_SAVE = 'settings.save';
 
     /**
+     * The route for requesting the status of the current setting.
+     */
+    public const SETTINGS_STATUS = 'settings.status';
+
+    /**
+     * The route for requesting the status of a combination of mods.
+     */
+    public const SETTINGS_STATUS_MODS = 'settings.status.mods';
+
+    /**
      * The route for sending the sidebar entities to the server.
      */
     public const SIDEBAR_ENTITIES = 'sidebar.entities';

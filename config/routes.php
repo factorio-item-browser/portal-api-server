@@ -24,9 +24,13 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/recipe/{name}/machines', Handler\Recipe\MachinesHandler::class, RouteName::RECIPE_MACHINES);
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
     $app->get('/session/init', Handler\Session\InitHandler::class, RouteName::SESSION_INIT);
+
     $app->get('/settings', Handler\Settings\ListHandler::class, RouteName::SETTINGS_LIST);
+    $app->get('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS);
+    $app->post('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS_MODS);
     $app->get('/settings/{setting-id}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
     $app->put('/settings/{setting-id}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
+
     $app->put('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);
     $app->get('/tooltip/{type:item|fluid}/{name}', Handler\Tooltip\ItemHandler::class, RouteName::TOOLTIP_ITEM);

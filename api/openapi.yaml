@@ -177,7 +177,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SettingDetailsData"
-    post:
+    put:
       summary: Saves changes to the specified setting.
       operationId: settings.save
       tags:
@@ -193,8 +193,45 @@ paths:
         204:
           description: The chnages were successfully processed on the server.
 
-  /sidebar/entities:
+  /settings/status:
+    get:
+      summary: Returns the status of the current setting.
+      operationId: settings.status
+      tags:
+        - Settings
+      responses:
+        200:
+          description: The status of the current setting.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingStatusData"
     post:
+      summary: Returns the status of the setting build by the specified mods.
+      operationId: settings.status.mods
+      tags:
+        - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              description: The mod names used in the setting.
+              items:
+                type: string
+              example:
+                - base
+                - FNEI
+      responses:
+        200:
+          description: The status of the current setting.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingStatusData"
+
+  /sidebar/entities:
+    put:
       summary: Sends changes to the sidebar to the server.
       operationId: sidebar.entities
       tags:
@@ -628,6 +665,24 @@ components:
             - expensive
           description: The recipe mode of the setting.
           example: hybrid
+
+    SettingStatusData:
+      type: object
+      description: The current status of the setting.
+      properties:
+        status:
+          type: string
+          description: The export status of the combination.
+          enum:
+            - pending
+            - available
+            - errored
+          example: available
+        exportTime:
+          type: string
+          format: date-time
+          description: The timestamp when the data was exported from Factorio.
+          example: "2038-01-19T03:14:07.000Z"
 
     SettingsListData:
       type: object

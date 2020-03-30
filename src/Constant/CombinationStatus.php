@@ -13,6 +13,11 @@ namespace FactorioItemBrowser\PortalApi\Server\Constant;
 interface CombinationStatus
 {
     /**
+     * The combination is currently not known to the system.
+     */
+    public const UNKNOWN = 'unknown';
+
+    /**
      * The combination data is still pending to be exported.
      */
     public const PENDING = 'pending';

@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
 use DateTime;
 use Exception;
+use FactorioItemBrowser\Api\Client\Constant\ExportJobStatus;
 use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusResponse;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
@@ -82,7 +83,7 @@ class CombinationHelper
             $combination->setStatus(CombinationStatus::AVAILABLE)
                         ->setExportTime($statusResponse->getLatestSuccessfulExportJob()->getExportTime());
         } elseif ($statusResponse->getLatestExportJob() !== null) {
-            if ($statusResponse->getLatestExportJob()->getStatus() === 'error') {
+            if ($statusResponse->getLatestExportJob()->getStatus() === ExportJobStatus::ERROR) {
                 $combination->setStatus(CombinationStatus::ERRORED);
             } else {
                 $combination->setStatus(CombinationStatus::PENDING);

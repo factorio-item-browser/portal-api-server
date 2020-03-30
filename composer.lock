@@ -1277,12 +1277,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-client.git",
-                "reference": "3660ab254cf9d109c7070d763287a50c63eb678d"
+                "reference": "79880f695cfaad31f85f5fcd87cf52efbddf8a61"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-client/zipball/3660ab254cf9d109c7070d763287a50c63eb678d",
-                "reference": "3660ab254cf9d109c7070d763287a50c63eb678d",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-client/zipball/79880f695cfaad31f85f5fcd87cf52efbddf8a61",
+                "reference": "79880f695cfaad31f85f5fcd87cf52efbddf8a61",
                 "shasum": ""
             },
             "require": {
@@ -1328,7 +1328,7 @@
                 "api",
                 "client"
             ],
-            "time": "2020-03-26T16:37:11+00:00"
+            "time": "2020-03-30T19:59:02+00:00"
         },
         {
             "name": "factorio-item-browser/common",

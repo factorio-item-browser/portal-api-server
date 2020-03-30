@@ -7,6 +7,7 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTime;
 use Exception;
+use FactorioItemBrowser\Api\Client\Constant\ExportJobStatus;
 use FactorioItemBrowser\Api\Client\Entity\ExportJob;
 use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusResponse;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
@@ -213,7 +214,7 @@ class CombinationHelperTest extends TestCase
     public function testHydrateStatusResponseToCombinationWithStatusErrored(): void
     {
         $latestExportJob = new ExportJob();
-        $latestExportJob->setStatus('error');
+        $latestExportJob->setStatus(ExportJobStatus::ERROR);
 
         $statusResponse = new CombinationStatusResponse();
         $statusResponse->setLatestExportJob($latestExportJob);
@@ -243,7 +244,7 @@ class CombinationHelperTest extends TestCase
     public function testHydrateStatusResponseToCombinationWithStatusPending(): void
     {
         $latestExportJob = new ExportJob();
-        $latestExportJob->setStatus('queued');
+        $latestExportJob->setStatus(ExportJobStatus::QUEUED);
 
         $statusResponse = new CombinationStatusResponse();
         $statusResponse->setLatestExportJob($latestExportJob);

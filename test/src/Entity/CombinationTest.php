@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Entity;
 
+use DateTime;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -48,15 +49,46 @@ class CombinationTest extends TestCase
     }
 
     /**
-     * Tests the setting and getting the is available.
-     * @covers ::getIsAvailable
-     * @covers ::setIsAvailable
+     * Tests the setting and getting the status.
+     * @covers ::getStatus
+     * @covers ::setStatus
      */
-    public function testSetAndGetIsAvailable(): void
+    public function testSetAndGetStatus(): void
     {
+        $status = 'abc';
         $entity = new Combination();
 
-        $this->assertSame($entity, $entity->setIsAvailable(true));
-        $this->assertTrue($entity->getIsAvailable());
+        $this->assertSame($entity, $entity->setStatus($status));
+        $this->assertSame($status, $entity->getStatus());
+    }
+
+    /**
+     * Tests the setting and getting the export time.
+     * @covers ::getExportTime
+     * @covers ::setExportTime
+     */
+    public function testSetAndGetExportTime(): void
+    {
+        /* @var DateTime&MockObject $exportTime */
+        $exportTime = $this->createMock(DateTime::class);
+        $entity = new Combination();
+
+        $this->assertSame($entity, $entity->setExportTime($exportTime));
+        $this->assertSame($exportTime, $entity->getExportTime());
+    }
+
+    /**
+     * Tests the setting and getting the last check time.
+     * @covers ::getLastCheckTime
+     * @covers ::setLastCheckTime
+     */
+    public function testSetAndGetLastCheckTime(): void
+    {
+        /* @var DateTime&MockObject $lastCheckTime */
+        $lastCheckTime = $this->createMock(DateTime::class);
+        $entity = new Combination();
+
+        $this->assertSame($entity, $entity->setLastCheckTime($lastCheckTime));
+        $this->assertSame($lastCheckTime, $entity->getLastCheckTime());
     }
 }

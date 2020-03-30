@@ -43,6 +43,7 @@ return [
             ],
         ],
         'types' => [
+            Doctrine\Type\EnumCombinationStatusType::NAME => Doctrine\Type\EnumCombinationStatusType::class,
             Doctrine\Type\EnumTypeRecipeMode::NAME => Doctrine\Type\EnumTypeRecipeMode::class,
             Doctrine\Type\EnumTypeSidebarEntityType::NAME => Doctrine\Type\EnumTypeSidebarEntityType::class,
             Doctrine\Type\TimestampType::NAME => Doctrine\Type\TimestampType::class,

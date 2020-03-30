@@ -21,9 +21,21 @@
             </options>
         </field>
 
-        <field name="isAvailable" type="boolean">
+        <field name="status" type="enum_combination_status">
             <options>
-                <option name="comment">Whether the data for the combination is already available..</option>
+                <option name="comment">The status of the combination.</option>
+            </options>
+        </field>
+
+        <field name="exportTime" type="timestamp" nullable="true">
+            <options>
+                <option name="comment">The timestamp of export of the combination.</option>
+            </options>
+        </field>
+
+        <field name="lastCheckTime" type="timestamp" nullable="true">
+            <options>
+                <option name="comment">The timestamp when the combination was last checked.</option>
             </options>
         </field>
     </entity>

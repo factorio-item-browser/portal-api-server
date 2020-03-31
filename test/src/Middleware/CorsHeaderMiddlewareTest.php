@@ -45,24 +45,40 @@ class CorsHeaderMiddlewareTest extends TestCase
     public function testProcess(): void
     {
         $allowedOrigins = ['abc', 'def'];
+        $methods = 'ghi';
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
+        /* @var ResponseInterface&MockObject $response6 */
+        $response6 = $this->createMock(ResponseInterface::class);
+
         /* @var ResponseInterface&MockObject $response5 */
         $response5 = $this->createMock(ResponseInterface::class);
+        $response5->expects($this->once())
+                  ->method('withHeader')
+                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('def'))
+                  ->willReturn($response6);
 
         /* @var ResponseInterface&MockObject $response4 */
         $response4 = $this->createMock(ResponseInterface::class);
         $response4->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('def'))
+                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('abc'))
                   ->willReturn($response5);
 
         /* @var ResponseInterface&MockObject $response3 */
         $response3 = $this->createMock(ResponseInterface::class);
         $response3->expects($this->once())
+                  ->method('hasHeader')
+                  ->with($this->identicalTo('Allow'))
+                  ->willReturn(true);
+        $response3->expects($this->once())
+                  ->method('getHeaderLine')
+                  ->with($this->identicalTo('Allow'))
+                  ->willReturn($methods);
+        $response3->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('abc'))
+                  ->with($this->identicalTo('Access-Control-Allow-Methods'), $this->identicalTo($methods))
                   ->willReturn($response4);
 
         /* @var ResponseInterface&MockObject $response2 */
@@ -89,6 +105,6 @@ class CorsHeaderMiddlewareTest extends TestCase
         $middleware = new CorsHeaderMiddleware($allowedOrigins);
         $result = $middleware->process($request, $handler);
 
-        $this->assertSame($response5, $result);
+        $this->assertSame($response6, $result);
     }
 }

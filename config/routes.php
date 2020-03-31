@@ -28,8 +28,8 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/settings', Handler\Settings\ListHandler::class, RouteName::SETTINGS_LIST);
     $app->get('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS);
     $app->post('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS_MODS);
-    $app->get('/settings/{setting-id}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
-    $app->put('/settings/{setting-id}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
+    $app->get('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
+    $app->put('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
 
     $app->put('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);

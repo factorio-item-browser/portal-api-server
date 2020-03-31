@@ -17,6 +17,20 @@ use PHPUnit\Framework\TestCase;
 class SettingOptionsDataTest extends TestCase
 {
     /**
+     * Tests the setting and getting the name.
+     * @covers ::getName
+     * @covers ::setName
+     */
+    public function testSetAndGetName(): void
+    {
+        $name = 'abc';
+        $transfer = new SettingOptionsData();
+
+        $this->assertSame($transfer, $transfer->setName($name));
+        $this->assertSame($name, $transfer->getName());
+    }
+
+    /**
      * Tests the setting and getting the locale.
      * @covers ::getLocale
      * @covers ::setLocale

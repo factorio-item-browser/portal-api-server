@@ -101,8 +101,9 @@ class SaveHandlerTest extends TestCase
     {
         $settingIdString = 'e61afd17-0c69-4d49-bdf0-a93b416d644a';
         $settingId = Uuid::fromString($settingIdString);
-        $locale = 'abc';
-        $recipeMode = 'def';
+        $name = 'abc';
+        $locale = 'def';
+        $recipeMode = 'ghi';
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -114,6 +115,9 @@ class SaveHandlerTest extends TestCase
         /* @var SettingOptionsData&MockObject $requestOptions */
         $requestOptions = $this->createMock(SettingOptionsData::class);
         $requestOptions->expects($this->once())
+                       ->method('getName')
+                       ->willReturn($name);
+        $requestOptions->expects($this->once())
                        ->method('getLocale')
                        ->willReturn($locale);
         $requestOptions->expects($this->once())
@@ -122,6 +126,10 @@ class SaveHandlerTest extends TestCase
 
         /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('setName')
+                ->with($this->identicalTo($name))
+                ->willReturnSelf();
         $setting->expects($this->once())
                 ->method('setLocale')
                 ->with($this->identicalTo($locale))

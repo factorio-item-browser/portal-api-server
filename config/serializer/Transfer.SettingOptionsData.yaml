@@ -2,6 +2,8 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingOptionsData:
   access_type: public_method
   exclusion_policy: all
   properties:
+    name:
+      type: string
     locale:
       type: string
     recipeMode:

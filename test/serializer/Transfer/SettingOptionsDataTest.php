@@ -22,8 +22,9 @@ class SettingOptionsDataTest extends SerializerTestCase
     protected function getObject(): object
     {
         $object = new SettingOptionsData();
-        $object->setLocale('efg')
-               ->setRecipeMode('hij');
+        $object->setName('abc')
+               ->setLocale('def')
+               ->setRecipeMode('ghi');
 
         return $object;
     }
@@ -35,8 +36,9 @@ class SettingOptionsDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
-            'locale' => 'efg',
-            'recipeMode' => 'hij',
+            'name' => 'abc',
+            'locale' => 'def',
+            'recipeMode' => 'ghi',
         ];
     }
 

@@ -653,6 +653,10 @@ components:
       type: object
       description: The options of the setting.
       properties:
+        name:
+          type: string
+          description: The name of the setting.
+          example: Vanilla
         locale:
           type: string
           description: The locale of the setting.

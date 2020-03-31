@@ -92,7 +92,8 @@ class SaveHandler implements RequestHandlerInterface
         $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($settingId));
         $this->validateOptions($requestOptions);
 
-        $setting->setLocale($requestOptions->getLocale())
+        $setting->setName($requestOptions->getName())
+                ->setLocale($requestOptions->getLocale())
                 ->setRecipeMode($requestOptions->getRecipeMode());
 
         $this->currentUser->setCurrentSetting($setting);

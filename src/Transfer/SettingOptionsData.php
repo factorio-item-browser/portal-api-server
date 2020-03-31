@@ -13,6 +13,12 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SettingOptionsData
 {
     /**
+     * The name of the setting.
+     * @var string
+     */
+    protected $name;
+
+    /**
      * The locale of the setting.
      * @var string
      */
@@ -23,6 +29,26 @@ class SettingOptionsData
      * @var string
      */
     protected $recipeMode = '';
+
+    /**
+     * Sets the name of the setting.
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * Returns the name of the setting.
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
     /**
      * Sets the locale of the setting.

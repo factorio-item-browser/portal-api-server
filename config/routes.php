@@ -26,6 +26,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/session/init', Handler\Session\InitHandler::class, RouteName::SESSION_INIT);
 
     $app->get('/settings', Handler\Settings\ListHandler::class, RouteName::SETTINGS_LIST);
+    $app->put('/settings', Handler\Settings\CreateHandler::class, RouteName::SETTINGS_CREATE);
     $app->get('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS);
     $app->post('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS_MODS);
     $app->get('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);

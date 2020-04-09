@@ -86,4 +86,13 @@ class CombinationRepository
             return null;
         }
     }
+
+    /**
+     * Persists the specified combination to the database.
+     * @param Combination $combination
+     */
+    public function persist(Combination $combination): void
+    {
+        $this->entityManager->persist($combination);
+    }
 }

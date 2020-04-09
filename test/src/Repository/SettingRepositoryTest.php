@@ -73,8 +73,6 @@ class SettingRepositoryTest extends TestCase
      */
     public function testCreateSetting(): void
     {
-        $name = 'abc';
-
         /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
         /* @var Combination&MockObject $combination */
@@ -84,12 +82,11 @@ class SettingRepositoryTest extends TestCase
             $this->combinationRepository,
             $this->entityManager
         );
-        $result = $repository->createSetting($user, $combination, $name);
+        $result = $repository->createSetting($user, $combination);
 
         $result->getId(); // Asserted by type-hint.
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
-        $this->assertSame($name, $result->getName());
     }
 
     /**

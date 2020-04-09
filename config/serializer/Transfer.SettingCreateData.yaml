@@ -1,0 +1,6 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SettingCreateData:
+  access_type: public_method
+  exclusion_policy: all
+  properties:
+    modNames:
+      type: array<string>

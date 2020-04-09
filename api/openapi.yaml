@@ -162,6 +162,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/SettingsListData"
 
+    put:
+      summary: Creates a new setting with the specified options for the current user.
+      operationId: settings.create
+      tags:
+        - Settings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingCreateData"
+      responses:
+        204:
+          description: The setting has been successfully created. Start over with a /session/init request.
+
   /settings/{setting-id}:
     get:
       summary: Returns the details of the specified setting.
@@ -191,7 +205,7 @@ paths:
               $ref: "#/components/schemas/SettingOptionsData"
       responses:
         204:
-          description: The chnages were successfully processed on the server.
+          description: The changes were successfully processed on the server.
 
   /settings/status:
     get:
@@ -620,6 +634,20 @@ components:
           description: The sidebar entities of the session.
           items:
             $ref: "#/components/schemas/SidebarEntityData"
+
+    SettingCreateData:
+      allOf:
+        - $ref: "#/components/schemas/SettingOptionsData"
+        - type: object
+          properties:
+            modNames:
+              type: array
+              description: The mod names to use in the setting.
+              items:
+                type: string
+              example:
+                - base
+                - FNEI
 
     SettingDetailsData:
       allOf:

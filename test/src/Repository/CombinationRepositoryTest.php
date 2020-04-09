@@ -262,4 +262,21 @@ class CombinationRepositoryTest extends TestCase
 
         $this->assertNull($result);
     }
+
+    /**
+     * Tests the persist method.
+     * @covers ::persist
+     */
+    public function testPersist(): void
+    {
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
+
+        $this->entityManager->expects($this->once())
+                            ->method('persist')
+                            ->with($this->identicalTo($combination));
+
+        $repository = new CombinationRepository($this->entityManager);
+        $repository->persist($combination);
+    }
 }

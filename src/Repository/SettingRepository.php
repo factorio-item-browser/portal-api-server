@@ -64,17 +64,15 @@ class SettingRepository
      * Creates a new setting for the specified user.
      * @param User $user
      * @param Combination $combination
-     * @param string $name
      * @return Setting
      * @throws Exception
      */
-    public function createSetting(User $user, Combination $combination, string $name): Setting
+    public function createSetting(User $user, Combination $combination): Setting
     {
         $setting = new Setting();
         $setting->setId(Uuid::uuid4())
                 ->setUser($user)
-                ->setCombination($combination)
-                ->setName($name);
+                ->setCombination($combination);
 
         $this->entityManager->persist($setting);
         return $setting;
@@ -89,8 +87,9 @@ class SettingRepository
     public function createDefaultSetting(User $user): Setting
     {
         $defaultCombination = $this->combinationRepository->getDefaultCombination();
-        $setting = $this->createSetting($user, $defaultCombination, self::DEFAULT_NAME);
-        $setting->setRecipeMode(self::DEFAULT_RECIPE_MODE)
+        $setting = $this->createSetting($user, $defaultCombination);
+        $setting->setName(self::DEFAULT_NAME)
+                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
                 ->setLocale(self::DEFAULT_LOCALE);
         return $setting;
     }

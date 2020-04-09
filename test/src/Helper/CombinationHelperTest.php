@@ -173,7 +173,7 @@ class CombinationHelperTest extends TestCase
 
     /**
      * Tests the hydrateStatusResponseToCombination method.
-     * @throws ReflectionException
+     * @throws Exception
      * @covers ::hydrateStatusResponseToCombination
      */
     public function testHydrateStatusResponseToCombinationWithStatusAvailable(): void
@@ -203,12 +203,12 @@ class CombinationHelperTest extends TestCase
                     ->willReturnSelf();
 
         $helper = new CombinationHelper($this->combinationRepository);
-        $this->invokeMethod($helper, 'hydrateStatusResponseToCombination', $statusResponse, $combination);
+        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
     }
 
     /**
      * Tests the hydrateStatusResponseToCombination method.
-     * @throws ReflectionException
+     * @throws Exception
      * @covers ::hydrateStatusResponseToCombination
      */
     public function testHydrateStatusResponseToCombinationWithStatusErrored(): void
@@ -233,12 +233,12 @@ class CombinationHelperTest extends TestCase
                     ->willReturnSelf();
 
         $helper = new CombinationHelper($this->combinationRepository);
-        $this->invokeMethod($helper, 'hydrateStatusResponseToCombination', $statusResponse, $combination);
+        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
     }
 
     /**
      * Tests the hydrateStatusResponseToCombination method.
-     * @throws ReflectionException
+     * @throws Exception
      * @covers ::hydrateStatusResponseToCombination
      */
     public function testHydrateStatusResponseToCombinationWithStatusPending(): void
@@ -263,12 +263,12 @@ class CombinationHelperTest extends TestCase
                     ->willReturnSelf();
 
         $helper = new CombinationHelper($this->combinationRepository);
-        $this->invokeMethod($helper, 'hydrateStatusResponseToCombination', $statusResponse, $combination);
+        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
     }
 
     /**
      * Tests the hydrateStatusResponseToCombination method.
-     * @throws ReflectionException
+     * @throws Exception
      * @covers ::hydrateStatusResponseToCombination
      */
     public function testHydrateStatusResponseToCombinationWithStatusUnknown(): void
@@ -289,6 +289,23 @@ class CombinationHelperTest extends TestCase
                     ->willReturnSelf();
 
         $helper = new CombinationHelper($this->combinationRepository);
-        $this->invokeMethod($helper, 'hydrateStatusResponseToCombination', $statusResponse, $combination);
+        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
+    }
+
+    /**
+     * Tests the persist method.
+     * @covers ::persist
+     */
+    public function testPersist(): void
+    {
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('persist')
+                                    ->with($this->identicalTo($combination));
+
+        $helper = new CombinationHelper($this->combinationRepository);
+        $helper->persist($combination);
     }
 }

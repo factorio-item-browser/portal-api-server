@@ -48,6 +48,11 @@ interface RouteName
     public const SESSION_INIT = 'session.init';
 
     /**
+     * The route for creating a new setting.
+     */
+    public const SETTINGS_CREATE = 'settings.create';
+
+    /**
      * The route for requesting the details of a setting.
      */
     public const SETTINGS_DETAILS = 'settings.details';

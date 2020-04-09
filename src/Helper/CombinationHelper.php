@@ -75,7 +75,7 @@ class CombinationHelper
      * @param Combination $combination
      * @throws Exception
      */
-    protected function hydrateStatusResponseToCombination(
+    public function hydrateStatusResponseToCombination(
         CombinationStatusResponse $statusResponse,
         Combination $combination
     ): void {
@@ -93,5 +93,14 @@ class CombinationHelper
         }
 
         $combination->setLastCheckTime(new DateTime());
+    }
+
+    /**
+     * Persists the combination to the database, creating its dataset if it was newly created.
+     * @param Combination $combination
+     */
+    public function persist(Combination $combination): void
+    {
+        $this->combinationRepository->persist($combination);
     }
 }

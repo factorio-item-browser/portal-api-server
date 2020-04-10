@@ -93,4 +93,16 @@ class SettingRepository
                 ->setLocale(self::DEFAULT_LOCALE);
         return $setting;
     }
+
+    /**
+     * Deletes the specified setting from the database.
+     * @param Setting $setting
+     */
+    public function deleteSetting(Setting $setting): void
+    {
+        foreach ($setting->getSidebarEntities() as $sidebarEntity) {
+            $this->entityManager->remove($sidebarEntity);
+        }
+        $this->entityManager->remove($setting);
+    }
 }

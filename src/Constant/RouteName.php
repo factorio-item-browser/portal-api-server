@@ -53,6 +53,11 @@ interface RouteName
     public const SETTINGS_CREATE = 'settings.create';
 
     /**
+     * The route for deleting a setting.
+     */
+    public const SETTINGS_DELETE = 'settings.delete';
+
+    /**
      * The route for requesting the details of a setting.
      */
     public const SETTINGS_DETAILS = 'settings.details';

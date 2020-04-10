@@ -191,6 +191,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SettingDetailsData"
+
     put:
       summary: Saves changes to the specified setting.
       operationId: settings.save
@@ -206,6 +207,17 @@ paths:
       responses:
         204:
           description: The changes were successfully processed on the server.
+
+    delete:
+      summary: Deletes the setting. The setting must not be the current active setting.
+      operationId: settings.delete
+      tags:
+        - Settings
+      parameters:
+        - $ref: "#/components/parameters/setting-id"
+      responses:
+        204:
+          description: The setting have been successfully deleted.
 
   /settings/status:
     get:

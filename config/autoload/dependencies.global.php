@@ -41,6 +41,7 @@ return [
             Handler\SearchHandler::class => AutoWireFactory::class,
             Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Settings\CreateHandler::class => AutoWireFactory::class,
+            Handler\Settings\DeleteHandler::class => AutoWireFactory::class,
             Handler\Settings\DetailsHandler::class => AutoWireFactory::class,
             Handler\Settings\ListHandler::class => AutoWireFactory::class,
             Handler\Settings\SaveHandler::class => AutoWireFactory::class,

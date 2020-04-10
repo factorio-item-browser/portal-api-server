@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Repository;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
@@ -57,10 +60,7 @@ class SettingRepositoryTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $repository = new SettingRepository(
-            $this->combinationRepository,
-            $this->entityManager
-        );
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
 
         $this->assertSame($this->combinationRepository, $this->extractProperty($repository, 'combinationRepository'));
         $this->assertSame($this->entityManager, $this->extractProperty($repository, 'entityManager'));
@@ -78,10 +78,7 @@ class SettingRepositoryTest extends TestCase
         /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        $repository = new SettingRepository(
-            $this->combinationRepository,
-            $this->entityManager
-        );
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
         $result = $repository->createSetting($user, $combination);
 
         $result->getId(); // Asserted by type-hint.
@@ -105,10 +102,7 @@ class SettingRepositoryTest extends TestCase
                                     ->method('getDefaultCombination')
                                     ->willReturn($defaultCombination);
 
-        $repository = new SettingRepository(
-            $this->combinationRepository,
-            $this->entityManager
-        );
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
         $result = $repository->createDefaultSetting($user);
 
         $result->getId(); // Asserted by type-hint.
@@ -117,5 +111,34 @@ class SettingRepositoryTest extends TestCase
         $this->assertSame('Vanilla', $result->getName());
         $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
         $this->assertSame('en', $result->getLocale());
+    }
+
+    /**
+     * Tests the deleteSetting method.
+     * @covers ::deleteSetting
+     */
+    public function testDeleteSetting(): void
+    {
+        /* @var SidebarEntity&MockObject $sidebarEntity1 */
+        $sidebarEntity1 = $this->createMock(SidebarEntity::class);
+        /* @var SidebarEntity&MockObject $sidebarEntity2 */
+        $sidebarEntity2 = $this->createMock(SidebarEntity::class);
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('getSidebarEntities')
+                ->willReturn(new ArrayCollection([$sidebarEntity1, $sidebarEntity2]));
+
+        $this->entityManager->expects($this->exactly(3))
+                            ->method('remove')
+                            ->withConsecutive(
+                                [$this->identicalTo($sidebarEntity1)],
+                                [$this->identicalTo($sidebarEntity2)],
+                                [$this->identicalTo($setting)]
+                            );
+
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
+        $repository->deleteSetting($setting);
     }
 }

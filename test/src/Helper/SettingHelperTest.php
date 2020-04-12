@@ -7,6 +7,7 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\Mod;
@@ -546,7 +547,53 @@ class SettingHelperTest extends TestCase
     {
         $settingId = Uuid::fromString('03c44592-9276-43e4-a5ff-38b20cce8d7f');
         $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
-        $expectedResult = '2fe3342ec13860facaf0e20e94ee1f7d';
+        $exportTime = new DateTime('2038-01-19 03:14:07');
+
+        $expectedResult = md5((string) json_encode([
+            '03c44592-9276-43e4-a5ff-38b20cce8d7f',
+            '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76',
+            '2038-01-19T03:14:07+00:00',
+            'abc',
+            'def',
+        ]));
+
+        $combination = new Combination();
+        $combination->setId($combinationId)
+                    ->setExportTime($exportTime);
+
+        $setting = new Setting();
+        $setting->setId($settingId)
+                ->setCombination($combination)
+                ->setLocale('abc')
+                ->setRecipeMode('def');
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->currentUser,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $result = $helper->calculateHash($setting);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the calculateHash method.
+     * @covers ::calculateHash
+     */
+    public function testCalculateHashWithoutExportTime(): void
+    {
+        $settingId = Uuid::fromString('03c44592-9276-43e4-a5ff-38b20cce8d7f');
+        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
+
+        $expectedResult = md5((string) json_encode([
+            '03c44592-9276-43e4-a5ff-38b20cce8d7f',
+            '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76',
+            '',
+            'abc',
+            'def',
+        ]));
 
         $combination = new Combination();
         $combination->setId($combinationId);

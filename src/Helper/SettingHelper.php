@@ -176,9 +176,15 @@ class SettingHelper
      */
     public function calculateHash(Setting $setting): string
     {
+        $exportTime = '';
+        if ($setting->getCombination()->getExportTime() !== null) {
+            $exportTime = $setting->getCombination()->getExportTime()->format('Y-m-d\TH:i:sP');
+        }
+
         $data = [
             $setting->getId()->toString(),
             $setting->getCombination()->getId()->toString(),
+            $exportTime,
             $setting->getLocale(),
             $setting->getRecipeMode(),
         ];

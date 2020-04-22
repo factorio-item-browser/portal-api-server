@@ -133,4 +133,17 @@ class SettingTest extends TestCase
         $this->assertSame($entity, $entity->setApiAuthorizationToken($apiAuthorizationToken));
         $this->assertSame($apiAuthorizationToken, $entity->getApiAuthorizationToken());
     }
+
+    /**
+     * Tests the setting and getting the has data.
+     * @covers ::getHasData
+     * @covers ::setHasData
+     */
+    public function testSetAndGetHasData(): void
+    {
+        $entity = new Setting();
+
+        $this->assertSame($entity, $entity->setHasData(true));
+        $this->assertTrue($entity->getHasData());
+    }
 }

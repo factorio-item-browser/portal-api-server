@@ -6,6 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Api;
 
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
+use FactorioItemBrowser\Common\Constant\Constant;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Laminas\ServiceManager\ServiceManager;
 
@@ -30,16 +31,10 @@ class ApiClientFactory
     protected $serviceManager;
 
     /**
-     * The API clients which where created.
-     * @var array<string,ApiClientInterface>|ApiClientInterface[]
+     * The data to already created clients.
+     * @var array<string,array<int,Data>>|Data[][]
      */
-    protected $apiClients = [];
-
-    /**
-     * The settings which were used to create the clients.
-     * @var array<string,Setting>|Setting[]
-     */
-    protected $settings = [];
+    protected $data = [];
 
     /**
      * Initializes the factory.
@@ -59,10 +54,93 @@ class ApiClientFactory
      */
     public function create(Setting $setting): ApiClientInterface
     {
-        $settingId = $setting->getId()->toString();
-        $apiClient = $this->apiClients[$settingId] ?? $this->serviceManager->build(ApiClientInterface::class);
-        $this->configure($apiClient, $setting);
+        return $this->createApiClient($setting, true);
+    }
+
+    /**
+     * Creates a new instance of the API client for the setting, without falling back to Vanilla when data is not yet
+     * available.
+     * @param Setting $setting
+     * @return ApiClientInterface
+     */
+    public function createWithoutFallback(Setting $setting): ApiClientInterface
+    {
+        return $this->createApiClient($setting, false);
+    }
+
+    /**
+     * Actually creates a new API client for the setting, if not available yet.
+     * @param Setting $setting
+     * @param bool $withFallback
+     * @return ApiClientInterface
+     */
+    protected function createApiClient(Setting $setting, bool $withFallback): ApiClientInterface
+    {
+        $data = $this->getData($setting, $withFallback);
+        $apiClient = $data->getApiClient() ?? $this->serviceManager->build(ApiClientInterface::class);
+        $this->configureApiClient($apiClient, $setting, $withFallback);
+
         return $apiClient;
+    }
+
+    /**
+     * Configures the API client to match the setting.
+     * @param ApiClientInterface $apiClient
+     * @param Setting $setting
+     */
+    public function configure(ApiClientInterface $apiClient, Setting $setting): void
+    {
+        $this->configureApiClient($apiClient, $setting, true);
+    }
+
+    /**
+     * Configures the API client to match the setting, without falling back to Vanilla when data is not yet available.
+     * @param ApiClientInterface $apiClient
+     * @param Setting $setting
+     */
+    public function configureWithoutFallback(ApiClientInterface $apiClient, Setting $setting): void
+    {
+        $this->configureApiClient($apiClient, $setting, false);
+    }
+
+    /**
+     * Actually configures the API client to match the setting.
+     * @param ApiClientInterface $apiClient
+     * @param Setting $setting
+     * @param bool $withFallback
+     */
+    protected function configureApiClient(ApiClientInterface $apiClient, Setting $setting, bool $withFallback): void
+    {
+        $useFallback = !$setting->getHasData() && $withFallback;
+
+        $apiClient->setLocale($setting->getLocale());
+        $apiClient->setModNames($useFallback ? [Constant::MOD_NAME_BASE] : $setting->getCombination()->getModNames());
+        if ($useFallback !== $setting->getHasData()) {
+            $apiClient->setAuthorizationToken($setting->getApiAuthorizationToken());
+        }
+
+        $data = $this->getData($setting, $withFallback);
+        $data->setApiClient($apiClient)
+             ->setIsFallback($useFallback);
+    }
+
+    /**
+     * Returns the data to the setting and fallback behavior, creating it if not yet available.
+     * @param Setting $setting
+     * @param bool $withFallback
+     * @return Data
+     */
+    protected function getData(Setting $setting, bool $withFallback): Data
+    {
+        $withFallback = (int) $withFallback;
+        $settingId = $setting->getId()->toString();
+        if (!isset($this->data[$settingId][$withFallback])) {
+            $data = new Data();
+            $data->setSetting($setting);
+
+            $this->data[$settingId][$withFallback] = $data;
+        }
+        return $this->data[$settingId][$withFallback];
     }
 
     /**
@@ -80,32 +158,21 @@ class ApiClientFactory
     }
 
     /**
-     * Configures the API client to match the setting.
-     * @param ApiClientInterface $apiClient
-     * @param Setting $setting
-     */
-    public function configure(ApiClientInterface $apiClient, Setting $setting): void
-    {
-        $apiClient->setLocale($setting->getLocale());
-        $apiClient->setModNames($setting->getCombination()->getModNames());
-        $apiClient->setAuthorizationToken($setting->getApiAuthorizationToken());
-
-        $settingId = $setting->getId()->toString();
-        $this->apiClients[$settingId] = $apiClient;
-        $this->settings[$settingId] = $setting;
-    }
-
-    /**
      * Persists the authorization tokens into the setting entities.
      */
     public function persistAuthorizationTokens(): void
     {
-        foreach ($this->apiClients as $settingId => $apiClient) {
-            $setting = $this->settings[$settingId];
-            $authorizationToken = $apiClient->getAuthorizationToken();
-            if ($setting->getApiAuthorizationToken() !== $authorizationToken) {
-                $setting->setApiAuthorizationToken($authorizationToken);
-                $this->entityManager->persist($setting);
+        foreach ($this->data as $settingData) {
+            foreach ($settingData as $data) {
+                $setting = $data->getSetting();
+                if (
+                    $setting->getHasData() !== $data->getIsFallback()
+                    && $data->getApiClient() !== null
+                    && $setting->getApiAuthorizationToken() !== $data->getApiClient()->getAuthorizationToken()
+                ) {
+                    $setting->setApiAuthorizationToken($data->getApiClient()->getAuthorizationToken());
+                    $this->entityManager->persist($setting);
+                }
             }
         }
     }

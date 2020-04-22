@@ -59,6 +59,12 @@ class Setting
     protected $apiAuthorizationToken = '';
 
     /**
+     * Whether the setting has its data actually available.
+     * @var bool
+     */
+    protected $hasData = false;
+
+    /**
      * The sidebar entities of the setting.
      * @var Collection<int,SidebarEntity>
      */
@@ -210,6 +216,26 @@ class Setting
     public function getApiAuthorizationToken(): string
     {
         return $this->apiAuthorizationToken;
+    }
+
+    /**
+     * Sets whether the setting has its data actually available.
+     * @param bool $hasData
+     * @return $this
+     */
+    public function setHasData(bool $hasData): self
+    {
+        $this->hasData = $hasData;
+        return $this;
+    }
+
+    /**
+     * Returns whether the setting has its data actually available.
+     * @return bool
+     */
+    public function getHasData(): bool
+    {
+        return $this->hasData;
     }
 
     /**

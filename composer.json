@@ -22,7 +22,7 @@
     "dflydev/fig-cookies": "^2.0",
     "doctrine/cache": "^1.10",
     "doctrine/orm": "^2.6",
-    "factorio-item-browser/api-client": "dev-project-phoenix",
+    "factorio-item-browser/api-client": "^3.0",
     "laminas/laminas-config-aggregator": "^1.0",
     "laminas/laminas-diactoros": "^2.2",
     "laminas/laminas-escaper": "^2.6",

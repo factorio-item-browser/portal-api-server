@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
+use BluePsyduck\MapperManager\Exception\MapperException;
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\Entity\Entity;
 use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
@@ -13,6 +15,8 @@ use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 
 /**
  * The helper for managing the sidebar entities.
@@ -35,14 +39,25 @@ class SidebarEntitiesHelper
     protected $entityManager;
 
     /**
+     * The mapper manager.
+     * @var MapperManagerInterface
+     */
+    protected $mapperManager;
+
+    /**
      * Initializes the helper.
      * @param ApiClientFactory $apiClientFactory
      * @param EntityManagerInterface $entityManager
+     * @param MapperManagerInterface $mapperManager
      */
-    public function __construct(ApiClientFactory $apiClientFactory, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        ApiClientFactory $apiClientFactory,
+        EntityManagerInterface $entityManager,
+        MapperManagerInterface $mapperManager
+    ) {
         $this->apiClientFactory = $apiClientFactory;
         $this->entityManager = $entityManager;
+        $this->mapperManager = $mapperManager;
     }
 
     /**
@@ -145,6 +160,27 @@ class SidebarEntitiesHelper
                 $mappedEntities[$key]->setLabel($responseEntity->getLabel());
                 $this->entityManager->persist($mappedEntities[$key]);
             }
+        }
+    }
+
+    /**
+     * Maps the entities to data objects.
+     * @param array<SidebarEntity>|SidebarEntity[] $sidebarEntities
+     * @return array<SidebarEntityData>|SidebarEntityData[]
+     * @throws MappingException
+     */
+    public function mapEntities(array $sidebarEntities): array
+    {
+        try {
+            $result = [];
+            foreach ($sidebarEntities as $sidebarEntity) {
+                $data = new SidebarEntityData();
+                $this->mapperManager->map($sidebarEntity, $data);
+                $result[] = $data;
+            }
+            return $result;
+        } catch (MapperException $e) {
+            throw new MappingException($e);
         }
     }
 }

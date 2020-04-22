@@ -90,7 +90,8 @@ class SettingRepository
         $setting = $this->createSetting($user, $defaultCombination);
         $setting->setName(self::DEFAULT_NAME)
                 ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
-                ->setLocale(self::DEFAULT_LOCALE);
+                ->setLocale(self::DEFAULT_LOCALE)
+                ->setHasData(true);
         return $setting;
     }
 

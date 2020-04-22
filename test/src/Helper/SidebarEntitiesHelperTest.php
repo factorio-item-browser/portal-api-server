@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 
+use BluePsyduck\MapperManager\Exception\MapperException;
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,8 +21,10 @@ use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -49,6 +53,12 @@ class SidebarEntitiesHelperTest extends TestCase
     protected $entityManager;
 
     /**
+     * The mocked mapper manager.
+     * @var MapperManagerInterface&MockObject
+     */
+    protected $mapperManager;
+
+    /**
      * Sets up the test case.
      */
     protected function setUp(): void
@@ -57,6 +67,7 @@ class SidebarEntitiesHelperTest extends TestCase
 
         $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->mapperManager = $this->createMock(MapperManagerInterface::class);
     }
 
     /**
@@ -66,10 +77,11 @@ class SidebarEntitiesHelperTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager);
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
 
         $this->assertSame($this->apiClientFactory, $this->extractProperty($helper, 'apiClientFactory'));
         $this->assertSame($this->entityManager, $this->extractProperty($helper, 'entityManager'));
+        $this->assertSame($this->mapperManager, $this->extractProperty($helper, 'mapperManager'));
     }
 
     /**
@@ -98,7 +110,7 @@ class SidebarEntitiesHelperTest extends TestCase
             'jkl|mno' => $entity3,
         ];
 
-        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager);
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
         $result = $this->invokeMethod($helper, 'createAssociativeMap', $entities);
 
         $this->assertSame($expectedResult, $result);
@@ -200,7 +212,7 @@ class SidebarEntitiesHelperTest extends TestCase
         /* @var SidebarEntitiesHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
                        ->onlyMethods(['createAssociativeMap'])
-                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager])
+                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
                        ->getMock();
         $helper->expects($this->exactly(2))
                ->method('createAssociativeMap')
@@ -258,7 +270,7 @@ class SidebarEntitiesHelperTest extends TestCase
         /* @var SidebarEntitiesHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
                        ->onlyMethods(['createAssociativeMap', 'createDetailsRequest', 'processDetailsResponse'])
-                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager])
+                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
                        ->getMock();
         $helper->expects($this->once())
                ->method('createAssociativeMap')
@@ -317,7 +329,7 @@ class SidebarEntitiesHelperTest extends TestCase
         /* @var SidebarEntitiesHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
                        ->onlyMethods(['createAssociativeMap', 'createDetailsRequest', 'processDetailsResponse'])
-                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager])
+                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
                        ->getMock();
         $helper->expects($this->once())
                ->method('createAssociativeMap')
@@ -369,7 +381,7 @@ class SidebarEntitiesHelperTest extends TestCase
         $expectedResult = new GenericDetailsRequest();
         $expectedResult->setEntities([$requestEntity1, $requestEntity2, $requestEntity3]);
 
-        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager);
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
         $result = $this->invokeMethod($helper, 'createDetailsRequest', $entities);
 
         $this->assertEquals($expectedResult, $result);
@@ -422,7 +434,55 @@ class SidebarEntitiesHelperTest extends TestCase
             'jkl|mno' => $entity2,
         ];
 
-        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager);
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
         $this->invokeMethod($helper, 'processDetailsResponse', $response, $mappedEntities);
+    }
+
+    /**
+     * Tests the mapEntities method.
+     * @throws MappingException
+     * @covers ::mapEntities
+     */
+    public function testMapEntities(): void
+    {
+        /* @var SidebarEntity&MockObject $sidebarEntity1 */
+        $sidebarEntity1 = $this->createMock(SidebarEntity::class);
+        /* @var SidebarEntity&MockObject $sidebarEntity2 */
+        $sidebarEntity2 = $this->createMock(SidebarEntity::class);
+
+        $this->mapperManager->expects($this->exactly(2))
+                            ->method('map')
+                            ->withConsecutive(
+                                [$this->identicalTo($sidebarEntity1), $this->isInstanceOf(SidebarEntityData::class)],
+                                [$this->identicalTo($sidebarEntity2), $this->isInstanceOf(SidebarEntityData::class)]
+                            );
+
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
+        $result = $helper->mapEntities([$sidebarEntity1, $sidebarEntity2]);
+
+        $this->assertCount(2, $result);
+    }
+
+    /**
+     * Tests the mapEntities method.
+     * @throws MappingException
+     * @covers ::mapEntities
+     */
+    public function testMapEntitiesWithException(): void
+    {
+        /* @var SidebarEntity&MockObject $sidebarEntity1 */
+        $sidebarEntity1 = $this->createMock(SidebarEntity::class);
+        /* @var SidebarEntity&MockObject $sidebarEntity2 */
+        $sidebarEntity2 = $this->createMock(SidebarEntity::class);
+
+        $this->mapperManager->expects($this->once())
+                            ->method('map')
+                            ->with($this->identicalTo($sidebarEntity1), $this->isInstanceOf(SidebarEntityData::class))
+                            ->willThrowException($this->createMock(MapperException::class));
+
+        $this->expectException(MappingException::class);
+
+        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
+        $helper->mapEntities([$sidebarEntity1, $sidebarEntity2]);
     }
 }

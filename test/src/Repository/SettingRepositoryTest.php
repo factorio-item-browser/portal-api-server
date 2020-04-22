@@ -111,6 +111,7 @@ class SettingRepositoryTest extends TestCase
         $this->assertSame('Vanilla', $result->getName());
         $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
         $this->assertSame('en', $result->getLocale());
+        $this->assertTrue($result->getHasData());
     }
 
     /**

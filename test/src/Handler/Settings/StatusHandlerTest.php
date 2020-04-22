@@ -168,7 +168,7 @@ class StatusHandlerTest extends TestCase
                 ->willReturn($method);
 
         $this->apiClientFactory->expects($this->never())
-                               ->method('create');
+                               ->method('createWithoutFallback');
         $this->apiClientFactory->expects($this->once())
                                ->method('createForModNames')
                                ->with($this->identicalTo($modNames))
@@ -213,7 +213,7 @@ class StatusHandlerTest extends TestCase
                 ->willReturn($method);
 
         $this->apiClientFactory->expects($this->once())
-                               ->method('create')
+                               ->method('createWithoutFallback')
                                ->with($this->identicalTo($this->currentSetting))
                                ->willReturn($apiClient);
         $this->apiClientFactory->expects($this->never())

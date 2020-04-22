@@ -8,6 +8,7 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
+use FactorioItemBrowser\PortalApi\Server\Api\Data;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use Laminas\ServiceManager\ServiceManager;
@@ -69,16 +70,108 @@ class ApiClientFactoryTest extends TestCase
      */
     public function testCreate(): void
     {
-        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
-
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
         /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
 
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['createApiClient'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('createApiClient')
+                ->with($this->identicalTo($setting), $this->isTrue())
+                ->willReturn($apiClient);
+
+        $result = $factory->create($setting);
+
+        $this->assertSame($apiClient, $result);
+    }
+
+    /**
+     * Tests the createWithoutFallback method.
+     * @covers ::createWithoutFallback
+     */
+    public function testCreateWithoutFallback(): void
+    {
         /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('getId')
-                ->willReturn(Uuid::fromString($settingId));
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['createApiClient'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('createApiClient')
+                ->with($this->identicalTo($setting), $this->isFalse())
+                ->willReturn($apiClient);
+
+        $result = $factory->createWithoutFallback($setting);
+
+        $this->assertSame($apiClient, $result);
+    }
+
+    /**
+     * Tests the createApiClient method.
+     * @throws ReflectionException
+     * @covers ::createApiClient
+     */
+    public function testCreateApiClient(): void
+    {
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+
+        /* @var Data&MockObject $data */
+        $data = $this->createMock(Data::class);
+        $data->expects($this->once())
+             ->method('getApiClient')
+             ->willReturn($apiClient);
+
+        $this->serviceManager->expects($this->never())
+                             ->method('build');
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['getData', 'configureApiClient'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('getData')
+                ->with($this->identicalTo($setting), $this->isTrue())
+                ->willReturn($data);
+        $factory->expects($this->once())
+                ->method('configureApiClient')
+                ->with($this->identicalTo($apiClient), $this->identicalTo($setting), $this->isTrue());
+
+        $result = $this->invokeMethod($factory, 'createApiClient', $setting, true);
+
+        $this->assertSame($apiClient, $result);
+    }
+
+    /**
+     * Tests the createApiClient method.
+     * @throws ReflectionException
+     * @covers ::createApiClient
+     */
+    public function testCreateApiClientWithoutClient(): void
+    {
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+
+        /* @var Data&MockObject $data */
+        $data = $this->createMock(Data::class);
+        $data->expects($this->once())
+             ->method('getApiClient')
+             ->willReturn(null);
 
         $this->serviceManager->expects($this->once())
                              ->method('build')
@@ -87,33 +180,176 @@ class ApiClientFactoryTest extends TestCase
 
         /* @var ApiClientFactory&MockObject $factory */
         $factory = $this->getMockBuilder(ApiClientFactory::class)
-                        ->onlyMethods(['configure'])
+                        ->onlyMethods(['getData', 'configureApiClient'])
                         ->setConstructorArgs([$this->entityManager, $this->serviceManager])
                         ->getMock();
         $factory->expects($this->once())
-                ->method('configure')
-                ->with($this->identicalTo($apiClient), $this->identicalTo($setting));
+                ->method('getData')
+                ->with($this->identicalTo($setting), $this->isTrue())
+                ->willReturn($data);
+        $factory->expects($this->once())
+                ->method('configureApiClient')
+                ->with($this->identicalTo($apiClient), $this->identicalTo($setting), $this->isTrue());
 
-        $result = $factory->create($setting);
+        $result = $this->invokeMethod($factory, 'createApiClient', $setting, true);
 
         $this->assertSame($apiClient, $result);
     }
 
     /**
-     * Tests the create method.
-     * @throws ReflectionException
-     * @covers ::create
+     * Tests the configure method.
+     * @covers ::configure
      */
-    public function testCreateWithExistingClient(): void
+    public function testConfigure(): void
     {
-        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['configureApiClient'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('configureApiClient')
+                ->with($this->identicalTo($apiClient), $this->identicalTo($setting), $this->isTrue());
+
+        $factory->configure($apiClient, $setting);
+    }
+
+    /**
+     * Tests the configureWithoutFallback method.
+     * @covers ::configureWithoutFallback
+     */
+    public function testConfigureWithoutFallback(): void
+    {
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['configureApiClient'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('configureApiClient')
+                ->with($this->identicalTo($apiClient), $this->identicalTo($setting), $this->isFalse());
+
+        $factory->configureWithoutFallback($apiClient, $setting);
+    }
+
+    /**
+     * Provides the data for the configureApiClient test.
+     * @return array<mixed>
+     */
+    public function provideConfigureApiClient(): array
+    {
+        $modNames = ['foo', 'bar'];
+
+        return [
+            // Data is available, no reason to fallback to Vanilla.
+            [true, true, $modNames, $modNames, true, false],
+            [false, true, $modNames, $modNames, true, false],
+            // Data is not available, so fallback to Vanilla. Do use authorization token.
+            [true, false, $modNames, ['base'], true, true],
+            // Data is not available, and we do not want to fallback. We are not allowed to use the token here.
+            [false, false, $modNames, $modNames, false, false],
+        ];
+    }
+
+    /**
+     * Tests the configureApiClient method.
+     * @param bool $withFallback
+     * @param bool $hasData
+     * @param array<string> $combinationModNames
+     * @param array<string> $expectedModNames
+     * @param bool $expectAuthorizationToken
+     * @param bool $expectedIsFallback
+     * @throws ReflectionException
+     * @covers ::configureApiClient
+     * @dataProvider provideConfigureApiClient
+     */
+    public function testConfigureApiClient(
+        bool $withFallback,
+        bool $hasData,
+        array $combinationModNames,
+        array $expectedModNames,
+        bool $expectAuthorizationToken,
+        bool $expectedIsFallback
+    ): void {
+        $locale = 'abc';
+        $authorizationToken = 'def';
+
+        /* @var Combination&MockObject $combination */
+        $combination = $this->createMock(Combination::class);
+        $combination->expects($this->any())
+                    ->method('getModNames')
+                    ->willReturn($combinationModNames);
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->any())
+                ->method('getHasData')
+                ->willReturn($hasData);
+        $setting->expects($this->any())
+                ->method('getLocale')
+                ->willReturn($locale);
+        $setting->expects($this->any())
+                ->method('getCombination')
+                ->willReturn($combination);
+        $setting->expects($this->any())
+                ->method('getApiAuthorizationToken')
+                ->willReturn($authorizationToken);
 
         /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
+        $apiClient->expects($this->once())
+                  ->method('setLocale')
+                  ->with($this->identicalTo($locale));
+        $apiClient->expects($this->once())
+                  ->method('setModNames')
+                  ->with($this->identicalTo($expectedModNames));
+        $apiClient->expects($expectAuthorizationToken ? $this->once() : $this->never())
+                  ->method('setAuthorizationToken')
+                  ->with($this->identicalTo($authorizationToken));
 
-        $apiClients = [
-            $settingId => $apiClient,
-        ];
+        /* @var Data&MockObject $data */
+        $data = $this->createMock(Data::class);
+        $data->expects($this->once())
+             ->method('setApiClient')
+             ->with($this->identicalTo($apiClient))
+             ->willReturnSelf();
+        $data->expects($this->once())
+             ->method('setIsFallback')
+             ->with($this->identicalTo($expectedIsFallback))
+             ->willReturnSelf();
+
+        /* @var ApiClientFactory&MockObject $factory */
+        $factory = $this->getMockBuilder(ApiClientFactory::class)
+                        ->onlyMethods(['getData'])
+                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
+                        ->getMock();
+        $factory->expects($this->once())
+                ->method('getData')
+                ->with($this->identicalTo($setting), $this->identicalTo($withFallback))
+                ->willReturn($data);
+
+        $this->invokeMethod($factory, 'configureApiClient', $apiClient, $setting, $withFallback);
+    }
+
+    /**
+     * Tests the getData method.
+     * @throws ReflectionException
+     * @covers ::getData
+     */
+    public function testGetData(): void
+    {
+        $withFallback = true;
+        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
 
         /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
@@ -121,22 +357,54 @@ class ApiClientFactoryTest extends TestCase
                 ->method('getId')
                 ->willReturn(Uuid::fromString($settingId));
 
-        $this->serviceManager->expects($this->never())
-                             ->method('build');
+        $expectedData = new Data();
+        $expectedData->setSetting($setting);
 
-        /* @var ApiClientFactory&MockObject $factory */
-        $factory = $this->getMockBuilder(ApiClientFactory::class)
-                        ->onlyMethods(['configure'])
-                        ->setConstructorArgs([$this->entityManager, $this->serviceManager])
-                        ->getMock();
-        $factory->expects($this->once())
-                ->method('configure')
-                ->with($this->identicalTo($apiClient));
-        $this->injectProperty($factory, 'apiClients', $apiClients);
+        $expectedDataArray = [
+            $settingId => [
+                1 => $expectedData,
+            ],
+        ];
 
-        $result = $factory->create($setting);
+        $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
 
-        $this->assertSame($apiClient, $result);
+        $result = $this->invokeMethod($factory, 'getData', $setting, $withFallback);
+
+        $this->assertEquals($expectedData, $result);
+        $this->assertEquals($expectedDataArray, $this->extractProperty($factory, 'data'));
+    }
+
+    /**
+     * Tests the getData method.
+     * @throws ReflectionException
+     * @covers ::getData
+     */
+    public function testGetDataWithMatch(): void
+    {
+        $withFallback = true;
+        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('getId')
+                ->willReturn(Uuid::fromString($settingId));
+
+        /* @var Data&MockObject $data */
+        $data = $this->createMock(Data::class);
+
+        $dataArray = [
+            $settingId => [
+                1 => $data,
+            ],
+        ];
+
+        $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
+        $this->injectProperty($factory, 'data', $dataArray);
+
+        $result = $this->invokeMethod($factory, 'getData', $setting, $withFallback);
+
+        $this->assertSame($data, $result);
     }
 
     /**
@@ -165,147 +433,85 @@ class ApiClientFactoryTest extends TestCase
     }
 
     /**
-     * Tests the configure method.
-     * @throws ReflectionException
-     * @covers ::configure
+     * Provides the data for the persistAuthorizationTokens test.
+     * @return array<mixed>
      */
-    public function testConfigure(): void
+    public function providePersistAuthorizationTokens(): array
     {
-        $settingId = '0fe93664-3c62-4297-bf6a-55501e8770e3';
-        $locale = 'abc';
-        $modNames = ['def', 'ghi'];
-        $authorizationToken = 'jkl';
+        return [
+            [true, false, 'abc', 'abc', false, false],
+            [true, false, 'abc', 'def', true, true],
+            [true, true, 'abc', 'def', false, false],
 
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        /* @var ApiClientInterface&MockObject $apiClient1 */
-        $apiClient1 = $this->createMock(ApiClientInterface::class);
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        /* @var ApiClientInterface&MockObject $apiClient2 */
-        $apiClient2 = $this->createMock(ApiClientInterface::class);
-
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
-        $combination->expects($this->once())
-                    ->method('getModNames')
-                    ->willReturn($modNames);
-
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('getId')
-                ->willReturn(Uuid::fromString('0fe93664-3c62-4297-bf6a-55501e8770e3'));
-        $setting->expects($this->once())
-                ->method('getLocale')
-                ->willReturn($locale);
-        $setting->expects($this->once())
-                ->method('getCombination')
-                ->willReturn($combination);
-        $setting->expects($this->once())
-                ->method('getApiAuthorizationToken')
-                ->willReturn($authorizationToken);
-
-        /* @var ApiClientInterface&MockObject $apiClient */
-        $apiClient = $this->createMock(ApiClientInterface::class);
-        $apiClient->expects($this->once())
-                  ->method('setLocale')
-                  ->with($this->identicalTo($locale))
-                  ->willReturnSelf();
-        $apiClient->expects($this->once())
-                  ->method('setModNames')
-                  ->with($this->identicalTo($modNames))
-                  ->willReturnSelf();
-        $apiClient->expects($this->once())
-                  ->method('setAuthorizationToken')
-                  ->with($this->identicalTo($authorizationToken))
-                  ->willReturnSelf();
-
-        $apiClients = [
-            'foo' => $apiClient1,
-            'bar' => $apiClient2,
+            [false, true, 'abc', 'abc', false, false],
+            [false, true, 'abc', 'def', true, true],
+            [false, false, 'abc', 'def', false, false],
         ];
-        $expectedApiClients = [
-            'foo' => $apiClient1,
-            'bar' => $apiClient2,
-            $settingId => $apiClient,
-        ];
-        $settings = [
-            'foo' => $setting1,
-            'bar' => $setting2,
-        ];
-        $expectedSettings = [
-            'foo' => $setting1,
-            'bar' => $setting2,
-            $settingId => $setting,
-        ];
-        
-        $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
-        $this->injectProperty($factory, 'apiClients', $apiClients);
-        $this->injectProperty($factory, 'settings', $settings);
-
-        $factory->configure($apiClient, $setting);
-
-        $this->assertEquals($expectedApiClients, $this->extractProperty($factory, 'apiClients'));
-        $this->assertEquals($expectedSettings, $this->extractProperty($factory, 'settings'));
     }
 
     /**
      * Tests the persistAuthorizationTokens method.
+     * @param bool $hasData
+     * @param bool $isFallback
+     * @param string $settingToken
+     * @param string $clientToken
+     * @param bool $expectSetToken
+     * @param bool $expectPersist
      * @throws ReflectionException
      * @covers ::persistAuthorizationTokens
+     * @dataProvider providePersistAuthorizationTokens
      */
-    public function testPersistAuthorizationTokens(): void
-    {
-        $settingId1 = '0fe93664-3c62-4297-bf6a-55501e8770e3';
-        $settingId2 = 'b7fdb8cb-5522-486b-b224-279f647b68f4';
+    public function testPersistAuthorizationTokens(
+        bool $hasData,
+        bool $isFallback,
+        string $settingToken,
+        string $clientToken,
+        bool $expectSetToken,
+        bool $expectPersist
+    ): void {
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->any())
+                ->method('getHasData')
+                ->willReturn($hasData);
+        $setting->expects($this->any())
+                ->method('getApiAuthorizationToken')
+                ->willReturn($settingToken);
+        $setting->expects($expectSetToken ? $this->once() : $this->never())
+                ->method('setApiAuthorizationToken')
+                ->with($this->identicalTo($clientToken));
 
-        /* @var ApiClientInterface&MockObject $apiClient1 */
-        $apiClient1 = $this->createMock(ApiClientInterface::class);
-        $apiClient1->expects($this->once())
-                   ->method('getAuthorizationToken')
-                   ->willReturn('abc');
+        /* @var ApiClientInterface&MockObject $apiClient */
+        $apiClient = $this->createMock(ApiClientInterface::class);
+        $apiClient->expects($this->any())
+                  ->method('getAuthorizationToken')
+                  ->willReturn($clientToken);
 
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        $setting1->expects($this->once())
-                 ->method('getApiAuthorizationToken')
-                 ->willReturn('def');
-        $setting1->expects($this->once())
-                 ->method('setApiAuthorizationToken')
-                 ->with($this->identicalTo('abc'));
+        /* @var Data&MockObject $data */
+        $data = $this->createMock(Data::class);
+        $data->expects($this->any())
+             ->method('getIsFallback')
+             ->willReturn($isFallback);
+        $data->expects($this->any())
+             ->method('getSetting')
+             ->willReturn($setting);
+        $data->expects($this->any())
+             ->method('getApiClient')
+             ->willReturn($apiClient);
 
-        /* @var ApiClientInterface&MockObject $apiClient2 */
-        $apiClient2 = $this->createMock(ApiClientInterface::class);
-        $apiClient2->expects($this->once())
-                   ->method('getAuthorizationToken')
-                   ->willReturn('ghi');
-
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        $setting2->expects($this->once())
-                 ->method('getApiAuthorizationToken')
-                 ->willReturn('ghi');
-        $setting2->expects($this->never())
-                 ->method('setApiAuthorizationToken');
-
-        $apiClients = [
-            $settingId1 => $apiClient1,
-            $settingId2 => $apiClient2,
+        $dataArray = [
+            '0fe93664-3c62-4297-bf6a-55501e8770e3' => [
+                1 => $data,
+            ],
         ];
-        $settings = [
-            $settingId1 => $setting1,
-            $settingId2 => $setting2,
-        ];
 
-        $this->entityManager->expects($this->once())
+        $this->entityManager->expects($expectPersist ? $this->once() : $this->never())
                             ->method('persist')
-                            ->with($this->identicalTo($setting1));
+                            ->with($this->identicalTo($setting));
 
         $factory = new ApiClientFactory($this->entityManager, $this->serviceManager);
-        $this->injectProperty($factory, 'apiClients', $apiClients);
-        $this->injectProperty($factory, 'settings', $settings);
+        $this->injectProperty($factory, 'data', $dataArray);
 
-        $factory->persistAuthorizationTokens();
+        $this->invokeMethod($factory, 'persistAuthorizationTokens');
     }
 }

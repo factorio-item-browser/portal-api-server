@@ -102,7 +102,7 @@ class StatusHandler implements RequestHandlerInterface
             return $this->apiClientFactory->createForModNames($modNames);
         }
 
-        return $this->apiClientFactory->create($this->currentSetting);
+        return $this->apiClientFactory->createWithoutFallback($this->currentSetting);
     }
 
     /**

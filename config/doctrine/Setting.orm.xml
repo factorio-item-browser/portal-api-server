@@ -49,6 +49,12 @@
             </options>
         </field>
 
+        <field name="hasData" type="boolean">
+            <options>
+                <option name="comment">Whether the setting has its data actually available.</option>
+            </options>
+        </field>
+
         <one-to-many field="sidebarEntities" target-entity="SidebarEntity" mapped-by="setting" />
     </entity>
 </doctrine-mapping>

@@ -239,10 +239,6 @@ class SidebarEntitiesHelperTest extends TestCase
             $this->createMock(SidebarEntity::class),
             $this->createMock(SidebarEntity::class),
         ];
-        $mappedEntities = [
-            'abc' => $this->createMock(SidebarEntity::class),
-            'def' => $this->createMock(SidebarEntity::class),
-        ];
 
         /* @var GenericDetailsRequest&MockObject $request */
         $request = $this->createMock(GenericDetailsRequest::class);
@@ -269,20 +265,16 @@ class SidebarEntitiesHelperTest extends TestCase
 
         /* @var SidebarEntitiesHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
-                       ->onlyMethods(['createAssociativeMap', 'createDetailsRequest', 'processDetailsResponse'])
+                       ->onlyMethods(['createDetailsRequest', 'processDetailsResponse'])
                        ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
                        ->getMock();
         $helper->expects($this->once())
-               ->method('createAssociativeMap')
-               ->with($this->identicalTo($entities))
-               ->willReturn($mappedEntities);
-        $helper->expects($this->once())
                ->method('createDetailsRequest')
-               ->with($this->identicalTo($mappedEntities))
+               ->with($this->identicalTo($entities))
                ->willReturn($request);
         $helper->expects($this->once())
                ->method('processDetailsResponse')
-               ->with($this->identicalTo($response), $this->identicalTo($mappedEntities));
+               ->with($this->identicalTo($response), $this->identicalTo($setting));
 
         $helper->refreshLabels($setting);
     }
@@ -297,10 +289,6 @@ class SidebarEntitiesHelperTest extends TestCase
         $entities = [
             $this->createMock(SidebarEntity::class),
             $this->createMock(SidebarEntity::class),
-        ];
-        $mappedEntities = [
-            'abc' => $this->createMock(SidebarEntity::class),
-            'def' => $this->createMock(SidebarEntity::class),
         ];
 
         /* @var GenericDetailsRequest&MockObject $request */
@@ -328,16 +316,12 @@ class SidebarEntitiesHelperTest extends TestCase
 
         /* @var SidebarEntitiesHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
-                       ->onlyMethods(['createAssociativeMap', 'createDetailsRequest', 'processDetailsResponse'])
+                       ->onlyMethods(['createDetailsRequest', 'processDetailsResponse'])
                        ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
                        ->getMock();
         $helper->expects($this->once())
-               ->method('createAssociativeMap')
-               ->with($this->identicalTo($entities))
-               ->willReturn($mappedEntities);
-        $helper->expects($this->once())
                ->method('createDetailsRequest')
-               ->with($this->identicalTo($mappedEntities))
+               ->with($this->identicalTo($entities))
                ->willReturn($request);
         $helper->expects($this->never())
                ->method('processDetailsResponse');
@@ -404,38 +388,56 @@ class SidebarEntitiesHelperTest extends TestCase
                         ->setName('mno')
                         ->setLabel('pqr');
 
-        $responseEntity3 = new GenericEntity();
-        $responseEntity3->setType('stu')
-                        ->setName('vwx')
-                        ->setLabel('yza');
-
         $response = new GenericDetailsResponse();
-        $response->setEntities([$responseEntity1, $responseEntity2, $responseEntity3]);
+        $response->setEntities([$responseEntity1, $responseEntity2]);
 
         /* @var SidebarEntity&MockObject $entity1 */
         $entity1 = $this->createMock(SidebarEntity::class);
-        $entity1->expects($this->once())
-                ->method('getLabel')
-                ->willReturn('foo');
         $entity1->expects($this->once())
                 ->method('setLabel')
                 ->with($this->identicalTo('ghi'));
 
         /* @var SidebarEntity&MockObject $entity2 */
         $entity2 = $this->createMock(SidebarEntity::class);
-        $entity2->expects($this->once())
-                ->method('getLabel')
-                ->willReturn('pqr');
         $entity2->expects($this->never())
                 ->method('setLabel');
 
+        $entities = [$entity1, $entity2];
         $mappedEntities = [
             'abc|def' => $entity1,
-            'jkl|mno' => $entity2,
+            'foo|bar' => $entity2,
         ];
 
-        $helper = new SidebarEntitiesHelper($this->apiClientFactory, $this->entityManager, $this->mapperManager);
-        $this->invokeMethod($helper, 'processDetailsResponse', $response, $mappedEntities);
+        /* @var Collection&MockObject $entityCollection */
+        $entityCollection = $this->createMock(Collection::class);
+        $entityCollection->expects($this->once())
+                         ->method('toArray')
+                         ->willReturn($entities);
+        $entityCollection->expects($this->once())
+                         ->method('removeElement')
+                         ->with($this->identicalTo($entity2));
+
+        /* @var Setting&MockObject $setting */
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->any())
+                ->method('getSidebarEntities')
+                ->willReturn($entityCollection);
+
+        $this->entityManager->expects($this->once())
+                            ->method('remove')
+                            ->with($this->identicalTo($entity2));
+
+        /* @var SidebarEntitiesHelper&MockObject $helper */
+        $helper = $this->getMockBuilder(SidebarEntitiesHelper::class)
+                       ->onlyMethods(['createAssociativeMap'])
+                       ->setConstructorArgs([$this->apiClientFactory, $this->entityManager, $this->mapperManager])
+                       ->getMock();
+        $helper->expects($this->once())
+               ->method('createAssociativeMap')
+               ->with($this->identicalTo($entities))
+               ->willReturn($mappedEntities);
+
+        $this->invokeMethod($helper, 'processDetailsResponse', $response, $setting);
     }
 
     /**

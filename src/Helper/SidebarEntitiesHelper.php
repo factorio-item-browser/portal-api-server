@@ -117,14 +117,13 @@ class SidebarEntitiesHelper
      */
     public function refreshLabels(Setting $setting): void
     {
-        $mappedEntities = $this->createAssociativeMap($setting->getSidebarEntities()->toArray());
-        $request = $this->createDetailsRequest($mappedEntities);
+        $request = $this->createDetailsRequest($setting->getSidebarEntities()->toArray());
 
         $client = $this->apiClientFactory->create($setting);
         try {
             /** @var GenericDetailsResponse $response */
             $response = $client->fetchResponse($request);
-            $this->processDetailsResponse($response, $mappedEntities);
+            $this->processDetailsResponse($response, $setting);
         } catch (ApiClientException $e) {
             throw new FailedApiRequestException($e);
         }
@@ -150,16 +149,23 @@ class SidebarEntitiesHelper
     /**
      * Processes the details response.
      * @param GenericDetailsResponse $response
-     * @param array<string,SidebarEntity>|SidebarEntity[] $mappedEntities
+     * @param Setting $setting
      */
-    protected function processDetailsResponse(GenericDetailsResponse $response, array $mappedEntities): void
+    protected function processDetailsResponse(GenericDetailsResponse $response, Setting $setting): void
     {
+        $entities = $this->createAssociativeMap($setting->getSidebarEntities()->toArray());
+
         foreach ($response->getEntities() as $responseEntity) {
             $key = "{$responseEntity->getType()}|{$responseEntity->getName()}";
-            if (isset($mappedEntities[$key]) && $mappedEntities[$key]->getLabel() !== $responseEntity->getLabel()) {
-                $mappedEntities[$key]->setLabel($responseEntity->getLabel());
-                $this->entityManager->persist($mappedEntities[$key]);
+            if (isset($entities[$key])) {
+                $entities[$key]->setLabel($responseEntity->getLabel());
+                unset($entities[$key]);
             }
+        }
+
+        foreach ($entities as $entity) {
+            $setting->getSidebarEntities()->removeElement($entity);
+            $this->entityManager->remove($entity);
         }
     }
 

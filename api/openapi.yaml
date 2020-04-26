@@ -632,9 +632,8 @@ components:
       type: object
       description: The data to initialize the session.
       properties:
-        settingName:
-          type: string
-          description: The name of the currently loaded setting.
+        settingMeta:
+          $ref: "#/components/schemas/SettingMeta"
         settingHash:
           type: string
           description: The hash of the currently loaded setting.
@@ -688,6 +687,15 @@ components:
           type: string
           description: The name of the setting.
           example: Vanilla
+        status:
+          type: string
+          description: The status of the setting.
+          enum:
+            - available
+            - errored
+            - pending
+            - unknown
+          example: available
 
     SettingOptionsData:
       type: object

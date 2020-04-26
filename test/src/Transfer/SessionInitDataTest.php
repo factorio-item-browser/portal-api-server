@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -18,17 +20,18 @@ use PHPUnit\Framework\TestCase;
 class SessionInitDataTest extends TestCase
 {
     /**
-     * Tests the setting and getting the setting name.
-     * @covers ::getSettingName
-     * @covers ::setSettingName
+     * Tests the setting and getting the setting.
+     * @covers ::getSetting
+     * @covers ::setSetting
      */
-    public function testSetAndGetSettingName(): void
+    public function testSetAndGetSetting(): void
     {
-        $settingName = 'abc';
+        /* @var SettingMetaData&MockObject $setting */
+        $setting = $this->createMock(SettingMetaData::class);
         $transfer = new SessionInitData();
 
-        $this->assertSame($transfer, $transfer->setSettingName($settingName));
-        $this->assertSame($settingName, $transfer->getSettingName());
+        $this->assertSame($transfer, $transfer->setSetting($setting));
+        $this->assertSame($setting, $transfer->getSetting());
     }
 
     /**

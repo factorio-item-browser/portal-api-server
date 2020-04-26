@@ -36,7 +36,8 @@ class SettingMapper implements DynamicMapperInterface
     public function map($source, $destination): void
     {
         $destination->setId($source->getId()->toString())
-                    ->setName($source->getName());
+                    ->setName($source->getName())
+                    ->setStatus($source->getCombination()->getStatus());
 
         if ($destination instanceof SettingDetailsData) {
             $destination->setLocale($source->getLocale())

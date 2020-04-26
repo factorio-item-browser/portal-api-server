@@ -43,4 +43,18 @@ class SettingMetaDataTest extends TestCase
         $this->assertSame($transfer, $transfer->setName($name));
         $this->assertSame($name, $transfer->getName());
     }
+
+    /**
+     * Tests the setting and getting the status.
+     * @covers ::getStatus
+     * @covers ::setStatus
+     */
+    public function testSetAndGetStatus(): void
+    {
+        $status = 'abc';
+        $transfer = new SettingMetaData();
+
+        $this->assertSame($transfer, $transfer->setStatus($status));
+        $this->assertSame($status, $transfer->getStatus());
+    }
 }

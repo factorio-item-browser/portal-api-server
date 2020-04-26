@@ -16,13 +16,19 @@ class SettingMetaData
      * The id of the setting.
      * @var string
      */
-    protected $id;
+    protected $id = '';
 
     /**
      * The name of the setting.
      * @var string
      */
-    protected $name;
+    protected $name = '';
+
+    /**
+     * The status of the setting.
+     * @var string
+     */
+    protected $status = '';
 
     /**
      * Sets the id of the setting.
@@ -62,5 +68,25 @@ class SettingMetaData
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Sets the status of the setting.
+     * @param string $status
+     * @return $this
+     */
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    /**
+     * Returns the status of the setting.
+     * @return string
+     */
+    public function getStatus(): string
+    {
+        return $this->status;
     }
 }

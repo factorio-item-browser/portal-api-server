@@ -6,3 +6,5 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData:
       type: string
     name:
       type: string
+    status:
+      type: string

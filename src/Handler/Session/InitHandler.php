@@ -95,7 +95,7 @@ class InitHandler implements RequestHandlerInterface
         $this->updateSetting();
 
         $data = new SessionInitData();
-        $data->setSettingName($this->currentSetting->getName())
+        $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
              ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
              ->setSidebarEntities($this->getCurrentSidebarEntities());

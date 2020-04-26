@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Mapper\SettingMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
@@ -59,13 +60,18 @@ class SettingMapperTest extends TestCase
     {
         $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
 
+        $combination = new Combination();
+        $combination->setStatus('def');
+
         $source = new Setting();
         $source->setId(Uuid::fromString($settingId))
-               ->setName('abc');
+               ->setName('abc')
+               ->setCombination($combination);
 
         $expectedDestination = new SettingMetaData();
         $expectedDestination->setId($settingId)
-                            ->setName('abc');
+                            ->setName('abc')
+                            ->setStatus('def');
 
         $destination = new SettingMetaData();
 
@@ -83,17 +89,22 @@ class SettingMapperTest extends TestCase
     {
         $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
 
+        $combination = new Combination();
+        $combination->setStatus('def');
+
         $source = new Setting();
         $source->setId(Uuid::fromString($settingId))
                ->setName('abc')
-               ->setLocale('def')
-               ->setRecipeMode('ghi');
+               ->setCombination($combination)
+               ->setLocale('ghi')
+               ->setRecipeMode('jkl');
 
         $expectedDestination = new SettingDetailsData();
         $expectedDestination->setId($settingId)
                             ->setName('abc')
-                            ->setLocale('def')
-                            ->setRecipeMode('ghi');
+                            ->setStatus('def')
+                            ->setLocale('ghi')
+                            ->setRecipeMode('jkl');
 
         $destination = new SettingDetailsData();
 

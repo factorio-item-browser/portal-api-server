@@ -41,6 +41,7 @@ class SettingDetailsDataTest extends SerializerTestCase
         $object = new SettingDetailsData();
         $object->setId('yza')
                ->setName('bcd')
+               ->setStatus('klm')
                ->setLocale('efg')
                ->setRecipeMode('hij')
                ->setMods([$mod1, $mod2])
@@ -58,6 +59,7 @@ class SettingDetailsDataTest extends SerializerTestCase
         return [
             'id' => 'yza',
             'name' => 'bcd',
+            'status' => 'klm',
             'locale' => 'efg',
             'recipeMode' => 'hij',
             'mods' => [

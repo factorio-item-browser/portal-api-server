@@ -25,15 +25,18 @@ class SettingsListDataTest extends SerializerTestCase
     {
         $setting1 = new SettingMetaData();
         $setting1->setId('abc')
-                 ->setName('def');
+                 ->setName('def')
+                 ->setStatus('yza');
 
         $setting2 = new SettingMetaData();
         $setting2->setId('ghi')
-                 ->setName('jkl');
+                 ->setName('jkl')
+                 ->setStatus('bcd');
 
         $currentSetting = new SettingDetailsData();
         $currentSetting->setId('mno')
                        ->setName('pqr')
+                       ->setStatus('efg')
                        ->setLocale('stu')
                        ->setRecipeMode('vwx');
 
@@ -55,15 +58,18 @@ class SettingsListDataTest extends SerializerTestCase
                 [
                     'id' => 'abc',
                     'name' => 'def',
+                    'status' => 'yza',
                 ],
                 [
                     'id' => 'ghi',
                     'name' => 'jkl',
+                    'status' => 'bcd',
                 ],
             ],
             'currentSetting' => [
                 'id' => 'mno',
                 'name' => 'pqr',
+                'status' => 'efg',
                 'locale' => 'stu',
                 'recipeMode' => 'vwx',
                 'mods' => [],

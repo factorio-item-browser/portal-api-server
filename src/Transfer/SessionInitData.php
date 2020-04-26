@@ -13,10 +13,10 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SessionInitData
 {
     /**
-     * The name of the currently loaded setting.
-     * @var string
+     * The setting of the session.
+     * @var SettingMetaData
      */
-    protected $settingName = '';
+    protected $setting;
 
     /**
      * The hash of the currently loaded setting.
@@ -37,23 +37,23 @@ class SessionInitData
     protected $sidebarEntities = [];
 
     /**
-     * Sets the name of the currently loaded setting.
-     * @param string $settingName
+     * Sets the setting of the session.
+     * @param SettingMetaData $setting
      * @return $this
      */
-    public function setSettingName(string $settingName): self
+    public function setSetting(SettingMetaData $setting): self
     {
-        $this->settingName = $settingName;
+        $this->setting = $setting;
         return $this;
     }
 
     /**
-     * Returns the name of the currently loaded setting.
-     * @return string
+     * Returns the setting of the session.
+     * @return SettingMetaData
      */
-    public function getSettingName(): string
+    public function getSetting(): SettingMetaData
     {
-        return $this->settingName;
+        return $this->setting;
     }
 
     /**

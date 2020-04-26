@@ -23,6 +23,7 @@ use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -113,9 +114,11 @@ class InitHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingName = 'abc';
-        $settingHash = 'def';
-        $locale = 'ghi';
+        $settingHash = 'abc';
+        $locale = 'def';
+
+        /* @var SettingMetaData&MockObject $setting */
+        $setting = $this->createMock(SettingMetaData::class);
 
         $sidebarEntities = [
             $this->createMock(SidebarEntityData::class),
@@ -123,7 +126,7 @@ class InitHandlerTest extends TestCase
         ];
 
         $expectedTransfer = new SessionInitData();
-        $expectedTransfer->setSettingName($settingName)
+        $expectedTransfer->setSetting($setting)
                          ->setSettingHash($settingHash)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities);
@@ -132,12 +135,13 @@ class InitHandlerTest extends TestCase
         $request = $this->createMock(ServerRequestInterface::class);
 
         $this->currentSetting->expects($this->once())
-                             ->method('getName')
-                             ->willReturn($settingName);
-        $this->currentSetting->expects($this->once())
                              ->method('getLocale')
                              ->willReturn($locale);
 
+        $this->settingHelper->expects($this->once())
+                            ->method('createSettingMeta')
+                            ->with($this->identicalTo($this->currentSetting))
+                            ->willReturn($setting);
         $this->settingHelper->expects($this->once())
                             ->method('calculateHash')
                             ->with($this->identicalTo($this->currentSetting))

@@ -34,7 +34,7 @@ return [
                 ],
             ],
         ],
-        'migrations_configuration' => [
+        'migrations' => [
             'orm_default' => [
                 'directory' => 'data/migrations',
                 'name'      => 'FactorioItemBrowser Portal API Server Database Migrations',

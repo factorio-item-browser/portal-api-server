@@ -16,7 +16,7 @@
     "php": "^7.3",
     "ext-json": "*",
     "ext-pdo": "*",
-    "bluepsyduck/container-interop-doctrine-migrations": "^1.0",
+    "roave/psr-container-doctrine": "^2.2",
     "bluepsyduck/mapper-manager": "^1.1",
     "bluepsyduck/laminas-autowire-factory": "^1.0",
     "dflydev/fig-cookies": "^2.0",

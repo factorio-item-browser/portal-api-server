@@ -11,14 +11,14 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
-use BluePsyduck\ContainerInteropDoctrineMigrations\MigrationsConfigurationFactory;
 use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
-use ContainerInteropDoctrine\EntityManagerFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
 use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
+use Roave\PsrContainerDoctrine\EntityManagerFactory;
+use Roave\PsrContainerDoctrine\MigrationsConfigurationFactory;
 
 use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 

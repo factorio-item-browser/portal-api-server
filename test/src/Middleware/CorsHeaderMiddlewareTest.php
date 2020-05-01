@@ -44,41 +44,162 @@ class CorsHeaderMiddlewareTest extends TestCase
      */
     public function testProcess(): void
     {
-        $allowedOrigins = ['abc', 'def'];
-        $methods = 'ghi';
+        $origin = 'abc';
+        $serverParams = [
+            'HTTP_ORIGIN' => $origin,
+        ];
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var ResponseInterface&MockObject $response6 */
-        $response6 = $this->createMock(ResponseInterface::class);
+        $request->expects($this->once())
+                ->method('getServerParams')
+                ->willReturn($serverParams);
+
+        /* @var ResponseInterface&MockObject $response */
+        $response = $this->createMock(ResponseInterface::class);
+        /* @var ResponseInterface&MockObject $responseWithHeaders */
+        $responseWithHeaders = $this->createMock(ResponseInterface::class);
+
+        /* @var RequestHandlerInterface&MockObject $handler */
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+                ->method('handle')
+                ->with($this->identicalTo($request))
+                ->willReturn($response);
+
+        /* @var CorsHeaderMiddleware&MockObject $middleware */
+        $middleware = $this->getMockBuilder(CorsHeaderMiddleware::class)
+                           ->onlyMethods(['isOriginAllowed', 'AddHeaders'])
+                           ->setConstructorArgs([['foo', 'bar']])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('isOriginAllowed')
+                   ->with($this->identicalTo($origin))
+                   ->willReturn(true);
+        $middleware->expects($this->once())
+                   ->method('addHeaders')
+                   ->with($this->identicalTo($response), $this->identicalTo($origin))
+                   ->willReturn($responseWithHeaders);
+
+        $result = $middleware->process($request, $handler);
+
+        $this->assertSame($responseWithHeaders, $result);
+    }
+
+    /**
+     * Tests the process method.
+     * @covers ::process
+     */
+    public function testProcessWithoutHeaders(): void
+    {
+        $origin = 'abc';
+        $serverParams = [
+            'HTTP_ORIGIN' => $origin,
+        ];
+
+        /* @var ServerRequestInterface&MockObject $request */
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getServerParams')
+                ->willReturn($serverParams);
+
+        /* @var ResponseInterface&MockObject $response */
+        $response = $this->createMock(ResponseInterface::class);
+
+        /* @var RequestHandlerInterface&MockObject $handler */
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+                ->method('handle')
+                ->with($this->identicalTo($request))
+                ->willReturn($response);
+
+        /* @var CorsHeaderMiddleware&MockObject $middleware */
+        $middleware = $this->getMockBuilder(CorsHeaderMiddleware::class)
+                           ->onlyMethods(['isOriginAllowed', 'AddHeaders'])
+                           ->setConstructorArgs([['foo', 'bar']])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('isOriginAllowed')
+                   ->with($this->identicalTo($origin))
+                   ->willReturn(false);
+        $middleware->expects($this->never())
+                   ->method('addHeaders');
+
+        $result = $middleware->process($request, $handler);
+
+        $this->assertSame($response, $result);
+    }
+
+    /**
+     * Provides the data for the isOriginAllowed test.
+     * @return array<mixed>
+     */
+    public function provideIsOriginAllowed(): array
+    {
+        $allowedOrigins = [
+            '#^foo(\.bar)?$#',
+            '#^baz$#',
+        ];
+
+        return [
+            [$allowedOrigins, 'foo', true],
+            [$allowedOrigins, 'bar', false],
+            [$allowedOrigins, 'baz', true],
+            [$allowedOrigins, 'foo.bar', true],
+            [$allowedOrigins, 'foo.baz', false],
+        ];
+    }
+
+    /**
+     * Tests the isOriginAllowed method.
+     * @param array<string> $allowedOrigins
+     * @param string $origin
+     * @param bool $expectedResult
+     * @throws ReflectionException
+     * @covers ::isOriginAllowed
+     * @dataProvider provideIsOriginAllowed
+     */
+    public function testIsOriginAllowed(array $allowedOrigins, string $origin, bool $expectedResult): void
+    {
+        $middleware = new CorsHeaderMiddleware($allowedOrigins);
+        $result = $this->invokeMethod($middleware, 'isOriginAllowed', $origin);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the addHeaders method.
+     * @throws ReflectionException
+     * @covers ::addHeaders
+     */
+    public function testAddHeaders(): void
+    {
+        $origin = 'abc';
+        $allow = 'def';
 
         /* @var ResponseInterface&MockObject $response5 */
         $response5 = $this->createMock(ResponseInterface::class);
-        $response5->expects($this->once())
-                  ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('def'))
-                  ->willReturn($response6);
 
         /* @var ResponseInterface&MockObject $response4 */
         $response4 = $this->createMock(ResponseInterface::class);
         $response4->expects($this->once())
+                  ->method('hasHeader')
+                  ->with($this->identicalTo('Allow'))
+                  ->willReturn(true);
+        $response4->expects($this->once())
+                  ->method('getHeaderLine')
+                  ->with($this->identicalTo('Allow'))
+                  ->willReturn($allow);
+        $response4->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo('abc'))
+                  ->with($this->identicalTo('Access-Control-Allow-Methods'), $this->identicalTo($allow))
                   ->willReturn($response5);
 
         /* @var ResponseInterface&MockObject $response3 */
         $response3 = $this->createMock(ResponseInterface::class);
         $response3->expects($this->once())
-                  ->method('hasHeader')
-                  ->with($this->identicalTo('Allow'))
-                  ->willReturn(true);
-        $response3->expects($this->once())
-                  ->method('getHeaderLine')
-                  ->with($this->identicalTo('Allow'))
-                  ->willReturn($methods);
-        $response3->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Methods'), $this->identicalTo($methods))
+                  ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo($origin))
                   ->willReturn($response4);
 
         /* @var ResponseInterface&MockObject $response2 */
@@ -95,16 +216,9 @@ class CorsHeaderMiddlewareTest extends TestCase
                   ->with($this->identicalTo('Access-Control-Allow-Headers'), $this->identicalTo('Content-Type'))
                   ->willReturn($response2);
 
-        /* @var RequestHandlerInterface&MockObject $handler */
-        $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects($this->once())
-                ->method('handle')
-                ->with($this->identicalTo($request))
-                ->willReturn($response1);
+        $middleware = new CorsHeaderMiddleware(['foo', 'bar']);
+        $result = $this->invokeMethod($middleware, 'addHeaders', $response1, $origin);
 
-        $middleware = new CorsHeaderMiddleware($allowedOrigins);
-        $result = $middleware->process($request, $handler);
-
-        $this->assertSame($response6, $result);
+        $this->assertSame($response5, $result);
     }
 }

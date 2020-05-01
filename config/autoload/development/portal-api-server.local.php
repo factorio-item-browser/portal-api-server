@@ -17,7 +17,7 @@ return [
     ConfigKey::PROJECT => [
         ConfigKey::PORTAL_API_SERVER => [
             ConfigKey::ALLOWED_ORIGINS => [
-                'http://localhost:8080',
+                '#^https?://localhost(:\d+)?$#',
             ],
             ConfigKey::SESSION_COOKIE_NAME => 'FIB',
             ConfigKey::SESSION_COOKIE_DOMAIN => 'localhost',

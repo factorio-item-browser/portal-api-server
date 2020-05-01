@@ -42,14 +42,43 @@ class CorsHeaderMiddleware implements MiddlewareInterface
     {
         $response = $handler->handle($request);
 
-        $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type');
-        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
-        if ($response->hasHeader('Allow')) {
-            $response = $response->withHeader('Access-Control-Allow-Methods', $response->getHeaderLine('Allow'));
+        $origin = $request->getServerParams()['HTTP_ORIGIN'] ?? '';
+        if ($this->isOriginAllowed($origin)) {
+            $response = $this->addHeaders($response, $origin);
         }
 
+        return $response;
+    }
+
+    /**
+     * Returns whether the origin is allowed.
+     * @param string $origin
+     * @return bool
+     */
+    protected function isOriginAllowed(string $origin): bool
+    {
         foreach ($this->allowedOrigins as $allowedOrigin) {
-            $response = $response->withHeader('Access-Control-Allow-Origin', $allowedOrigin);
+            if (preg_match($allowedOrigin, $origin) === 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds the needed headers to the response.
+     * @param ResponseInterface $response
+     * @param string $origin
+     * @return ResponseInterface
+     */
+    protected function addHeaders(ResponseInterface $response, string $origin): ResponseInterface
+    {
+        $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type')
+                             ->withHeader('Access-Control-Allow-Credentials', 'true')
+                             ->withHeader('Access-Control-Allow-Origin', $origin);
+
+        if ($response->hasHeader('Allow')) {
+            $response = $response->withHeader('Access-Control-Allow-Methods', $response->getHeaderLine('Allow'));
         }
 
         return $response;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Exception;
 
 use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\Exception\ConnectionException;
 
 /**
  * The exception thrown when an API request failed.
@@ -25,6 +26,7 @@ class FailedApiRequestException extends PortalApiServerException
      */
     public function __construct(ApiClientException $apiClientException)
     {
-        parent::__construct(sprintf(self::MESSAGE, $apiClientException->getMessage()), 500, $apiClientException);
+        $errorCode = $apiClientException instanceof ConnectionException ? 503 : 500;
+        parent::__construct(sprintf(self::MESSAGE, $apiClientException->getMessage()), $errorCode, $apiClientException);
     }
 }

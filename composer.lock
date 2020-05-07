@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "04a2c851d5d26dd90473612da3b73f9c",
+    "content-hash": "05d73ef9fe1c62ac3792c6d580533ba0",
     "packages": [
         {
             "name": "bluepsyduck/laminas-autowire-factory",
@@ -1190,16 +1190,16 @@
         },
         {
             "name": "factorio-item-browser/api-client",
-            "version": "3.0.0",
+            "version": "3.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/factorio-item-browser/api-client.git",
-                "reference": "cbc0f5d173785d1bd84b8356ce461b91d35e4271"
+                "reference": "0419636bc2f48739372d98bf9e75486e9e9c2437"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/factorio-item-browser/api-client/zipball/cbc0f5d173785d1bd84b8356ce461b91d35e4271",
-                "reference": "cbc0f5d173785d1bd84b8356ce461b91d35e4271",
+                "url": "https://api.github.com/repos/factorio-item-browser/api-client/zipball/0419636bc2f48739372d98bf9e75486e9e9c2437",
+                "reference": "0419636bc2f48739372d98bf9e75486e9e9c2437",
                 "shasum": ""
             },
             "require": {
@@ -1245,7 +1245,7 @@
                 "api",
                 "client"
             ],
-            "time": "2020-04-15T15:19:53+00:00"
+            "time": "2020-05-02T07:58:37+00:00"
         },
         {
             "name": "factorio-item-browser/common",
@@ -5242,16 +5242,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.12.19",
+            "version": "0.12.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "054f6d76b12ba9a6c13a5a8d5fcdf51219615f4d"
+                "reference": "71e529efced79e055fa8318b692e7f7d03ea4e75"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/054f6d76b12ba9a6c13a5a8d5fcdf51219615f4d",
-                "reference": "054f6d76b12ba9a6c13a5a8d5fcdf51219615f4d",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/71e529efced79e055fa8318b692e7f7d03ea4e75",
+                "reference": "71e529efced79e055fa8318b692e7f7d03ea4e75",
                 "shasum": ""
             },
             "require": {
@@ -5280,20 +5280,20 @@
                 "MIT"
             ],
             "description": "PHPStan - PHP Static Analysis Tool",
-            "time": "2020-04-19T20:35:10+00:00"
+            "time": "2020-05-05T12:55:44+00:00"
         },
         {
             "name": "phpstan/phpstan-doctrine",
-            "version": "0.12.10",
+            "version": "0.12.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-doctrine.git",
-                "reference": "601f343b05875074454ca72702204592f8844f7d"
+                "reference": "fb0350e215668d97d3d41af6c0f556eefbe07678"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/601f343b05875074454ca72702204592f8844f7d",
-                "reference": "601f343b05875074454ca72702204592f8844f7d",
+                "url": "https://api.github.com/repos/phpstan/phpstan-doctrine/zipball/fb0350e215668d97d3d41af6c0f556eefbe07678",
+                "reference": "fb0350e215668d97d3d41af6c0f556eefbe07678",
                 "shasum": ""
             },
             "require": {
@@ -5344,7 +5344,7 @@
                 "MIT"
             ],
             "description": "Doctrine extensions for PHPStan",
-            "time": "2020-03-13T13:03:08+00:00"
+            "time": "2020-05-04T08:09:44+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",

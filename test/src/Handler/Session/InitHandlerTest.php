@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Session;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
@@ -207,13 +208,21 @@ class InitHandlerTest extends TestCase
                              ->method('getCombination')
                              ->willReturn($combination);
 
-        $handler = new InitHandler(
-            $this->apiClientFactory,
-            $this->combinationHelper,
-            $this->currentSetting,
-            $this->settingHelper,
-            $this->sidebarEntitiesHelper
-        );
+        /* @var InitHandler&MockObject $handler */
+        $handler = $this->getMockBuilder(InitHandler::class)
+                        ->onlyMethods(['isCombinationStatusUpdateNeeded'])
+                        ->setConstructorArgs([
+                            $this->apiClientFactory,
+                            $this->combinationHelper,
+                            $this->currentSetting,
+                            $this->settingHelper,
+                            $this->sidebarEntitiesHelper,
+                        ])
+                        ->getMock();
+        $handler->expects($this->once())
+                ->method('isCombinationStatusUpdateNeeded')
+                ->willReturn(true);
+
         $this->invokeMethod($handler, 'updateCombinationStatus');
     }
 
@@ -243,6 +252,96 @@ class InitHandlerTest extends TestCase
 
         $this->expectException(FailedApiRequestException::class);
 
+        /* @var InitHandler&MockObject $handler */
+        $handler = $this->getMockBuilder(InitHandler::class)
+                        ->onlyMethods(['isCombinationStatusUpdateNeeded'])
+                        ->setConstructorArgs([
+                            $this->apiClientFactory,
+                            $this->combinationHelper,
+                            $this->currentSetting,
+                            $this->settingHelper,
+                            $this->sidebarEntitiesHelper,
+                        ])
+                        ->getMock();
+        $handler->expects($this->once())
+                ->method('isCombinationStatusUpdateNeeded')
+                ->willReturn(true);
+
+        $this->invokeMethod($handler, 'updateCombinationStatus');
+    }
+
+    /**
+     * Tests the updateCombinationStatus method.
+     * @throws ReflectionException
+     * @covers ::updateCombinationStatus
+     */
+    public function testUpdateCombinationStatusWithoutNeed(): void
+    {
+        $this->apiClientFactory->expects($this->never())
+                               ->method('createWithoutFallback');
+
+        $this->combinationHelper->expects($this->never())
+                                ->method('hydrateStatusResponseToCombination');
+
+        $this->currentSetting->expects($this->never())
+                             ->method('getCombination');
+
+        /* @var InitHandler&MockObject $handler */
+        $handler = $this->getMockBuilder(InitHandler::class)
+                        ->onlyMethods(['isCombinationStatusUpdateNeeded'])
+                        ->setConstructorArgs([
+                            $this->apiClientFactory,
+                            $this->combinationHelper,
+                            $this->currentSetting,
+                            $this->settingHelper,
+                            $this->sidebarEntitiesHelper,
+                        ])
+                        ->getMock();
+        $handler->expects($this->once())
+                ->method('isCombinationStatusUpdateNeeded')
+                ->willReturn(false);
+
+        $this->invokeMethod($handler, 'updateCombinationStatus');
+    }
+
+    /**
+     * Provides the data for the isCombinationStatusUpdateNeeded test.
+     * @return array<mixed>
+     */
+    public function provideIsCombinationStatusUpdateNeeded(): array
+    {
+        return [
+            [CombinationStatus::ERRORED, null, true],
+            [CombinationStatus::UNKNOWN, null, true],
+
+            [CombinationStatus::AVAILABLE, null, true],
+            [CombinationStatus::AVAILABLE, new DateTime('now'), false],
+            [CombinationStatus::AVAILABLE, new DateTime('-2 days'), true],
+        ];
+    }
+
+    /**
+     * Tests the isCombinationStatusUpdateNeeded method.
+     * @param string $status
+     * @param DateTime|null $lastCheckTime
+     * @param bool $expectedResult
+     * @throws ReflectionException
+     * @covers ::isCombinationStatusUpdateNeeded
+     * @dataProvider provideIsCombinationStatusUpdateNeeded
+     */
+    public function testIsCombinationStatusUpdateNeeded(
+        string $status,
+        ?DateTime $lastCheckTime,
+        bool $expectedResult
+    ): void {
+        $combination = new Combination();
+        $combination->setStatus($status)
+                    ->setLastCheckTime($lastCheckTime);
+
+        $this->currentSetting->expects($this->once())
+                             ->method('getCombination')
+                             ->willReturn($combination);
+
         $handler = new InitHandler(
             $this->apiClientFactory,
             $this->combinationHelper,
@@ -250,7 +349,10 @@ class InitHandlerTest extends TestCase
             $this->settingHelper,
             $this->sidebarEntitiesHelper
         );
-        $this->invokeMethod($handler, 'updateCombinationStatus');
+
+        $result = $this->invokeMethod($handler, 'isCombinationStatusUpdateNeeded');
+
+        $this->assertSame($expectedResult, $result);
     }
 
     /**

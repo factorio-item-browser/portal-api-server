@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Session;
 
+use DateTime;
 use Exception;
 use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
 use FactorioItemBrowser\Api\Client\Request\Combination\CombinationStatusRequest;
@@ -109,19 +110,34 @@ class InitHandler implements RequestHandlerInterface
      */
     protected function updateCombinationStatus(): void
     {
-        try {
-            $apiClient = $this->apiClientFactory->createWithoutFallback($this->currentSetting);
-            $request = new CombinationStatusRequest();
+        if ($this->isCombinationStatusUpdateNeeded()) {
+            try {
+                $apiClient = $this->apiClientFactory->createWithoutFallback($this->currentSetting);
+                $request = new CombinationStatusRequest();
 
-            /** @var CombinationStatusResponse $response */
-            $response = $apiClient->fetchResponse($request);
-            $this->combinationHelper->hydrateStatusResponseToCombination(
-                $response,
-                $this->currentSetting->getCombination()
-            );
-        } catch (ApiClientException $e) {
-            throw new FailedApiRequestException($e);
+                /** @var CombinationStatusResponse $response */
+                $response = $apiClient->fetchResponse($request);
+                $this->combinationHelper->hydrateStatusResponseToCombination(
+                    $response,
+                    $this->currentSetting->getCombination()
+                );
+            } catch (ApiClientException $e) {
+                throw new FailedApiRequestException($e);
+            }
         }
+    }
+
+    /**
+     * Returns whether an update for the combination status is needed.
+     * @return bool
+     */
+    protected function isCombinationStatusUpdateNeeded(): bool
+    {
+        $combination = $this->currentSetting->getCombination();
+        $timeCut = new DateTime('-1 days');
+        return $combination->getStatus() !== CombinationStatus::AVAILABLE
+            || $combination->getLastCheckTime() === null
+            || $combination->getLastCheckTime()->getTimestamp() < $timeCut->getTimestamp();
     }
 
     /**

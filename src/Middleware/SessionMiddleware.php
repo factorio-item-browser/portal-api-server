@@ -7,6 +7,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 use DateTime;
 use Dflydev\FigCookies\FigRequestCookies;
 use Dflydev\FigCookies\FigResponseCookies;
+use Dflydev\FigCookies\Modifier\SameSite;
 use Dflydev\FigCookies\SetCookie;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
@@ -202,7 +203,9 @@ class SessionMiddleware implements MiddlewareInterface
         return SetCookie::create($this->cookieName, $user->getId()->toString())
             ->withDomain($this->cookieDomain)
             ->withPath($this->cookiePath)
-            ->withExpires(new DateTime($this->cookieLifeTime));
+            ->withExpires(new DateTime($this->cookieLifeTime))
+            ->withSecure(true)
+            ->withSameSite(SameSite::strict());
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Middleware;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
+use Dflydev\FigCookies\Modifier\SameSite;
 use Dflydev\FigCookies\SetCookie;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
@@ -457,6 +458,8 @@ class SessionMiddlewareTest extends TestCase
         $this->assertSame($cookieDomain, $result->getDomain());
         $this->assertSame($cookiePath, $result->getPath());
         $this->assertLessThanOrEqual(time() + 3600, $result->getExpires());
+        $this->assertTrue($result->getSecure());
+        $this->assertEquals(SameSite::strict(), $result->getSameSite());
     }
 
     /**

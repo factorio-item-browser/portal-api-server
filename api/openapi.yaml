@@ -135,7 +135,7 @@ paths:
                 $ref: "#/components/schemas/SearchResultData"
 
   /session/init:
-    get:
+    post:
       summary: Initializes the session.
       operationId: session.init
       tags:

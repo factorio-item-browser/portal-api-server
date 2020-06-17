@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  version: 1.0.0
+  version: 1.0.1
   title: Factorio Item Browser - Portal API
   contact:
     name: BluePsyduck
@@ -632,7 +632,7 @@ components:
       type: object
       description: The data to initialize the session.
       properties:
-        settingMeta:
+        setting:
           $ref: "#/components/schemas/SettingMeta"
         settingHash:
           type: string
@@ -645,6 +645,9 @@ components:
           description: The sidebar entities of the session.
           items:
             $ref: "#/components/schemas/SidebarEntityData"
+        scriptVersion:
+          type: string
+          description: The current version of the scripts.
 
     SettingCreateData:
       allOf:

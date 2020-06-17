@@ -37,6 +37,12 @@ class SessionInitData
     protected $sidebarEntities = [];
 
     /**
+     * The current version of the scripts.
+     * @var string
+     */
+    protected $scriptVersion = '';
+
+    /**
      * Sets the setting of the session.
      * @param SettingMetaData $setting
      * @return $this
@@ -114,5 +120,25 @@ class SessionInitData
     public function getSidebarEntities(): array
     {
         return $this->sidebarEntities;
+    }
+
+    /**
+     * Sets the current version of the scripts.
+     * @param string $scriptVersion
+     * @return $this
+     */
+    public function setScriptVersion(string $scriptVersion): self
+    {
+        $this->scriptVersion = $scriptVersion;
+        return $this;
+    }
+
+    /**
+     * Returns the current version of the scripts.
+     * @return string
+     */
+    public function getScriptVersion(): string
+    {
+        return $this->scriptVersion;
     }
 }

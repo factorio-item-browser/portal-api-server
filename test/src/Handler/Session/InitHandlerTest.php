@@ -93,12 +93,15 @@ class InitHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
+        $scriptVersion = 'abc';
+
         $handler = new InitHandler(
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
             $this->settingHelper,
-            $this->sidebarEntitiesHelper
+            $this->sidebarEntitiesHelper,
+            $scriptVersion
         );
 
         $this->assertSame($this->apiClientFactory, $this->extractProperty($handler, 'apiClientFactory'));
@@ -106,6 +109,7 @@ class InitHandlerTest extends TestCase
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
         $this->assertSame($this->sidebarEntitiesHelper, $this->extractProperty($handler, 'sidebarEntitiesHelper'));
+        $this->assertSame($scriptVersion, $this->extractProperty($handler, 'scriptVersion'));
     }
 
     /**
@@ -117,6 +121,7 @@ class InitHandlerTest extends TestCase
     {
         $settingHash = 'abc';
         $locale = 'def';
+        $scriptVersion = 'ghi';
 
         /* @var SettingMetaData&MockObject $setting */
         $setting = $this->createMock(SettingMetaData::class);
@@ -130,7 +135,8 @@ class InitHandlerTest extends TestCase
         $expectedTransfer->setSetting($setting)
                          ->setSettingHash($settingHash)
                          ->setLocale($locale)
-                         ->setSidebarEntities($sidebarEntities);
+                         ->setSidebarEntities($sidebarEntities)
+                         ->setScriptVersion($scriptVersion);
 
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -157,6 +163,7 @@ class InitHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
+                            $scriptVersion,
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -217,6 +224,7 @@ class InitHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
+                            '',
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -261,6 +269,7 @@ class InitHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
+                            '',
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -295,6 +304,7 @@ class InitHandlerTest extends TestCase
                             $this->currentSetting,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
+                            '',
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -347,7 +357,8 @@ class InitHandlerTest extends TestCase
             $this->combinationHelper,
             $this->currentSetting,
             $this->settingHelper,
-            $this->sidebarEntitiesHelper
+            $this->sidebarEntitiesHelper,
+            ''
         );
 
         $result = $this->invokeMethod($handler, 'isCombinationStatusUpdateNeeded');
@@ -404,7 +415,8 @@ class InitHandlerTest extends TestCase
             $this->combinationHelper,
             $this->currentSetting,
             $this->settingHelper,
-            $this->sidebarEntitiesHelper
+            $this->sidebarEntitiesHelper,
+            ''
         );
 
         $this->invokeMethod($handler, 'updateSetting');
@@ -446,7 +458,8 @@ class InitHandlerTest extends TestCase
             $this->combinationHelper,
             $this->currentSetting,
             $this->settingHelper,
-            $this->sidebarEntitiesHelper
+            $this->sidebarEntitiesHelper,
+            ''
         );
 
         $this->invokeMethod($handler, 'updateSetting');
@@ -483,7 +496,8 @@ class InitHandlerTest extends TestCase
             $this->combinationHelper,
             $this->currentSetting,
             $this->settingHelper,
-            $this->sidebarEntitiesHelper
+            $this->sidebarEntitiesHelper,
+            ''
         );
         $result = $this->invokeMethod($handler, 'getCurrentSidebarEntities');
 

@@ -78,4 +78,18 @@ class SessionInitDataTest extends TestCase
         $this->assertSame($transfer, $transfer->setSidebarEntities($sidebarEntities));
         $this->assertSame($sidebarEntities, $transfer->getSidebarEntities());
     }
+
+    /**
+     * Tests the setting and getting the script version.
+     * @covers ::getScriptVersion
+     * @covers ::setScriptVersion
+     */
+    public function testSetAndGetScriptVersion(): void
+    {
+        $scriptVersion = 'abc';
+        $transfer = new SessionInitData();
+
+        $this->assertSame($transfer, $transfer->setScriptVersion($scriptVersion));
+        $this->assertSame($scriptVersion, $transfer->getScriptVersion());
+    }
 }

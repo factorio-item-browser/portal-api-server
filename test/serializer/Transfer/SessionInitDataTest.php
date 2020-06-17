@@ -49,7 +49,8 @@ class SessionInitDataTest extends SerializerTestCase
         $object->setSetting($setting)
                ->setSettingHash('bcd')
                ->setLocale('efg')
-               ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2]);
+               ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
+               ->setScriptVersion('hij');
         return $object;
     }
 
@@ -83,6 +84,7 @@ class SessionInitDataTest extends SerializerTestCase
                     'lastViewTime' => '2038-01-19T03:14:07.123+00:00',
                 ],
             ],
+            'scriptVersion' => 'hij',
         ];
     }
 

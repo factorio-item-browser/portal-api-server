@@ -19,6 +19,7 @@ return [
             ConfigKey::ALLOWED_ORIGINS => [
                 '#^https?://localhost(:\d+)?$#',
             ],
+            ConfigKey::SCRIPT_VERSION => 'local',
             ConfigKey::SESSION_COOKIE_NAME => 'FIB',
             ConfigKey::SESSION_COOKIE_DOMAIN => 'localhost',
             ConfigKey::SESSION_COOKIE_PATH => '/',

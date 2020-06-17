@@ -10,3 +10,5 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
       type: string
     sidebarEntities:
       type: array<FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData>
+    scriptVersion:
+      type: string

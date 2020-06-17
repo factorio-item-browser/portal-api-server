@@ -63,25 +63,34 @@ class InitHandler implements RequestHandlerInterface
     protected $sidebarEntitiesHelper;
 
     /**
+     * The current version of the scripts.
+     * @var string
+     */
+    protected $scriptVersion;
+
+    /**
      * Initializes the handler.
      * @param ApiClientFactory $apiClientFactory
      * @param CombinationHelper $combinationHelper
      * @param Setting $currentSetting
      * @param SettingHelper $settingHelper
      * @param SidebarEntitiesHelper $sidebarEntitiesHelper
+     * @param string $scriptVersion
      */
     public function __construct(
         ApiClientFactory $apiClientFactory,
         CombinationHelper $combinationHelper,
         Setting $currentSetting,
         SettingHelper $settingHelper,
-        SidebarEntitiesHelper $sidebarEntitiesHelper
+        SidebarEntitiesHelper $sidebarEntitiesHelper,
+        string $scriptVersion
     ) {
         $this->apiClientFactory = $apiClientFactory;
         $this->combinationHelper = $combinationHelper;
         $this->currentSetting = $currentSetting;
         $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
+        $this->scriptVersion = $scriptVersion;
     }
 
     /**
@@ -99,7 +108,8 @@ class InitHandler implements RequestHandlerInterface
         $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
              ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
-             ->setSidebarEntities($this->getCurrentSidebarEntities());
+             ->setSidebarEntities($this->getCurrentSidebarEntities())
+             ->setScriptVersion($this->scriptVersion);
 
         return new TransferResponse($data);
     }

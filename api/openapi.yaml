@@ -8,14 +8,14 @@ info:
   description: The API used by the portal frontend to receive any data from the backend.
 
 tags:
+  - name: Init
+    description: Requests for initialization.
   - name: Item
     description: Requests related to item details.
   - name: Recipe
     description: Requests related to recipe details.
   - name: Search
     description: Requests related with searching for items, recipes etc.
-  - name: Session
-    description: Requests related to the session handling.
   - name: Settings
     description: Requests realted to the setting handling.
   - name: Sidebar
@@ -26,6 +26,35 @@ tags:
     description: Requests related to providing tooltip data.
 
 paths:
+  /init:
+    post:
+      summary: Initializes the session.
+      operationId: init
+      tags:
+        - Init
+      parameters:
+        - name: user-id
+          in: header
+          description: The id of the user. If omitted, a new user will be created.
+          required: false
+          schema:
+            type: string
+            example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
+        - name: combination-id
+          in: header
+          description: The combination id to use. If omitted, the last used combination will be used.
+          required: false
+          schema:
+            type: string
+            example: b6d9080c-0ce1-4c33-a628-62682bfa20f3
+      responses:
+        200:
+          description: The data of the initialization.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitData"
+
   /{type}/{name}/ingredients:
     get:
       summary: Returns the recipes where the requested item is an ingredient of.
@@ -33,6 +62,8 @@ paths:
       tags:
         - Item
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/indexOfFirstResult"
@@ -51,6 +82,8 @@ paths:
       tags:
         - Item
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/indexOfFirstResult"
@@ -70,6 +103,8 @@ paths:
       tags:
         - Item
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/numberOfResults"
       responses:
         200:
@@ -89,6 +124,8 @@ paths:
       tags:
         - Recipe
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
       responses:
         200:
@@ -105,6 +142,8 @@ paths:
       tags:
         - Recipe
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/indexOfFirstResult"
         - $ref: "#/components/parameters/numberOfResults"
@@ -123,6 +162,8 @@ paths:
       tags:
         - Search
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/query"
         - $ref: "#/components/parameters/indexOfFirstResult"
         - $ref: "#/components/parameters/numberOfResults"
@@ -133,20 +174,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchResultData"
-
-  /session/init:
-    post:
-      summary: Initializes the session.
-      operationId: session.init
-      tags:
-        - Session
-      responses:
-        200:
-          description: The initial settings of the session.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionInitData"
 
   /settings:
     get:
@@ -176,14 +203,14 @@ paths:
         204:
           description: The setting has been successfully created. Start over with a /session/init request.
 
-  /settings/{setting-id}:
+  /settings/{combination-id}:
     get:
       summary: Returns the details of the specified setting.
       operationId: settings.details
       tags:
         - Settings
       parameters:
-        - $ref: "#/components/parameters/setting-id"
+        - $ref: "#/components/parameters/combination-id"
       responses:
         200:
           description: The details of the requested setting.
@@ -198,7 +225,7 @@ paths:
       tags:
         - Settings
       parameters:
-        - $ref: "#/components/parameters/setting-id"
+        - $ref: "#/components/parameters/combination-id"
       requestBody:
         content:
           application/json:
@@ -214,7 +241,7 @@ paths:
       tags:
         - Settings
       parameters:
-        - $ref: "#/components/parameters/setting-id"
+        - $ref: "#/components/parameters/combination-id"
       responses:
         204:
           description: The setting have been successfully deleted.
@@ -262,6 +289,9 @@ paths:
       operationId: sidebar.entities
       tags:
         - Sidebar
+      parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
       requestBody:
         content:
           application/json:
@@ -279,6 +309,9 @@ paths:
       operationId: style.icons
       tags:
         - Style
+      parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
       requestBody:
         content:
           application/json:
@@ -300,6 +333,8 @@ paths:
       tags:
         - Tooltip
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
       responses:
@@ -317,6 +352,8 @@ paths:
       tags:
         - Tooltip
       parameters:
+        - $ref: "#/components/parameters/header-user-id"
+        - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
       responses:
         200:
@@ -328,6 +365,24 @@ paths:
 
 components:
   parameters:
+    header-user-id:
+      name: user-id
+      in: header
+      description: The id of the user.
+      required: true
+      schema:
+        type: string
+        example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
+
+    header-combination-id:
+      name: combination-id
+      in: header
+      description: The combination id to use for the request.
+      required: true
+      schema:
+        type: string
+        example: b6d9080c-0ce1-4c33-a628-62682bfa20f3
+
     type:
       name: type
       in: path
@@ -347,10 +402,10 @@ components:
       schema:
         type: string
         example: copper-cable
-    setting-id:
-      name: setting-id
+    combination-id:
+      name: combination-id
       in: path
-      description: The id of the setting.
+      description: The combination id of the setting.
       required: true
       schema:
         type: string
@@ -417,6 +472,32 @@ components:
           type: string
           description: The style representing the icons of the requested entities.
           example: ".example-style { background: red; }"
+
+    InitData:
+      type: object
+      description: The data to initialize the session.
+      properties:
+        userId:
+          type: string
+          description: The ID of the user.
+          example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
+        setting:
+          $ref: "#/components/schemas/SettingMetaData"
+        settingHash:
+          type: string
+          description: The hash of the currently loaded setting.
+        locale:
+          type: string
+          description: The locale to use for the page.
+        sidebarEntities:
+          type: array
+          description: The sidebar entities of the session.
+          items:
+            $ref: "#/components/schemas/SidebarEntityData"
+        scriptVersion:
+          type: string
+          description: The current version of the scripts.
+          example: 1650be3c220267a96f3d
 
     ItemRecipesData:
       type: object
@@ -628,27 +709,6 @@ components:
           description: The total number of search results.
           example: 42
 
-    SessionInitData:
-      type: object
-      description: The data to initialize the session.
-      properties:
-        setting:
-          $ref: "#/components/schemas/SettingMeta"
-        settingHash:
-          type: string
-          description: The hash of the currently loaded setting.
-        locale:
-          type: string
-          description: The locale to use for the page.
-        sidebarEntities:
-          type: array
-          description: The sidebar entities of the session.
-          items:
-            $ref: "#/components/schemas/SidebarEntityData"
-        scriptVersion:
-          type: string
-          description: The current version of the scripts.
-
     SettingCreateData:
       allOf:
         - $ref: "#/components/schemas/SettingOptionsData"
@@ -682,9 +742,9 @@ components:
       type: object
       description: The meta data of a setting of mods.
       properties:
-        id:
+        combinationId:
           type: string
-          description: The internal id of the setting.
+          description: The id of the combination assigned to the setting.
           example: 84ad3867-d5fe-495d-af32-a4709ab3c2b7
         name:
           type: string

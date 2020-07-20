@@ -141,7 +141,7 @@ class SessionMiddlewareTest extends TestCase
     public function provideIsInitRoute(): array
     {
         return [
-            [RouteName::SESSION_INIT, true],
+            [RouteName::INIT, true],
             [RouteName::RANDOM, false],
         ];
     }

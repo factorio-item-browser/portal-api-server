@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Session;
+namespace FactorioItemBrowserTest\PortalApi\Server\Handler;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTime;
@@ -18,7 +18,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Handler\Session\InitHandler;
+use FactorioItemBrowser\PortalApi\Server\Handler\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
@@ -36,7 +36,7 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Handler\Session\InitHandler
+ * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Handler\InitHandler
  */
 class InitHandlerTest extends TestCase
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\PortalApi\Server\Handler\Session;
+namespace FactorioItemBrowser\PortalApi\Server\Handler;
 
 use DateTime;
 use Exception;

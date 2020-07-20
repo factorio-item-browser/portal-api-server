@@ -32,6 +32,7 @@ return [
 
             Command\CleanSessionsCommand::class => AutoWireFactory::class,
 
+            Handler\InitHandler::class => AutoWireFactory::class,
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
@@ -39,7 +40,6 @@ return [
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
             Handler\Recipe\MachinesHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
-            Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Settings\CreateHandler::class => AutoWireFactory::class,
             Handler\Settings\DeleteHandler::class => AutoWireFactory::class,
             Handler\Settings\DetailsHandler::class => AutoWireFactory::class,

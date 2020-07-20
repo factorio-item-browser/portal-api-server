@@ -95,7 +95,7 @@ class SessionMiddleware implements MiddlewareInterface
         /** @var RouteResult $routeResult */
         $routeResult = $request->getAttribute(RouteResult::class);
         $route = $routeResult->getMatchedRoute();
-        return $route instanceof Route && $route->getName() === RouteName::SESSION_INIT;
+        return $route instanceof Route && $route->getName() === RouteName::INIT;
     }
 
     /**

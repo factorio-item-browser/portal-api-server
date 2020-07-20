@@ -17,13 +17,13 @@ use Mezzio\MiddlewareFactory;
 use Psr\Container\ContainerInterface;
 
 return function (Application $app, MiddlewareFactory $factory, ContainerInterface $container): void {
+    $app->post('/init', Handler\InitHandler::class, RouteName::INIT);
     $app->get('/{type:item|fluid}/{name}/ingredients', Handler\Item\IngredientsHandler::class, RouteName::ITEM_INGREDIENTS);
     $app->get('/{type:item|fluid}/{name}/products', Handler\Item\ProductsHandler::class, RouteName::ITEM_PRODUCTS);
     $app->get('/random', Handler\RandomHandler::class, RouteName::RANDOM);
     $app->get('/recipe/{name}', Handler\Recipe\DetailsHandler::class, RouteName::RECIPE_DETAILS);
     $app->get('/recipe/{name}/machines', Handler\Recipe\MachinesHandler::class, RouteName::RECIPE_MACHINES);
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
-    $app->post('/session/init', Handler\Session\InitHandler::class, RouteName::SESSION_INIT);
 
     $app->get('/settings', Handler\Settings\ListHandler::class, RouteName::SETTINGS_LIST);
     $app->put('/settings', Handler\Settings\CreateHandler::class, RouteName::SETTINGS_CREATE);

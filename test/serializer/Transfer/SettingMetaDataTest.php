@@ -22,7 +22,7 @@ class SettingMetaDataTest extends SerializerTestCase
     protected function getObject(): object
     {
         $object = new SettingMetaData();
-        $object->setId('abc')
+        $object->setCombinationId('abc')
                ->setName('def')
                ->setStatus('ghi');
 
@@ -36,7 +36,7 @@ class SettingMetaDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
-            'id' => 'abc',
+            'combinationId' => 'abc',
             'name' => 'def',
             'status' => 'ghi',
         ];

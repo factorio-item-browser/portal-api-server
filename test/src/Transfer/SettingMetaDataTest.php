@@ -17,17 +17,17 @@ use PHPUnit\Framework\TestCase;
 class SettingMetaDataTest extends TestCase
 {
     /**
-     * Tests the setting and getting the id.
-     * @covers ::getId
-     * @covers ::setId
+     * Tests the setting and getting the combination id.
+     * @covers ::getCombinationId
+     * @covers ::setCombinationId
      */
-    public function testSetAndGetId(): void
+    public function testSetAndGetCombinationId(): void
     {
         $id = 'abc';
         $transfer = new SettingMetaData();
 
-        $this->assertSame($transfer, $transfer->setId($id));
-        $this->assertSame($id, $transfer->getId());
+        $this->assertSame($transfer, $transfer->setCombinationId($id));
+        $this->assertSame($id, $transfer->getCombinationId());
     }
 
     /**

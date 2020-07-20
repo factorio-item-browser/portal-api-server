@@ -13,10 +13,10 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SettingMetaData
 {
     /**
-     * The id of the setting.
+     * The id of the combination used in the setting.
      * @var string
      */
-    protected $id = '';
+    protected $combinationId = '';
 
     /**
      * The name of the setting.
@@ -31,23 +31,23 @@ class SettingMetaData
     protected $status = '';
 
     /**
-     * Sets the id of the setting.
-     * @param string $id
+     * Sets the id of the combination used in the setting.
+     * @param string $combinationId
      * @return $this
      */
-    public function setId(string $id): self
+    public function setCombinationId(string $combinationId): self
     {
-        $this->id = $id;
+        $this->combinationId = $combinationId;
         return $this;
     }
 
     /**
-     * Returns the id of the setting.
+     * Returns the id of the combination used in the setting.
      * @return string
      */
-    public function getId(): string
+    public function getCombinationId(): string
     {
-        return $this->id;
+        return $this->combinationId;
     }
 
     /**

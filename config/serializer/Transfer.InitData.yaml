@@ -1,7 +1,9 @@
-FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
+FactorioItemBrowser\PortalApi\Server\Transfer\InitData:
   access_type: public_method
   exclusion_policy: all
   properties:
+    userId:
+      type: string
     setting:
       type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
     settingHash:

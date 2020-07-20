@@ -35,7 +35,7 @@ class SettingMapper implements DynamicMapperInterface
      */
     public function map($source, $destination): void
     {
-        $destination->setId($source->getId()->toString())
+        $destination->setCombinationId($source->getCombination()->getId()->toString())
                     ->setName($source->getName())
                     ->setStatus($source->getCombination()->getStatus());
 

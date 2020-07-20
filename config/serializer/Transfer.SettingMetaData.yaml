@@ -2,7 +2,7 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData:
   access_type: public_method
   exclusion_policy: all
   properties:
-    id:
+    combinationId:
       type: string
     name:
       type: string

@@ -486,9 +486,11 @@ components:
         settingHash:
           type: string
           description: The hash of the currently loaded setting.
+          example: e15ce8407a15f872792e714f58e7f5da
         locale:
           type: string
           description: The locale to use for the page.
+          example: de
         sidebarEntities:
           type: array
           description: The sidebar entities of the session.

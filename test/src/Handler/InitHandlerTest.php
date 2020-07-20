@@ -17,18 +17,20 @@ use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Handler\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -61,6 +63,12 @@ class InitHandlerTest extends TestCase
     protected $currentSetting;
 
     /**
+     * The mocked current user.
+     * @var User&MockObject
+     */
+    protected $currentUser;
+
+    /**
      * The mocked setting helper.
      * @var SettingHelper&MockObject
      */
@@ -82,6 +90,7 @@ class InitHandlerTest extends TestCase
         $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
         $this->combinationHelper = $this->createMock(CombinationHelper::class);
         $this->currentSetting = $this->createMock(Setting::class);
+        $this->currentUser = $this->createMock(User::class);
         $this->settingHelper = $this->createMock(SettingHelper::class);
         $this->sidebarEntitiesHelper = $this->createMock(SidebarEntitiesHelper::class);
     }
@@ -99,6 +108,7 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
+            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             $scriptVersion
@@ -107,6 +117,7 @@ class InitHandlerTest extends TestCase
         $this->assertSame($this->apiClientFactory, $this->extractProperty($handler, 'apiClientFactory'));
         $this->assertSame($this->combinationHelper, $this->extractProperty($handler, 'combinationHelper'));
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
+        $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
         $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
         $this->assertSame($this->sidebarEntitiesHelper, $this->extractProperty($handler, 'sidebarEntitiesHelper'));
         $this->assertSame($scriptVersion, $this->extractProperty($handler, 'scriptVersion'));
@@ -119,11 +130,11 @@ class InitHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
+        $userId = '7d3a388e-20b1-4491-b041-97ebe27e1004';
         $settingHash = 'abc';
         $locale = 'def';
         $scriptVersion = 'ghi';
 
-        /* @var SettingMetaData&MockObject $setting */
         $setting = $this->createMock(SettingMetaData::class);
 
         $sidebarEntities = [
@@ -131,19 +142,23 @@ class InitHandlerTest extends TestCase
             $this->createMock(SidebarEntityData::class),
         ];
 
-        $expectedTransfer = new SessionInitData();
-        $expectedTransfer->setSetting($setting)
+        $expectedTransfer = new InitData();
+        $expectedTransfer->setUserId($userId)
+                         ->setSetting($setting)
                          ->setSettingHash($settingHash)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities)
                          ->setScriptVersion($scriptVersion);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
 
         $this->currentSetting->expects($this->once())
                              ->method('getLocale')
                              ->willReturn($locale);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getId')
+                          ->willReturn(Uuid::fromString('7d3a388e-20b1-4491-b041-97ebe27e1004'));
 
         $this->settingHelper->expects($this->once())
                             ->method('createSettingMeta')
@@ -154,13 +169,13 @@ class InitHandlerTest extends TestCase
                             ->with($this->identicalTo($this->currentSetting))
                             ->willReturn($settingHash);
 
-        /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['updateCombinationStatus', 'updateSetting', 'getCurrentSidebarEntities'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             $scriptVersion,
@@ -174,7 +189,6 @@ class InitHandlerTest extends TestCase
                 ->method('getCurrentSidebarEntities')
                 ->willReturn($sidebarEntities);
 
-        /* @var TransferResponse $result */
         $result = $handler->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);
@@ -188,14 +202,11 @@ class InitHandlerTest extends TestCase
      */
     public function testUpdateCombinationStatus(): void
     {
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
-        /* @var CombinationStatusResponse&MockObject $response */
         $response = $this->createMock(CombinationStatusResponse::class);
 
         $expectedRequest = new CombinationStatusRequest();
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('fetchResponse')
@@ -215,13 +226,13 @@ class InitHandlerTest extends TestCase
                              ->method('getCombination')
                              ->willReturn($combination);
 
-        /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['isCombinationStatusUpdateNeeded'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -243,7 +254,6 @@ class InitHandlerTest extends TestCase
     {
         $expectedRequest = new CombinationStatusRequest();
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('fetchResponse')
@@ -260,13 +270,13 @@ class InitHandlerTest extends TestCase
 
         $this->expectException(FailedApiRequestException::class);
 
-        /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['isCombinationStatusUpdateNeeded'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -295,13 +305,13 @@ class InitHandlerTest extends TestCase
         $this->currentSetting->expects($this->never())
                              ->method('getCombination');
 
-        /* @var InitHandler&MockObject $handler */
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['isCombinationStatusUpdateNeeded'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -356,6 +366,7 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
+            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -375,13 +386,11 @@ class InitHandlerTest extends TestCase
     {
         $status = CombinationStatus::AVAILABLE;
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
         $combination->expects($this->once())
                     ->method('getStatus')
                     ->willReturn($status);
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('clearAuthorizationToken');
@@ -414,6 +423,7 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
+            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -431,7 +441,6 @@ class InitHandlerTest extends TestCase
     {
         $status = CombinationStatus::AVAILABLE;
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
         $combination->expects($this->once())
                     ->method('getStatus')
@@ -457,6 +466,7 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
+            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -495,6 +505,7 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
+            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''

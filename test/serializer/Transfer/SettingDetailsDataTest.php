@@ -39,7 +39,7 @@ class SettingDetailsDataTest extends SerializerTestCase
         $modIconsStyle->setStyle('klm');
 
         $object = new SettingDetailsData();
-        $object->setId('yza')
+        $object->setCombinationId('yza')
                ->setName('bcd')
                ->setStatus('klm')
                ->setLocale('efg')
@@ -57,7 +57,7 @@ class SettingDetailsDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
-            'id' => 'yza',
+            'combinationId' => 'yza',
             'name' => 'bcd',
             'status' => 'klm',
             'locale' => 'efg',

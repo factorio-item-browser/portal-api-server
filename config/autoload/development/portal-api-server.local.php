@@ -21,10 +21,6 @@ return [
             ],
             ConfigKey::SCRIPT_VERSION => 'local',
             ConfigKey::SESSION_COOKIE_NAME => 'FIB',
-            ConfigKey::SESSION_COOKIE_DOMAIN => 'localhost',
-            ConfigKey::SESSION_COOKIE_PATH => '/',
-            ConfigKey::SESSION_COOKIE_LIFETIME => '+30 days',
-            ConfigKey::SESSION_LIFETIME => '+30 days',
         ],
     ],
 ];

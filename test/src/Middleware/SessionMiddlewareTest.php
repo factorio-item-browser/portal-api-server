@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Middleware;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
-use Dflydev\FigCookies\Modifier\SameSite;
-use Dflydev\FigCookies\SetCookie;
+use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSessionException;
 use FactorioItemBrowser\PortalApi\Server\Middleware\SessionMiddleware;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
-use GuzzleHttp\Psr7\Response;
 use Laminas\Diactoros\ServerRequest;
 use Laminas\ServiceManager\ServiceManager;
 use Mezzio\Router\Route;
@@ -70,25 +69,16 @@ class SessionMiddlewareTest extends TestCase
     public function testConstruct(): void
     {
         $cookieName = 'abc';
-        $cookieDomain = 'def';
-        $cookiePath = 'ghi';
-        $cookieLifeTime = 'jkl';
 
         $middleware = new SessionMiddleware(
             $this->serviceManager,
             $this->userRepository,
             $cookieName,
-            $cookieDomain,
-            $cookiePath,
-            $cookieLifeTime
         );
 
         $this->assertSame($this->serviceManager, $this->extractProperty($middleware, 'serviceManager'));
         $this->assertSame($this->userRepository, $this->extractProperty($middleware, 'userRepository'));
         $this->assertSame($cookieName, $this->extractProperty($middleware, 'cookieName'));
-        $this->assertSame($cookieDomain, $this->extractProperty($middleware, 'cookieDomain'));
-        $this->assertSame($cookiePath, $this->extractProperty($middleware, 'cookiePath'));
-        $this->assertSame($cookieLifeTime, $this->extractProperty($middleware, 'cookieLifeTime'));
     }
 
     /**
@@ -98,57 +88,179 @@ class SessionMiddlewareTest extends TestCase
      */
     public function testProcess(): void
     {
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
-        /* @var ServerRequestInterface&MockObject $request */
+        $setting = $this->createMock(Setting::class);
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var ResponseInterface&MockObject $response1 */
-        $response1 = $this->createMock(ResponseInterface::class);
-        /* @var ResponseInterface&MockObject $response2 */
-        $response2 = $this->createMock(ResponseInterface::class);
-        /* @var SetCookie&MockObject $cookie */
-        $cookie = $this->createMock(SetCookie::class);
+        $response = $this->createMock(ResponseInterface::class);
 
-        /* @var RequestHandlerInterface&MockObject $handler */
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
                 ->method('handle')
                 ->with($this->identicalTo($request))
-                ->willReturn($response1);
+                ->willReturn($response);
+
+        $this->serviceManager->expects($this->exactly(2))
+                             ->method('setService')
+                             ->withConsecutive(
+                                 [
+                                     $this->identicalTo(User::class . ' $currentUser'),
+                                     $this->identicalTo($user),
+                                 ],
+                                 [
+                                     $this->identicalTo(Setting::class . ' $currentSetting'),
+                                     $this->identicalTo($setting),
+                                 ],
+                             );
 
         $this->userRepository->expects($this->once())
                              ->method('persist')
                              ->with($this->identicalTo($user));
 
-        /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods([
-                               'readUserFromRequest',
-                               'injectUserToServiceManager',
-                               'createCookie',
-                               'injectCookieIntoResponse',
-                           ])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
+                           ->onlyMethods(['getCurrentUser', 'getCurrentSetting'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('getCurrentUser')
+                   ->with($this->identicalTo($request))
+                   ->willReturn($user);
+        $middleware->expects($this->once())
+                   ->method('getCurrentSetting')
+                   ->with($this->identicalTo($request), $this->identicalTo($user))
+                   ->willReturn($setting);
+
+        $result = $middleware->process($request, $handler);
+
+        $this->assertSame($response, $result);
+    }
+
+    /**
+     * Provides the data for the isInitRoute test.
+     * @return array<mixed>
+     */
+    public function provideIsInitRoute(): array
+    {
+        return [
+            [RouteName::SESSION_INIT, true],
+            [RouteName::RANDOM, false],
+        ];
+    }
+
+    /**
+     * Tests the isInitRoute method.
+     * @param string $routeName
+     * @param bool $expectedResult
+     * @throws ReflectionException
+     * @covers ::isInitRoute
+     * @dataProvider provideIsInitRoute
+     */
+    public function testIsRouteWhitelisted(string $routeName, bool $expectedResult): void
+    {
+        $route = $this->createMock(Route::class);
+        $route->expects($this->once())
+              ->method('getName')
+              ->willReturn($routeName);
+
+        $routeResult = $this->createMock(RouteResult::class);
+        $routeResult->expects($this->once())
+                    ->method('getMatchedRoute')
+                    ->willReturn($route);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getAttribute')
+                ->with($this->identicalTo(RouteResult::class))
+                ->willReturn($routeResult);
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $result = $this->invokeMethod($middleware, 'isInitRoute', $request);
+
+        $this->assertSame($expectedResult, $result);
+    }
+
+    /**
+     * Tests the getCurrentUser method.
+     * @throws ReflectionException
+     * @covers ::getCurrentUser
+     */
+    public function testGetCurrentUser(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $user = $this->createMock(User::class);
+
+
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readUserFromRequest'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readUserFromRequest')
                    ->with($this->identicalTo($request))
                    ->willReturn($user);
-        $middleware->expects($this->once())
-                   ->method('injectUserToServiceManager')
-                   ->with($this->identicalTo($user));
-        $middleware->expects($this->once())
-                   ->method('createCookie')
-                   ->with($this->identicalTo($user))
-                   ->willReturn($cookie);
-        $middleware->expects($this->once())
-                   ->method('injectCookieIntoResponse')
-                   ->with($this->identicalTo($response1), $this->identicalTo($cookie))
-                   ->willReturn($response2);
 
-        $result = $middleware->process($request, $handler);
+        $result = $this->invokeMethod($middleware, 'getCurrentUser', $request);
 
-        $this->assertSame($response2, $result);
+        $this->assertSame($user, $result);
+    }
+
+    /**
+     * Tests the getCurrentUser method.
+     * @throws ReflectionException
+     * @covers ::getCurrentUser
+     */
+    public function testGetCurrentUserWithoutExistingUser(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readUserFromRequest', 'isInitRoute'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('readUserFromRequest')
+                   ->with($this->identicalTo($request))
+                   ->willReturn(null);
+        $middleware->expects($this->once())
+                   ->method('isInitRoute')
+                   ->with($this->identicalTo($request))
+                   ->willReturn(false);
+
+        $this->expectException(MissingSessionException::class);
+
+        $this->invokeMethod($middleware, 'getCurrentUser', $request);
+    }
+
+    /**
+     * Tests the getCurrentUser method.
+     * @throws ReflectionException
+     * @covers ::getCurrentUser
+     */
+    public function testGetCurrentUserWithNewUser(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $user = $this->createMock(User::class);
+
+        $this->userRepository->expects($this->once())
+                             ->method('createUser')
+                             ->willReturn($user);
+
+
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readUserFromRequest', 'isInitRoute'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('readUserFromRequest')
+                   ->with($this->identicalTo($request))
+                   ->willReturn(null);
+        $middleware->expects($this->once())
+                   ->method('isInitRoute')
+                   ->with($this->identicalTo($request))
+                   ->willReturn(true);
+
+        $result = $this->invokeMethod($middleware, 'getCurrentUser', $request);
+        
+        $this->assertSame($user, $result);
     }
 
     /**
@@ -156,33 +268,27 @@ class SessionMiddlewareTest extends TestCase
      * @throws ReflectionException
      * @covers ::readUserFromRequest
      */
-    public function testReadUserFromRequestWithExistingUser(): void
+    public function testReadUserFromRequest(): void
     {
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var UuidInterface&MockObject $userId */
         $userId = $this->createMock(UuidInterface::class);
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
 
         $this->userRepository->expects($this->once())
                              ->method('getUser')
                              ->with($this->identicalTo($userId))
                              ->willReturn($user);
-        $this->userRepository->expects($this->never())
-                             ->method('createUser');
 
-        /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readUserIdFromCookie', 'isRouteWhitelisted'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
+                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
                            ->getMock();
         $middleware->expects($this->once())
-                   ->method('readUserIdFromCookie')
-                   ->with($this->identicalTo($request))
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
                    ->willReturn($userId);
         $middleware->expects($this->never())
-                   ->method('isRouteWhitelisted');
+                   ->method('readIdFromCookie');
 
         $result = $this->invokeMethod($middleware, 'readUserFromRequest', $request);
 
@@ -194,36 +300,30 @@ class SessionMiddlewareTest extends TestCase
      * @throws ReflectionException
      * @covers ::readUserFromRequest
      */
-    public function testReadUserFromRequestWithNewUser(): void
+    public function testReadUserFromRequestWithCookieFallback(): void
     {
-        /* @var ServerRequestInterface&MockObject $request */
+        $cookieName = 'abc';
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var UuidInterface&MockObject $userId */
         $userId = $this->createMock(UuidInterface::class);
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
 
         $this->userRepository->expects($this->once())
                              ->method('getUser')
                              ->with($this->identicalTo($userId))
-                             ->willReturn(null);
-        $this->userRepository->expects($this->once())
-                             ->method('createUser')
                              ->willReturn($user);
 
-        /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readUserIdFromCookie', 'isRouteWhitelisted'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
+                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName])
                            ->getMock();
         $middleware->expects($this->once())
-                   ->method('readUserIdFromCookie')
-                   ->with($this->identicalTo($request))
-                   ->willReturn($userId);
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
+                   ->willReturn(null);
         $middleware->expects($this->once())
-                   ->method('isRouteWhitelisted')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(true);
+                   ->method('readIdFromCookie')
+                   ->with($this->identicalTo($request), $this->identicalTo($cookieName))
+                   ->willReturn($userId);
 
         $result = $this->invokeMethod($middleware, 'readUserFromRequest', $request);
 
@@ -237,248 +337,219 @@ class SessionMiddlewareTest extends TestCase
      */
     public function testReadUserFromRequestWithoutUserId(): void
     {
-        /* @var ServerRequestInterface&MockObject $request */
+        $cookieName = 'abc';
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var User&MockObject $user */
-        $user = $this->createMock(User::class);
 
         $this->userRepository->expects($this->never())
                              ->method('getUser');
-        $this->userRepository->expects($this->once())
-                             ->method('createUser')
-                             ->willReturn($user);
 
-        /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readUserIdFromCookie', 'isRouteWhitelisted'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
+                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName])
                            ->getMock();
         $middleware->expects($this->once())
-                   ->method('readUserIdFromCookie')
-                   ->with($this->identicalTo($request))
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
                    ->willReturn(null);
         $middleware->expects($this->once())
-                   ->method('isRouteWhitelisted')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(true);
+                   ->method('readIdFromCookie')
+                   ->with($this->identicalTo($request), $this->identicalTo($cookieName))
+                   ->willReturn(null);
 
         $result = $this->invokeMethod($middleware, 'readUserFromRequest', $request);
-
-        $this->assertSame($user, $result);
-    }
-
-    /**
-     * Tests the readUserFromRequest method.
-     * @throws ReflectionException
-     * @covers ::readUserFromRequest
-     */
-    public function testReadUserFromRequestWithException(): void
-    {
-        /* @var ServerRequestInterface&MockObject $request */
-        $request = $this->createMock(ServerRequestInterface::class);
-
-        $this->userRepository->expects($this->never())
-                             ->method('getUser');
-        $this->userRepository->expects($this->never())
-                             ->method('createUser');
-
-        $this->expectException(MissingSessionException::class);
-
-        /* @var SessionMiddleware&MockObject $middleware */
-        $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readUserIdFromCookie', 'isRouteWhitelisted'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
-                           ->getMock();
-        $middleware->expects($this->once())
-                   ->method('readUserIdFromCookie')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(null);
-        $middleware->expects($this->once())
-                   ->method('isRouteWhitelisted')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(false);
-
-        $this->invokeMethod($middleware, 'readUserFromRequest', $request);
-    }
-
-    /**
-     * Tests the readUserIdFromCookie method.
-     * @throws ReflectionException
-     * @covers ::readUserIdFromCookie
-     */
-    public function testReadUserIdFromCookie(): void
-    {
-        $cookieName = 'foo';
-        $userIdString = 'bdec7a85-5de5-49b9-9634-8b12319fa212';
-
-        $request = new ServerRequest();
-        $request = $request->withHeader('Cookie', "{$cookieName}={$userIdString}");
-
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, $cookieName, '', '', '');
-
-        /* @var UuidInterface $result */
-        $result = $this->invokeMethod($middleware, 'readUserIdFromCookie', $request);
-
-        $this->assertInstanceOf(UuidInterface::class, $result);
-        $this->assertSame($userIdString, $result->toString());
-    }
-
-    /**
-     * Tests the readUserIdFromCookie method.
-     * @throws ReflectionException
-     * @covers ::readUserIdFromCookie
-     */
-    public function testReadUserIdFromCookieWithException(): void
-    {
-        $cookieName = 'foo';
-
-        $request = new ServerRequest();
-        $request = $request->withHeader('Cookie', "{$cookieName}=xyz");
-
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, $cookieName, '', '', '');
-        $result = $this->invokeMethod($middleware, 'readUserIdFromCookie', $request);
 
         $this->assertNull($result);
     }
 
     /**
-     * Provides the data for the isRouteWhitelisted test.
-     * @return array<mixed>
-     */
-    public function provideIsRouteWhitelisted(): array
-    {
-        return [
-            [RouteName::SESSION_INIT, true],
-            [RouteName::RANDOM, false],
-        ];
-    }
-
-    /**
-     * Tests the isRouteWhitelisted method.
-     * @param string $routeName
-     * @param bool $expectedResult
+     * Tests the readSettingFromRequest method.
      * @throws ReflectionException
-     * @covers ::isRouteWhitelisted
-     * @dataProvider provideIsRouteWhitelisted
+     * @covers ::readSettingFromRequest
      */
-    public function testIsRouteWhitelisted(string $routeName, bool $expectedResult): void
+    public function testReadSettingFromRequest(): void
     {
-        /* @var Route&MockObject $route */
-        $route = $this->createMock(Route::class);
-        $route->expects($this->once())
-              ->method('getName')
-              ->willReturn($routeName);
+        $combinationId1 = '10cfc610-7bf5-4ea8-a7d0-fc1adb717035';
+        $combination1 = new Combination();
+        $combination1->setId(Uuid::fromString($combinationId1));
+        $setting1 = new Setting();
+        $setting1->setCombination($combination1);
 
-        /* @var RouteResult&MockObject $routeResult */
-        $routeResult = $this->createMock(RouteResult::class);
-        $routeResult->expects($this->once())
-                    ->method('getMatchedRoute')
-                    ->willReturn($route);
+        $combinationId2 = '248e3753-14b9-4b6d-a09d-356e190dc31f';
+        $combination2 = new Combination();
+        $combination2->setId(Uuid::fromString($combinationId2));
+        $setting2 = new Setting();
+        $setting2->setCombination($combination2);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
-        $request->expects($this->once())
-                ->method('getAttribute')
-                ->with($this->identicalTo(RouteResult::class))
-                ->willReturn($routeResult);
+        $combinationId = Uuid::fromString($combinationId2);
+        $expectedResult = $setting2;
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
-        $result = $this->invokeMethod($middleware, 'isRouteWhitelisted', $request);
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getSettings')
+             ->willReturn(new ArrayCollection([$setting1, $setting2]));
+
+        /* @var SessionMiddleware&MockObject $middleware */
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readIdFromHeader'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('combination-id'))
+                   ->willReturn($combinationId);
+
+        $result = $this->invokeMethod($middleware, 'readSettingFromRequest', $request, $user);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the injectUserToServiceManager method.
+     * Tests the readSettingFromRequest method.
      * @throws ReflectionException
-     * @covers ::injectUserToServiceManager
+     * @covers ::readSettingFromRequest
      */
-    public function testInjectUserToServiceManager(): void
+    public function testReadSettingFromRequestWithoutSetting(): void
     {
-        /* @var Setting&MockObject $currentSetting */
-        $currentSetting = $this->createMock(Setting::class);
+        $combinationId1 = '10cfc610-7bf5-4ea8-a7d0-fc1adb717035';
+        $combination1 = new Combination();
+        $combination1->setId(Uuid::fromString($combinationId1));
+        $setting1 = new Setting();
+        $setting1->setCombination($combination1);
 
-        /* @var User&MockObject $user */
-        $user = $this->createMock(User::class);
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn($currentSetting);
+        $combinationId2 = '248e3753-14b9-4b6d-a09d-356e190dc31f';
+        $combination2 = new Combination();
+        $combination2->setId(Uuid::fromString($combinationId2));
+        $setting2 = new Setting();
+        $setting2->setCombination($combination2);
 
-        $this->serviceManager->expects($this->exactly(2))
-                             ->method('setService')
-                             ->withConsecutive(
-                                 [
-                                     $this->identicalTo(User::class . ' $currentUser'),
-                                     $this->identicalTo($user),
-                                 ],
-                                 [
-                                     $this->identicalTo(Setting::class . ' $currentSetting'),
-                                     $this->identicalTo($currentSetting),
-                                 ]
-                             );
+        $request = $this->createMock(ServerRequestInterface::class);
+        $combinationId = Uuid::fromString('f1ab3eef-2625-4e36-8772-768702900b91');
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
-        $this->invokeMethod($middleware, 'injectUserToServiceManager', $user);
-    }
-
-    /**
-     * Tests the createCookie method.
-     * @throws ReflectionException
-     * @covers ::createCookie
-     */
-    public function testCreateCookie(): void
-    {
-        $cookieName = 'abc';
-        $cookieDomain = 'def';
-        $cookiePath = 'ghi';
-        $cookieLifeTime = '+1 hour';
-
-        $userIdString = 'bdec7a85-5de5-49b9-9634-8b12319fa212';
-        $userId = Uuid::fromString($userIdString);
-
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
         $user->expects($this->once())
-             ->method('getId')
-             ->willReturn($userId);
+             ->method('getSettings')
+             ->willReturn(new ArrayCollection([$setting1, $setting2]));
 
-        $middleware = new SessionMiddleware(
-            $this->serviceManager,
-            $this->userRepository,
-            $cookieName,
-            $cookieDomain,
-            $cookiePath,
-            $cookieLifeTime
-        );
-        /* @var SetCookie $result */
-        $result = $this->invokeMethod($middleware, 'createCookie', $user);
+        /* @var SessionMiddleware&MockObject $middleware */
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readIdFromHeader'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('combination-id'))
+                   ->willReturn($combinationId);
 
-        $this->assertSame($cookieName, $result->getName());
-        $this->assertSame($userIdString, $result->getValue());
-        $this->assertSame($cookieDomain, $result->getDomain());
-        $this->assertSame($cookiePath, $result->getPath());
-        $this->assertLessThanOrEqual(time() + 3600, $result->getExpires());
-        $this->assertTrue($result->getSecure());
-        $this->assertEquals(SameSite::strict(), $result->getSameSite());
+        $result = $this->invokeMethod($middleware, 'readSettingFromRequest', $request, $user);
+
+        $this->assertNull($result);
     }
 
     /**
-     * Tests the injectCookieIntoResponse method.
+     * Tests the readSettingFromRequest method.
      * @throws ReflectionException
-     * @covers ::injectCookieIntoResponse
+     * @covers ::readSettingFromRequest
      */
-    public function testInjectCookieIntoResponse(): void
+    public function testReadSettingFromRequestWithoutCombinationId(): void
     {
-        $cookie = SetCookie::create('foo', 'bar');
-        $response = new Response();
+        $request = $this->createMock(ServerRequestInterface::class);
+        $user = $this->createMock(User::class);
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
+        /* @var SessionMiddleware&MockObject $middleware */
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['readIdFromHeader'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('readIdFromHeader')
+                   ->with($this->identicalTo($request), $this->identicalTo('combination-id'))
+                   ->willReturn(null);
 
-        /* @var ResponseInterface $result*/
-        $result = $this->invokeMethod($middleware, 'injectCookieIntoResponse', $response, $cookie);
+        $result = $this->invokeMethod($middleware, 'readSettingFromRequest', $request, $user);
 
-        $headerLine = $result->getHeaderLine('Set-Cookie');
-        $this->assertStringContainsString('foo', $headerLine);
-        $this->assertStringContainsString('bar', $headerLine);
+        $this->assertNull($result);
+    }
+
+    /**
+     * Tests the readIdFromHeader method.
+     * @throws ReflectionException
+     * @covers ::readIdFromHeader
+     */
+    public function testReadIdFromHeader(): void
+    {
+        $name = 'abc';
+        $id = 'bdec7a85-5de5-49b9-9634-8b12319fa212';
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getHeaderLine')
+                ->with($this->identicalTo($name))
+                ->willReturn($id);
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $result = $this->invokeMethod($middleware, 'readIdFromHeader', $request, $name);
+
+        $this->assertEquals(Uuid::fromString($id), $result);
+    }
+
+    /**
+     * Tests the readIdFromHeader method.
+     * @throws ReflectionException
+     * @covers ::readIdFromHeader
+     */
+    public function testReadIdFromHeaderWithException(): void
+    {
+        $name = 'abc';
+        $id = 'xyz';
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getHeaderLine')
+                ->with($this->identicalTo($name))
+                ->willReturn($id);
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $result = $this->invokeMethod($middleware, 'readIdFromHeader', $request, $name);
+
+        $this->assertNull($result);
+    }
+
+    /**
+     * Tests the readUserIdFromCookie method.
+     * @throws ReflectionException
+     * @covers ::readIdFromCookie
+     */
+    public function testReadIdFromCookie(): void
+    {
+        $name = 'abc';
+        $id = 'bdec7a85-5de5-49b9-9634-8b12319fa212';
+
+        $request = new ServerRequest();
+        $request = $request->withHeader('Cookie', "{$name}={$id}");
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $result = $this->invokeMethod($middleware, 'readIdFromCookie', $request, $name);
+
+        $this->assertEquals(Uuid::fromString($id), $result);
+    }
+
+    /**
+     * Tests the readIdFromCookie method.
+     * @throws ReflectionException
+     * @covers ::readIdFromCookie
+     */
+    public function testReadIdFromCookieWithException(): void
+    {
+        $name = 'foo';
+        $id = 'xyz';
+
+        $request = new ServerRequest();
+        $request = $request->withHeader('Cookie', "{$name}={$id}");
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, $name);
+        $result = $this->invokeMethod($middleware, 'readIdFromCookie', $request, $name);
+
+        $this->assertNull($result);
     }
 }

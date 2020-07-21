@@ -29,9 +29,9 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->put('/settings', Handler\Settings\CreateHandler::class, RouteName::SETTINGS_CREATE);
     $app->get('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS);
     $app->post('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS_MODS);
-    $app->delete('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\DeleteHandler::class, RouteName::SETTINGS_DELETE);
-    $app->get('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
-    $app->put('/settings/{setting-id:[0-9a-f-]{36}}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
+    $app->delete('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\DeleteHandler::class, RouteName::SETTINGS_DELETE);
+    $app->get('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
+    $app->put('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
 
     $app->put('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);

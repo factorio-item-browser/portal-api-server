@@ -81,26 +81,23 @@ class DeleteHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
-        $settingId = Uuid::fromString($settingIdString);
+        $combinationIdString = 'ed770932-42bc-4093-9572-e2287113be90';
+        $combinationId = Uuid::fromString($combinationIdString);
 
         $currentSettingIdString = '0db518a9-6829-4a56-81f6-8b82d3a9d676';
         $currentSettingId = Uuid::fromString($currentSettingIdString);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
         $setting->expects($this->once())
                 ->method('getId')
-                ->willReturn($settingId);
+                ->willReturn($combinationId);
 
-        /* @var Setting&MockObject $currentSetting */
         $currentSetting = $this->createMock(Setting::class);
         $currentSetting->expects($this->once())
                        ->method('getId')
@@ -112,7 +109,7 @@ class DeleteHandlerTest extends TestCase
 
         $this->settingHelper->expects($this->once())
                             ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
+                            ->with($this->equalTo($combinationId))
                             ->willReturn($setting);
 
         $this->settingRepository->expects($this->once())
@@ -132,26 +129,23 @@ class DeleteHandlerTest extends TestCase
      */
     public function testHandleWithException(): void
     {
-        $settingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
-        $settingId = Uuid::fromString($settingIdString);
+        $combinationIdString = 'ed770932-42bc-4093-9572-e2287113be90';
+        $combinationId = Uuid::fromString($combinationIdString);
 
         $currentSettingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
         $currentSettingId = Uuid::fromString($currentSettingIdString);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
         $setting->expects($this->once())
                 ->method('getId')
-                ->willReturn($settingId);
+                ->willReturn($combinationId);
 
-        /* @var Setting&MockObject $currentSetting */
         $currentSetting = $this->createMock(Setting::class);
         $currentSetting->expects($this->once())
                        ->method('getId')
@@ -163,7 +157,7 @@ class DeleteHandlerTest extends TestCase
 
         $this->settingHelper->expects($this->once())
                             ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
+                            ->with($this->equalTo($combinationId))
                             ->willReturn($setting);
 
         $this->settingRepository->expects($this->never())

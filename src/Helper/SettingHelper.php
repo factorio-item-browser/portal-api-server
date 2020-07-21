@@ -76,20 +76,20 @@ class SettingHelper
     }
 
     /**
-     * Finds the setting with the specified id in the current user.
-     * @param UuidInterface $settingId
+     * Finds the setting with the specified combination id in the current user.
+     * @param UuidInterface $combinationId
      * @return Setting
      * @throws PortalApiServerException
      */
-    public function findInCurrentUser(UuidInterface $settingId): Setting
+    public function findInCurrentUser(UuidInterface $combinationId): Setting
     {
         foreach ($this->currentUser->getSettings() as $setting) {
-            if ($setting->getId()->compareTo($settingId) === 0) {
+            if ($setting->getCombination()->getId()->equals($combinationId)) {
                 return $setting;
             }
         }
 
-        throw new UnknownEntityException('setting', $settingId->toString());
+        throw new UnknownEntityException('setting with combination', $combinationId->toString());
     }
 
     /**

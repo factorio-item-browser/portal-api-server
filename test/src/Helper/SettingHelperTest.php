@@ -33,7 +33,6 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -111,34 +110,20 @@ class SettingHelperTest extends TestCase
      */
     public function testFindInCurrentUser(): void
     {
-        /* @var UuidInterface&MockObject $settingId */
-        $settingId = $this->createMock(UuidInterface::class);
+        $combinationId1 = '17060d93-bc42-4c04-abbf-f7c7ed7b7ad3';
+        $combination1 = new Combination();
+        $combination1->setId(Uuid::fromString($combinationId1));
+        $setting1 = new Setting();
+        $setting1->setCombination($combination1);
 
-        /* @var UuidInterface&MockObject $uuid1 */
-        $uuid1 = $this->createMock(UuidInterface::class);
-        $uuid1->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(1);
+        $combinationId2 = '259f8986-37b0-4e07-a5c9-235e066fb232';
+        $combination2 = new Combination();
+        $combination2->setId(Uuid::fromString($combinationId2));
+        $setting2 = new Setting();
+        $setting2->setCombination($combination2);
 
-        /* @var UuidInterface&MockObject $uuid2 */
-        $uuid2 = $this->createMock(UuidInterface::class);
-        $uuid2->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(0);
-
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        $setting1->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid1);
-
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        $setting2->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid2);
+        $combinationId = Uuid::fromString($combinationId2);
+        $expectedResult = $setting2;
 
         $this->currentUser->expects($this->once())
                           ->method('getSettings')
@@ -150,9 +135,9 @@ class SettingHelperTest extends TestCase
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
-        $result = $helper->findInCurrentUser($settingId);
+        $result = $helper->findInCurrentUser($combinationId);
 
-        $this->assertSame($setting2, $result);
+        $this->assertSame($expectedResult, $result);
     }
 
     /**
@@ -162,37 +147,19 @@ class SettingHelperTest extends TestCase
      */
     public function testFindInCurrentUserWithoutMatch(): void
     {
-        /* @var UuidInterface&MockObject $settingId */
-        $settingId = $this->createMock(UuidInterface::class);
-        $settingId->expects($this->once())
-                  ->method('toString')
-                  ->willReturn('abc');
+        $combinationId1 = '17060d93-bc42-4c04-abbf-f7c7ed7b7ad3';
+        $combination1 = new Combination();
+        $combination1->setId(Uuid::fromString($combinationId1));
+        $setting1 = new Setting();
+        $setting1->setCombination($combination1);
 
-        /* @var UuidInterface&MockObject $uuid1 */
-        $uuid1 = $this->createMock(UuidInterface::class);
-        $uuid1->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(1);
+        $combinationId2 = '259f8986-37b0-4e07-a5c9-235e066fb232';
+        $combination2 = new Combination();
+        $combination2->setId(Uuid::fromString($combinationId2));
+        $setting2 = new Setting();
+        $setting2->setCombination($combination2);
 
-        /* @var UuidInterface&MockObject $uuid2 */
-        $uuid2 = $this->createMock(UuidInterface::class);
-        $uuid2->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(-1);
-
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        $setting1->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid1);
-
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        $setting2->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid2);
+        $combinationId = Uuid::fromString('f123ae9b-e7fd-4354-ba54-36169cf3db35');
 
         $this->currentUser->expects($this->once())
                           ->method('getSettings')
@@ -206,7 +173,7 @@ class SettingHelperTest extends TestCase
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
-        $helper->findInCurrentUser($settingId);
+        $helper->findInCurrentUser($combinationId);
     }
 
     /**

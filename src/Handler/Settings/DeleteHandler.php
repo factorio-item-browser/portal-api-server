@@ -62,12 +62,12 @@ class DeleteHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $settingId = $request->getAttribute('setting-id', '');
-        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($settingId));
+        $combinationId = $request->getAttribute('combination-id', '');
+        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($combinationId));
 
         if (
             $this->currentUser->getCurrentSetting() !== null
-            && $this->currentUser->getCurrentSetting()->getId()->compareTo($setting->getId()) === 0
+            && $this->currentUser->getCurrentSetting()->getId()->equals($setting->getId())
         ) {
             throw new DeleteActiveSettingException();
         }

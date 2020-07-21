@@ -63,23 +63,20 @@ class DetailsHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingIdString = 'a20ef5d4-59bf-48aa-9b72-2e5ddb2f2995';
-        $settingId = Uuid::fromString($settingIdString);
-        /* @var Setting&MockObject $setting */
+        $combinationIdString = 'a20ef5d4-59bf-48aa-9b72-2e5ddb2f2995';
+        $combinationId = Uuid::fromString($combinationIdString);
         $setting = $this->createMock(Setting::class);
-        /* @var SettingDetailsData&MockObject $settingDetails */
         $settingDetails = $this->createMock(SettingDetailsData::class);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
         $this->settingHelper->expects($this->once())
                             ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
+                            ->with($this->equalTo($combinationId))
                             ->willReturn($setting);
         $this->settingHelper->expects($this->once())
                             ->method('createSettingDetails')

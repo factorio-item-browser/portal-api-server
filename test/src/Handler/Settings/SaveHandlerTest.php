@@ -99,20 +99,18 @@ class SaveHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingIdString = 'e61afd17-0c69-4d49-bdf0-a93b416d644a';
-        $settingId = Uuid::fromString($settingIdString);
+        $combinationIdString = 'e61afd17-0c69-4d49-bdf0-a93b416d644a';
+        $combinationId = Uuid::fromString($combinationIdString);
         $name = 'abc';
         $locale = 'def';
         $recipeMode = 'ghi';
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        /* @var SettingOptionsData&MockObject $requestOptions */
         $requestOptions = $this->createMock(SettingOptionsData::class);
         $requestOptions->expects($this->once())
                        ->method('getName')
@@ -124,7 +122,6 @@ class SaveHandlerTest extends TestCase
                        ->method('getRecipeMode')
                        ->willReturn($recipeMode);
 
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
         $setting->expects($this->once())
                 ->method('setName')
@@ -145,14 +142,13 @@ class SaveHandlerTest extends TestCase
 
         $this->settingHelper->expects($this->once())
                             ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
+                            ->with($this->equalTo($combinationId))
                             ->willReturn($setting);
 
         $this->sidebarEntitiesHelper->expects($this->once())
                                     ->method('refreshLabels')
                                     ->with($this->identicalTo($setting));
 
-        /* @var SaveHandler&MockObject $handler */
         $handler = $this->getMockBuilder(SaveHandler::class)
                         ->onlyMethods(['parseRequestBody', 'validateOptions'])
                         ->setConstructorArgs([
@@ -183,16 +179,13 @@ class SaveHandlerTest extends TestCase
     {
         $requestBody = 'abc';
 
-        /* @var SettingOptionsData&MockObject $settingOptions */
         $settingOptions = $this->createMock(SettingOptionsData::class);
 
-        /* @var StreamInterface&MockObject $stream */
         $stream = $this->createMock(StreamInterface::class);
         $stream->expects($this->once())
                ->method('getContents')
                ->willReturn($requestBody);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
@@ -227,13 +220,11 @@ class SaveHandlerTest extends TestCase
     {
         $requestBody = 'abc';
 
-        /* @var StreamInterface&MockObject $stream */
         $stream = $this->createMock(StreamInterface::class);
         $stream->expects($this->once())
                ->method('getContents')
                ->willReturn($requestBody);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
@@ -288,7 +279,6 @@ class SaveHandlerTest extends TestCase
      */
     public function testValidateOptions(string $locale, string $recipeMode, bool $expectException): void
     {
-        /* @var SettingOptionsData&MockObject $options */
         $options = $this->createMock(SettingOptionsData::class);
         $options->expects($this->any())
                 ->method('getLocale')

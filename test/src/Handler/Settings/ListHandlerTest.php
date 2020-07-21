@@ -81,17 +81,11 @@ class ListHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var SettingDetailsData&MockObject $settingDetails */
         $settingDetails = $this->createMock(SettingDetailsData::class);
-        /* @var Setting&MockObject $setting1 */
         $setting1 = $this->createMock(Setting::class);
-        /* @var Setting&MockObject $setting2 */
         $setting2 = $this->createMock(Setting::class);
-        /* @var SettingMetaData&MockObject $settingMeta1 */
         $settingMeta1 = $this->createMock(SettingMetaData::class);
-        /* @var SettingMetaData&MockObject $settingMeta2 */
         $settingMeta2 = $this->createMock(SettingMetaData::class);
 
         $expectedTransfer = new SettingsListData();

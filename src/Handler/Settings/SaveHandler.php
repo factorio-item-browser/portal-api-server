@@ -87,9 +87,9 @@ class SaveHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $settingId = $request->getAttribute('setting-id', '');
+        $combinationId = $request->getAttribute('combination-id', '');
         $requestOptions = $this->parseRequestBody($request);
-        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($settingId));
+        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($combinationId));
         $this->validateOptions($requestOptions);
 
         $setting->setName($requestOptions->getName())

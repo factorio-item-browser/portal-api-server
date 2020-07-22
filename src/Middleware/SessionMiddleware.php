@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
+use DateTime;
 use Dflydev\FigCookies\FigRequestCookies;
+use Dflydev\FigCookies\FigResponseCookies;
+use Dflydev\FigCookies\Modifier\SameSite;
+use Dflydev\FigCookies\SetCookie;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
@@ -49,19 +53,46 @@ class SessionMiddleware implements MiddlewareInterface
     protected $cookieName;
 
     /**
+     * The domain to use for the cookie.
+     * @var string
+     */
+    protected $cookieDomain;
+
+    /**
+     * The path to use for the cookie.
+     * @var string
+     */
+    protected $cookiePath;
+
+    /**
+     * The lifetime to use for the cookie.
+     * @var string
+     */
+    protected $cookieLifeTime;
+
+    /**
      * Initializes the middleware.
      * @param ServiceManager $serviceManager
      * @param UserRepository $userRepository
      * @param string $sessionCookieName
+     * @param string $sessionCookieDomain
+     * @param string $sessionCookiePath
+     * @param string $sessionCookieLifeTime
      */
     public function __construct(
         ServiceManager $serviceManager,
         UserRepository $userRepository,
-        string $sessionCookieName
+        string $sessionCookieName,
+        string $sessionCookieDomain,
+        string $sessionCookiePath,
+        string $sessionCookieLifeTime
     ) {
         $this->serviceManager = $serviceManager;
         $this->userRepository = $userRepository;
         $this->cookieName = $sessionCookieName;
+        $this->cookieDomain = $sessionCookieDomain;
+        $this->cookiePath = $sessionCookiePath;
+        $this->cookieLifeTime = $sessionCookieLifeTime;
     }
 
     /**
@@ -82,6 +113,7 @@ class SessionMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
 
         $this->userRepository->persist($user);
+        $response = $this->injectCookieIntoResponse($response, $this->createCookie($user));
         return $response;
     }
 
@@ -126,11 +158,7 @@ class SessionMiddleware implements MiddlewareInterface
      */
     protected function readUserFromRequest(ServerRequestInterface $request): ?User
     {
-        $userId = $this->readIdFromHeader($request, 'user-id');
-        if ($userId === null) {
-            $userId = $this->readIdFromCookie($request, $this->cookieName);
-        }
-
+        $userId = $this->readIdFromCookie($request, $this->cookieName);
         if ($userId !== null) {
             return $this->userRepository->getUser($userId);
         }
@@ -216,5 +244,33 @@ class SessionMiddleware implements MiddlewareInterface
         } catch (Exception $e) {
             return null;
         }
+    }
+
+    /**
+     * Creates the cookie for the user to place into the response.
+     * @param User $user
+     * @return SetCookie
+     * @throws Exception
+     */
+    protected function createCookie(User $user): SetCookie
+    {
+        return SetCookie::create($this->cookieName, $user->getId()->toString())
+             ->withDomain($this->cookieDomain)
+             ->withPath($this->cookiePath)
+             ->withExpires(new DateTime($this->cookieLifeTime))
+             ->withSecure(true)
+             ->withHttpOnly(true)
+             ->withSameSite(SameSite::strict());
+    }
+
+    /**
+     * Injects the cookie into the response.
+     * @param ResponseInterface $response
+     * @param SetCookie $cookie
+     * @return ResponseInterface
+     */
+    protected function injectCookieIntoResponse(ResponseInterface $response, SetCookie $cookie): ResponseInterface
+    {
+        return FigResponseCookies::set($response, $cookie);
     }
 }

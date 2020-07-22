@@ -13,12 +13,6 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class InitData
 {
     /**
-     * The id of the user.
-     * @var string
-     */
-    protected $userId;
-
-    /**
      * The setting of the session.
      * @var SettingMetaData
      */
@@ -47,26 +41,6 @@ class InitData
      * @var string
      */
     protected $scriptVersion = '';
-
-    /**
-     * Sets the id of the user.
-     * @param string $userId
-     * @return $this
-     */
-    public function setUserId(string $userId): self
-    {
-        $this->userId = $userId;
-        return $this;
-    }
-
-    /**
-     * Returns the id of the user.
-     * @return string
-     */
-    public function getUserId(): string
-    {
-        return $this->userId;
-    }
 
     /**
      * Sets the setting of the session.

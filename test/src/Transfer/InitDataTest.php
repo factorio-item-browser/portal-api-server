@@ -20,20 +20,6 @@ use PHPUnit\Framework\TestCase;
 class InitDataTest extends TestCase
 {
     /**
-     * Tests the setting and getting the user id.
-     * @covers ::getUserId
-     * @covers ::setUserId
-     */
-    public function testSetAndGetUserId(): void
-    {
-        $userId = 'abc';
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setUserId($userId));
-        $this->assertSame($userId, $transfer->getUserId());
-    }
-
-    /**
      * Tests the setting and getting the setting.
      * @covers ::getSetting
      * @covers ::setSetting

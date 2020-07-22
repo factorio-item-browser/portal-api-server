@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Middleware;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
+use Dflydev\FigCookies\Modifier\SameSite;
+use Dflydev\FigCookies\SetCookie;
 use Doctrine\Common\Collections\ArrayCollection;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
@@ -14,6 +16,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSessionException;
 use FactorioItemBrowser\PortalApi\Server\Middleware\SessionMiddleware;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
+use GuzzleHttp\Psr7\Response;
 use Laminas\Diactoros\ServerRequest;
 use Laminas\ServiceManager\ServiceManager;
 use Mezzio\Router\Route;
@@ -69,16 +72,25 @@ class SessionMiddlewareTest extends TestCase
     public function testConstruct(): void
     {
         $cookieName = 'abc';
+        $cookieDomain = 'def';
+        $cookiePath = 'ghi';
+        $cookieLifeTime = 'jkl';
 
         $middleware = new SessionMiddleware(
             $this->serviceManager,
             $this->userRepository,
             $cookieName,
+            $cookieDomain,
+            $cookiePath,
+            $cookieLifeTime,
         );
 
         $this->assertSame($this->serviceManager, $this->extractProperty($middleware, 'serviceManager'));
         $this->assertSame($this->userRepository, $this->extractProperty($middleware, 'userRepository'));
         $this->assertSame($cookieName, $this->extractProperty($middleware, 'cookieName'));
+        $this->assertSame($cookieDomain, $this->extractProperty($middleware, 'cookieDomain'));
+        $this->assertSame($cookiePath, $this->extractProperty($middleware, 'cookiePath'));
+        $this->assertSame($cookieLifeTime, $this->extractProperty($middleware, 'cookieLifeTime'));
     }
 
     /**
@@ -91,13 +103,15 @@ class SessionMiddlewareTest extends TestCase
         $user = $this->createMock(User::class);
         $setting = $this->createMock(Setting::class);
         $request = $this->createMock(ServerRequestInterface::class);
-        $response = $this->createMock(ResponseInterface::class);
+        $response1 = $this->createMock(ResponseInterface::class);
+        $response2 = $this->createMock(ResponseInterface::class);
+        $cookie = $this->createMock(SetCookie::class);
 
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
                 ->method('handle')
                 ->with($this->identicalTo($request))
-                ->willReturn($response);
+                ->willReturn($response1);
 
         $this->serviceManager->expects($this->exactly(2))
                              ->method('setService')
@@ -117,8 +131,13 @@ class SessionMiddlewareTest extends TestCase
                              ->with($this->identicalTo($user));
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['getCurrentUser', 'getCurrentSetting'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->onlyMethods([
+                               'getCurrentUser',
+                               'getCurrentSetting',
+                               'createCookie',
+                               'injectCookieIntoResponse',
+                           ])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('getCurrentUser')
@@ -128,10 +147,18 @@ class SessionMiddlewareTest extends TestCase
                    ->method('getCurrentSetting')
                    ->with($this->identicalTo($request), $this->identicalTo($user))
                    ->willReturn($setting);
+        $middleware->expects($this->once())
+                   ->method('createCookie')
+                   ->with($this->identicalTo($user))
+                   ->willReturn($cookie);
+        $middleware->expects($this->once())
+                   ->method('injectCookieIntoResponse')
+                   ->with($this->identicalTo($response1), $this->identicalTo($cookie))
+                   ->willReturn($response2);
 
         $result = $middleware->process($request, $handler);
 
-        $this->assertSame($response, $result);
+        $this->assertSame($response2, $result);
     }
 
     /**
@@ -172,7 +199,7 @@ class SessionMiddlewareTest extends TestCase
                 ->with($this->identicalTo(RouteResult::class))
                 ->willReturn($routeResult);
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
         $result = $this->invokeMethod($middleware, 'isInitRoute', $request);
 
         $this->assertSame($expectedResult, $result);
@@ -191,7 +218,7 @@ class SessionMiddlewareTest extends TestCase
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readUserFromRequest'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readUserFromRequest')
@@ -214,7 +241,7 @@ class SessionMiddlewareTest extends TestCase
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readUserFromRequest', 'isInitRoute'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readUserFromRequest')
@@ -247,7 +274,7 @@ class SessionMiddlewareTest extends TestCase
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readUserFromRequest', 'isInitRoute'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readUserFromRequest')
@@ -270,38 +297,6 @@ class SessionMiddlewareTest extends TestCase
      */
     public function testReadUserFromRequest(): void
     {
-        $request = $this->createMock(ServerRequestInterface::class);
-        $userId = $this->createMock(UuidInterface::class);
-        $user = $this->createMock(User::class);
-
-        $this->userRepository->expects($this->once())
-                             ->method('getUser')
-                             ->with($this->identicalTo($userId))
-                             ->willReturn($user);
-
-        $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
-                           ->getMock();
-        $middleware->expects($this->once())
-                   ->method('readIdFromHeader')
-                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
-                   ->willReturn($userId);
-        $middleware->expects($this->never())
-                   ->method('readIdFromCookie');
-
-        $result = $this->invokeMethod($middleware, 'readUserFromRequest', $request);
-
-        $this->assertSame($user, $result);
-    }
-
-    /**
-     * Tests the readUserFromRequest method.
-     * @throws ReflectionException
-     * @covers ::readUserFromRequest
-     */
-    public function testReadUserFromRequestWithCookieFallback(): void
-    {
         $cookieName = 'abc';
         $request = $this->createMock(ServerRequestInterface::class);
         $userId = $this->createMock(UuidInterface::class);
@@ -313,13 +308,9 @@ class SessionMiddlewareTest extends TestCase
                              ->willReturn($user);
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName])
+                           ->onlyMethods(['readIdFromCookie'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName, '', '', ''])
                            ->getMock();
-        $middleware->expects($this->once())
-                   ->method('readIdFromHeader')
-                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
-                   ->willReturn(null);
         $middleware->expects($this->once())
                    ->method('readIdFromCookie')
                    ->with($this->identicalTo($request), $this->identicalTo($cookieName))
@@ -344,13 +335,9 @@ class SessionMiddlewareTest extends TestCase
                              ->method('getUser');
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'readIdFromCookie'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName])
+                           ->onlyMethods(['readIdFromCookie'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, $cookieName, '', '', ''])
                            ->getMock();
-        $middleware->expects($this->once())
-                   ->method('readIdFromHeader')
-                   ->with($this->identicalTo($request), $this->identicalTo('user-id'))
-                   ->willReturn(null);
         $middleware->expects($this->once())
                    ->method('readIdFromCookie')
                    ->with($this->identicalTo($request), $this->identicalTo($cookieName))
@@ -392,7 +379,7 @@ class SessionMiddlewareTest extends TestCase
         /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readIdFromHeader'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readIdFromHeader')
@@ -434,7 +421,7 @@ class SessionMiddlewareTest extends TestCase
         /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readIdFromHeader'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readIdFromHeader')
@@ -459,7 +446,7 @@ class SessionMiddlewareTest extends TestCase
         /* @var SessionMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['readIdFromHeader'])
-                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, 'foo'])
+                           ->setConstructorArgs([$this->serviceManager, $this->userRepository, '', '', '', ''])
                            ->getMock();
         $middleware->expects($this->once())
                    ->method('readIdFromHeader')
@@ -487,7 +474,7 @@ class SessionMiddlewareTest extends TestCase
                 ->with($this->identicalTo($name))
                 ->willReturn($id);
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
         $result = $this->invokeMethod($middleware, 'readIdFromHeader', $request, $name);
 
         $this->assertEquals(Uuid::fromString($id), $result);
@@ -509,7 +496,7 @@ class SessionMiddlewareTest extends TestCase
                 ->with($this->identicalTo($name))
                 ->willReturn($id);
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
         $result = $this->invokeMethod($middleware, 'readIdFromHeader', $request, $name);
 
         $this->assertNull($result);
@@ -528,7 +515,7 @@ class SessionMiddlewareTest extends TestCase
         $request = new ServerRequest();
         $request = $request->withHeader('Cookie', "{$name}={$id}");
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, 'foo');
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
         $result = $this->invokeMethod($middleware, 'readIdFromCookie', $request, $name);
 
         $this->assertEquals(Uuid::fromString($id), $result);
@@ -547,9 +534,70 @@ class SessionMiddlewareTest extends TestCase
         $request = new ServerRequest();
         $request = $request->withHeader('Cookie', "{$name}={$id}");
 
-        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, $name);
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
         $result = $this->invokeMethod($middleware, 'readIdFromCookie', $request, $name);
 
         $this->assertNull($result);
+    }
+
+    /**
+     * Tests the createCookie method.
+     * @throws ReflectionException
+     * @covers ::createCookie
+     */
+    public function testCreateCookie(): void
+    {
+        $cookieName = 'abc';
+        $cookieDomain = 'def';
+        $cookiePath = 'ghi';
+        $cookieLifeTime = '+1 hour';
+
+        $userIdString = 'bdec7a85-5de5-49b9-9634-8b12319fa212';
+        $userId = Uuid::fromString($userIdString);
+
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getId')
+             ->willReturn($userId);
+
+        $middleware = new SessionMiddleware(
+            $this->serviceManager,
+            $this->userRepository,
+            $cookieName,
+            $cookieDomain,
+            $cookiePath,
+            $cookieLifeTime
+        );
+        /* @var SetCookie $result */
+        $result = $this->invokeMethod($middleware, 'createCookie', $user);
+
+        $this->assertSame($cookieName, $result->getName());
+        $this->assertSame($userIdString, $result->getValue());
+        $this->assertSame($cookieDomain, $result->getDomain());
+        $this->assertSame($cookiePath, $result->getPath());
+        $this->assertLessThanOrEqual(time() + 3600, $result->getExpires());
+        $this->assertTrue($result->getSecure());
+        $this->assertTrue($result->getHttpOnly());
+        $this->assertEquals(SameSite::strict(), $result->getSameSite());
+    }
+
+    /**
+     * Tests the injectCookieIntoResponse method.
+     * @throws ReflectionException
+     * @covers ::injectCookieIntoResponse
+     */
+    public function testInjectCookieIntoResponse(): void
+    {
+        $cookie = SetCookie::create('foo', 'bar');
+        $response = new Response();
+
+        $middleware = new SessionMiddleware($this->serviceManager, $this->userRepository, '', '', '', '');
+
+        /* @var ResponseInterface $result*/
+        $result = $this->invokeMethod($middleware, 'injectCookieIntoResponse', $response, $cookie);
+
+        $headerLine = $result->getHeaderLine('Set-Cookie');
+        $this->assertStringContainsString('foo', $headerLine);
+        $this->assertStringContainsString('bar', $headerLine);
     }
 }

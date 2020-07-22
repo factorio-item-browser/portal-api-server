@@ -33,13 +33,6 @@ paths:
       tags:
         - Init
       parameters:
-        - name: user-id
-          in: header
-          description: The id of the user. If omitted, a new user will be created.
-          required: false
-          schema:
-            type: string
-            example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
         - name: combination-id
           in: header
           description: The combination id to use. If omitted, the last used combination will be used.
@@ -62,7 +55,6 @@ paths:
       tags:
         - Item
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
@@ -82,7 +74,6 @@ paths:
       tags:
         - Item
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
@@ -103,7 +94,6 @@ paths:
       tags:
         - Item
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/numberOfResults"
       responses:
@@ -124,7 +114,6 @@ paths:
       tags:
         - Recipe
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
       responses:
@@ -142,7 +131,6 @@ paths:
       tags:
         - Recipe
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
         - $ref: "#/components/parameters/indexOfFirstResult"
@@ -162,7 +150,6 @@ paths:
       tags:
         - Search
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/query"
         - $ref: "#/components/parameters/indexOfFirstResult"
@@ -290,7 +277,6 @@ paths:
       tags:
         - Sidebar
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
       requestBody:
         content:
@@ -310,7 +296,6 @@ paths:
       tags:
         - Style
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
       requestBody:
         content:
@@ -333,7 +318,6 @@ paths:
       tags:
         - Tooltip
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/type"
         - $ref: "#/components/parameters/name"
@@ -352,7 +336,6 @@ paths:
       tags:
         - Tooltip
       parameters:
-        - $ref: "#/components/parameters/header-user-id"
         - $ref: "#/components/parameters/header-combination-id"
         - $ref: "#/components/parameters/name"
       responses:
@@ -365,15 +348,6 @@ paths:
 
 components:
   parameters:
-    header-user-id:
-      name: user-id
-      in: header
-      description: The id of the user.
-      required: true
-      schema:
-        type: string
-        example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
-
     header-combination-id:
       name: combination-id
       in: header
@@ -477,10 +451,6 @@ components:
       type: object
       description: The data to initialize the session.
       properties:
-        userId:
-          type: string
-          description: The ID of the user.
-          example: 6c0d671c-d6ab-45d7-ae4e-32e9a0a220d0
         setting:
           $ref: "#/components/schemas/SettingMetaData"
         settingHash:

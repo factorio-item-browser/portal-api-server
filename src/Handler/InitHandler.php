@@ -12,7 +12,6 @@ use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusRespons
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
@@ -52,12 +51,6 @@ class InitHandler implements RequestHandlerInterface
     protected $currentSetting;
 
     /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
-
-    /**
      * The setting helper.
      * @var SettingHelper
      */
@@ -80,7 +73,6 @@ class InitHandler implements RequestHandlerInterface
      * @param ApiClientFactory $apiClientFactory
      * @param CombinationHelper $combinationHelper
      * @param Setting $currentSetting
-     * @param User $currentUser
      * @param SettingHelper $settingHelper
      * @param SidebarEntitiesHelper $sidebarEntitiesHelper
      * @param string $scriptVersion
@@ -89,7 +81,6 @@ class InitHandler implements RequestHandlerInterface
         ApiClientFactory $apiClientFactory,
         CombinationHelper $combinationHelper,
         Setting $currentSetting,
-        User $currentUser,
         SettingHelper $settingHelper,
         SidebarEntitiesHelper $sidebarEntitiesHelper,
         string $scriptVersion
@@ -97,7 +88,6 @@ class InitHandler implements RequestHandlerInterface
         $this->apiClientFactory = $apiClientFactory;
         $this->combinationHelper = $combinationHelper;
         $this->currentSetting = $currentSetting;
-        $this->currentUser = $currentUser;
         $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
         $this->scriptVersion = $scriptVersion;
@@ -115,8 +105,7 @@ class InitHandler implements RequestHandlerInterface
         $this->updateSetting();
 
         $data = new InitData();
-        $data->setUserId($this->currentUser->getId()->toString())
-             ->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
+        $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
              ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
              ->setSidebarEntities($this->getCurrentSidebarEntities())

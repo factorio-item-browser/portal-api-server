@@ -46,8 +46,7 @@ class InitDataTest extends SerializerTestCase
                 ->setStatus('yza');
 
         $object = new InitData();
-        $object->setUserId('klm')
-               ->setSetting($setting)
+        $object->setSetting($setting)
                ->setSettingHash('bcd')
                ->setLocale('efg')
                ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
@@ -62,7 +61,6 @@ class InitDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
-            'userId' => 'klm',
             'setting' => [
                 'combinationId' => 'stu',
                 'name' => 'vwx',

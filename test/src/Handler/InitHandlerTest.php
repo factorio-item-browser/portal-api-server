@@ -17,7 +17,6 @@ use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
-use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Handler\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
@@ -30,7 +29,6 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -63,12 +61,6 @@ class InitHandlerTest extends TestCase
     protected $currentSetting;
 
     /**
-     * The mocked current user.
-     * @var User&MockObject
-     */
-    protected $currentUser;
-
-    /**
      * The mocked setting helper.
      * @var SettingHelper&MockObject
      */
@@ -90,7 +82,6 @@ class InitHandlerTest extends TestCase
         $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
         $this->combinationHelper = $this->createMock(CombinationHelper::class);
         $this->currentSetting = $this->createMock(Setting::class);
-        $this->currentUser = $this->createMock(User::class);
         $this->settingHelper = $this->createMock(SettingHelper::class);
         $this->sidebarEntitiesHelper = $this->createMock(SidebarEntitiesHelper::class);
     }
@@ -108,7 +99,6 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             $scriptVersion
@@ -117,7 +107,6 @@ class InitHandlerTest extends TestCase
         $this->assertSame($this->apiClientFactory, $this->extractProperty($handler, 'apiClientFactory'));
         $this->assertSame($this->combinationHelper, $this->extractProperty($handler, 'combinationHelper'));
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
-        $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
         $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
         $this->assertSame($this->sidebarEntitiesHelper, $this->extractProperty($handler, 'sidebarEntitiesHelper'));
         $this->assertSame($scriptVersion, $this->extractProperty($handler, 'scriptVersion'));
@@ -130,7 +119,6 @@ class InitHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $userId = '7d3a388e-20b1-4491-b041-97ebe27e1004';
         $settingHash = 'abc';
         $locale = 'def';
         $scriptVersion = 'ghi';
@@ -143,8 +131,7 @@ class InitHandlerTest extends TestCase
         ];
 
         $expectedTransfer = new InitData();
-        $expectedTransfer->setUserId($userId)
-                         ->setSetting($setting)
+        $expectedTransfer->setSetting($setting)
                          ->setSettingHash($settingHash)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities)
@@ -155,10 +142,6 @@ class InitHandlerTest extends TestCase
         $this->currentSetting->expects($this->once())
                              ->method('getLocale')
                              ->willReturn($locale);
-
-        $this->currentUser->expects($this->once())
-                          ->method('getId')
-                          ->willReturn(Uuid::fromString('7d3a388e-20b1-4491-b041-97ebe27e1004'));
 
         $this->settingHelper->expects($this->once())
                             ->method('createSettingMeta')
@@ -175,7 +158,6 @@ class InitHandlerTest extends TestCase
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
-                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             $scriptVersion,
@@ -232,7 +214,6 @@ class InitHandlerTest extends TestCase
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
-                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -276,7 +257,6 @@ class InitHandlerTest extends TestCase
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
-                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -311,7 +291,6 @@ class InitHandlerTest extends TestCase
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
-                            $this->currentUser,
                             $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                             '',
@@ -366,7 +345,6 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -423,7 +401,6 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -466,7 +443,6 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''
@@ -505,7 +481,6 @@ class InitHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->currentUser,
             $this->settingHelper,
             $this->sidebarEntitiesHelper,
             ''

@@ -21,6 +21,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleFetcher;
@@ -165,7 +166,7 @@ class SettingHelperTest extends TestCase
                           ->method('getSettings')
                           ->willReturn(new ArrayCollection([$setting1, $setting2]));
 
-        $this->expectException(UnknownEntityException::class);
+        $this->expectException(MissingSettingException::class);
 
         $helper = new SettingHelper(
             $this->apiClientFactory,

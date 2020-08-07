@@ -52,6 +52,7 @@ return [
             Handler\Tooltip\RecipeHandler::class => AutoWireFactory::class,
 
             Helper\CombinationHelper::class => AutoWireFactory::class,
+            Helper\CookieHelper::class => AutoWireFactory::class,
             Helper\IconsStyleFetcher::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
             Helper\SettingHelper::class => AutoWireFactory::class,
@@ -94,6 +95,7 @@ return [
             'array $allowedOrigins' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::ALLOWED_ORIGINS),
 
             'bool $isDebug' => readConfig('debug'),
+            'bool $useSecureCookie' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_SECURE),
 
             'int $numberOfRecipesPerResult' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::NUMBER_OF_RECIPES_PER_RESULT),
 

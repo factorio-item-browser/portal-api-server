@@ -16,6 +16,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
@@ -89,7 +90,7 @@ class SettingHelper
             }
         }
 
-        throw new UnknownEntityException('setting with combination', $combinationId->toString());
+        throw new MissingSettingException($combinationId);
     }
 
     /**

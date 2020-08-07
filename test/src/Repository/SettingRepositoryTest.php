@@ -13,10 +13,13 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -112,6 +115,55 @@ class SettingRepositoryTest extends TestCase
         $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
         $this->assertSame('en', $result->getLocale());
         $this->assertTrue($result->getHasData());
+    }
+
+    /**
+     * Tests the createTemporarySetting method.
+     * @throws Exception
+     * @covers ::createTemporarySetting
+     */
+    public function testCreateTemporarySetting(): void
+    {
+        $user = $this->createMock(User::class);
+        $combinationId = $this->createMock(UuidInterface::class);
+        $combination = $this->createMock(Combination::class);
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn($combination);
+        
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
+        $result = $repository->createTemporarySetting($user, $combinationId);
+
+        $result->getId(); // Asserted by type-hint.
+        $this->assertSame($user, $result->getUser());
+        $this->assertSame($combination, $result->getCombination());
+        $this->assertSame('Temporary', $result->getName());
+        $this->assertSame(RecipeMode::HYBRID, $result->getRecipeMode());
+        $this->assertSame('en', $result->getLocale());
+        $this->assertTrue($result->getIsTemporary());
+    }
+
+    /**
+     * Tests the createTemporarySetting method.
+     * @throws Exception
+     * @covers ::createTemporarySetting
+     */
+    public function testCreateTemporarySettingWithoutCombination(): void
+    {
+        $user = $this->createMock(User::class);
+        $combinationId = Uuid::fromString('800a2e58-034d-414e-8bb0-056bb9d5b4b0');
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn(null);
+
+        $this->expectException(UnknownEntityException::class);
+
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
+        $repository->createTemporarySetting($user, $combinationId);
     }
 
     /**

@@ -10,7 +10,9 @@ use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * The repository of the settings.
@@ -34,6 +36,11 @@ class SettingRepository
      * The locale of the default setting.
      */
     protected const DEFAULT_LOCALE = 'en';
+
+    /**
+     * The name of a temporary setting.
+     */
+    protected const TEMPORARY_NAME = 'Temporary';
 
     /**
      * The combination repository.
@@ -92,6 +99,28 @@ class SettingRepository
                 ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
                 ->setLocale(self::DEFAULT_LOCALE)
                 ->setHasData(true);
+        return $setting;
+    }
+
+    /**
+     * Creates a temporary setting for the user.
+     * @param User $user
+     * @param UuidInterface $combinationId
+     * @return Setting
+     * @throws Exception
+     */
+    public function createTemporarySetting(User $user, UuidInterface $combinationId): Setting
+    {
+        $combination = $this->combinationRepository->getCombination($combinationId);
+        if ($combination === null) {
+            throw new UnknownEntityException('combination', $combinationId->toString());
+        }
+
+        $setting = $this->createSetting($user, $combination);
+        $setting->setName(self::TEMPORARY_NAME)
+                ->setIsTemporary(true)
+                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
+                ->setLocale(self::DEFAULT_LOCALE);
         return $setting;
     }
 

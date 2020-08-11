@@ -57,4 +57,17 @@ class SettingMetaDataTest extends TestCase
         $this->assertSame($transfer, $transfer->setStatus($status));
         $this->assertSame($status, $transfer->getStatus());
     }
+
+    /**
+     * Tests the setting and getting the is temporary.
+     * @covers ::getIsTemporary
+     * @covers ::setIsTemporary
+     */
+    public function testSetAndGetIsTemporary(): void
+    {
+        $transfer = new SettingMetaData();
+
+        $this->assertSame($transfer, $transfer->setIsTemporary(true));
+        $this->assertTrue($transfer->getIsTemporary());
+    }
 }

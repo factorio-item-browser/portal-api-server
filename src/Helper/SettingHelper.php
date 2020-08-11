@@ -18,7 +18,6 @@ use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
@@ -168,28 +167,5 @@ class SettingHelper
             throw new MappingException($e);
         }
         return $modData;
-    }
-
-    /**
-     * Calculates a hash for the specified setting, accounting for all its options.
-     * @param Setting $setting
-     * @return string
-     */
-    public function calculateHash(Setting $setting): string
-    {
-        $exportTime = '';
-        if ($setting->getCombination()->getExportTime() !== null) {
-            $exportTime = $setting->getCombination()->getExportTime()->format('Y-m-d\TH:i:sP');
-        }
-
-        $data = [
-            $setting->getId()->toString(),
-            $setting->getCombination()->getId()->toString(),
-            $exportTime,
-            $setting->getLocale(),
-            $setting->getRecipeMode(),
-        ];
-
-        return hash('md5', (string) json_encode($data));
     }
 }

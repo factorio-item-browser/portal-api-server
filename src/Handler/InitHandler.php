@@ -106,7 +106,6 @@ class InitHandler implements RequestHandlerInterface
 
         $data = new InitData();
         $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
-             ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
              ->setSidebarEntities($this->getCurrentSidebarEntities())
              ->setScriptVersion($this->scriptVersion);

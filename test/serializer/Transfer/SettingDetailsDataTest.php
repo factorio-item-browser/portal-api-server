@@ -42,6 +42,7 @@ class SettingDetailsDataTest extends SerializerTestCase
         $object->setCombinationId('yza')
                ->setName('bcd')
                ->setStatus('klm')
+               ->setIsTemporary(true)
                ->setLocale('efg')
                ->setRecipeMode('hij')
                ->setMods([$mod1, $mod2])
@@ -60,6 +61,7 @@ class SettingDetailsDataTest extends SerializerTestCase
             'combinationId' => 'yza',
             'name' => 'bcd',
             'status' => 'klm',
+            'isTemporary' => true,
             'locale' => 'efg',
             'recipeMode' => 'hij',
             'mods' => [

@@ -31,6 +31,12 @@ class SettingMetaData
     protected $status = '';
 
     /**
+     * Whether the setting is temporary.
+     * @var bool
+     */
+    protected $isTemporary = false;
+
+    /**
      * Sets the id of the combination used in the setting.
      * @param string $combinationId
      * @return $this
@@ -88,5 +94,25 @@ class SettingMetaData
     public function getStatus(): string
     {
         return $this->status;
+    }
+
+    /**
+     * Sets the the setting is temporary.
+     * @param bool $isTemporary
+     * @return $this
+     */
+    public function setIsTemporary(bool $isTemporary): self
+    {
+        $this->isTemporary = $isTemporary;
+        return $this;
+    }
+
+    /**
+     * Returns the the setting is temporary.
+     * @return bool
+     */
+    public function getIsTemporary(): bool
+    {
+        return $this->isTemporary;
     }
 }

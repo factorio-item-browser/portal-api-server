@@ -18,6 +18,7 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingsListData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
+use Ramsey\Uuid\Uuid;
 use ReflectionException;
 
 /**
@@ -92,10 +93,6 @@ class ListHandlerTest extends TestCase
         $expectedTransfer->setSettings([$settingMeta1, $settingMeta2])
                          ->setCurrentSetting($settingDetails);
 
-        $this->currentUser->expects($this->once())
-                          ->method('getSettings')
-                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
-
         $this->settingHelper->expects($this->exactly(2))
                             ->method('createSettingMeta')
                             ->withConsecutive(
@@ -111,12 +108,60 @@ class ListHandlerTest extends TestCase
                             ->with($this->identicalTo($this->currentSetting))
                             ->willReturn($settingDetails);
 
-        $handler = new ListHandler($this->currentSetting, $this->currentUser, $this->settingHelper);
+        $handler = $this->getMockBuilder(ListHandler::class)
+                        ->onlyMethods(['getFilteredSettings'])
+                        ->setConstructorArgs([$this->currentSetting, $this->currentUser, $this->settingHelper])
+                        ->getMock();
+        $handler->expects($this->once())
+                ->method('getFilteredSettings')
+                ->willReturn([$setting1, $setting2]);
 
         /* @var TransferResponse $result */
         $result = $handler->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertEquals($expectedTransfer, $result->getTransfer());
+    }
+
+    /**
+     * Tests the getFilteredSettings method.
+     * @throws ReflectionException
+     * @covers ::getFilteredSettings
+     */
+    public function testGetFilteredSettings(): void
+    {
+        $currentSettingId = '0eddb134-4bbf-49d5-b642-40eda0b87754';
+
+        $setting1 = new Setting();
+        $setting1->setId(Uuid::fromString('1b492bd9-512b-4403-af33-6d5c64b44954'))
+                 ->setIsTemporary(false);
+
+        $setting2 = new Setting();
+        $setting2->setId(Uuid::fromString('2bb17cd0-093e-4bd2-b1d0-3040a2e1965b'))
+                 ->setIsTemporary(true);
+
+        $setting3 = new Setting();
+        $setting3->setId(Uuid::fromString('0eddb134-4bbf-49d5-b642-40eda0b87754'))
+                 ->setIsTemporary(true);
+
+        $setting4 = new Setting();
+        $setting4->setId(Uuid::fromString('4e39c25b-d3e3-4960-a599-648aa0564d73'))
+                 ->setIsTemporary(false);
+
+        $settings = [$setting1, $setting2, $setting3, $setting4];
+        $expectedResult = [$setting1, $setting3, $setting4];
+
+        $this->currentSetting->expects($this->any())
+                             ->method('getId')
+                             ->willReturn(Uuid::fromString($currentSettingId));
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettings')
+                          ->willReturn(new ArrayCollection($settings));
+
+        $handler = new ListHandler($this->currentSetting, $this->currentUser, $this->settingHelper);
+        $result = $this->invokeMethod($handler, 'getFilteredSettings');
+
+        $this->assertSame($expectedResult, $result);
     }
 }

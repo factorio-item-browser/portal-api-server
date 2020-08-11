@@ -35,20 +35,6 @@ class InitDataTest extends TestCase
     }
 
     /**
-     * Tests the setting and getting the setting hash.
-     * @covers ::getSettingHash
-     * @covers ::setSettingHash
-     */
-    public function testSetAndGetSettingHash(): void
-    {
-        $settingHash = 'abc';
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setSettingHash($settingHash));
-        $this->assertSame($settingHash, $transfer->getSettingHash());
-    }
-
-    /**
      * Tests the setting and getting the locale.
      * @covers ::getLocale
      * @covers ::setLocale

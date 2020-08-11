@@ -43,11 +43,11 @@ class InitDataTest extends SerializerTestCase
         $setting = new SettingMetaData();
         $setting->setCombinationId('stu')
                 ->setName('vwx')
-                ->setStatus('yza');
+                ->setStatus('yza')
+                ->setIsTemporary(true);
 
         $object = new InitData();
         $object->setSetting($setting)
-               ->setSettingHash('bcd')
                ->setLocale('efg')
                ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
                ->setScriptVersion('hij');
@@ -65,8 +65,8 @@ class InitDataTest extends SerializerTestCase
                 'combinationId' => 'stu',
                 'name' => 'vwx',
                 'status' => 'yza',
+                'isTemporary' => true,
             ],
-            'settingHash' => 'bcd',
             'locale' => 'efg',
             'sidebarEntities' => [
                 [

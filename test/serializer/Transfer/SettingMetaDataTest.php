@@ -24,7 +24,8 @@ class SettingMetaDataTest extends SerializerTestCase
         $object = new SettingMetaData();
         $object->setCombinationId('abc')
                ->setName('def')
-               ->setStatus('ghi');
+               ->setStatus('ghi')
+               ->setIsTemporary(true);
 
         return $object;
     }
@@ -39,6 +40,7 @@ class SettingMetaDataTest extends SerializerTestCase
             'combinationId' => 'abc',
             'name' => 'def',
             'status' => 'ghi',
+            'isTemporary' => true,
         ];
     }
 

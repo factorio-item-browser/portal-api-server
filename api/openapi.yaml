@@ -453,10 +453,6 @@ components:
       properties:
         setting:
           $ref: "#/components/schemas/SettingMetaData"
-        settingHash:
-          type: string
-          description: The hash of the currently loaded setting.
-          example: e15ce8407a15f872792e714f58e7f5da
         locale:
           type: string
           description: The locale to use for the page.
@@ -731,6 +727,10 @@ components:
             - pending
             - unknown
           example: available
+        isTemporary:
+          type: boolean
+          description: Whether the setting is temporary.
+          example: false
 
     SettingOptionsData:
       type: object

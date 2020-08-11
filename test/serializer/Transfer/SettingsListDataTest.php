@@ -31,7 +31,8 @@ class SettingsListDataTest extends SerializerTestCase
         $setting2 = new SettingMetaData();
         $setting2->setCombinationId('ghi')
                  ->setName('jkl')
-                 ->setStatus('bcd');
+                 ->setStatus('bcd')
+                 ->setIsTemporary(true);
 
         $currentSetting = new SettingDetailsData();
         $currentSetting->setCombinationId('mno')
@@ -59,17 +60,20 @@ class SettingsListDataTest extends SerializerTestCase
                     'combinationId' => 'abc',
                     'name' => 'def',
                     'status' => 'yza',
+                    'isTemporary' => false,
                 ],
                 [
                     'combinationId' => 'ghi',
                     'name' => 'jkl',
                     'status' => 'bcd',
+                    'isTemporary' => true,
                 ],
             ],
             'currentSetting' => [
                 'combinationId' => 'mno',
                 'name' => 'pqr',
                 'status' => 'efg',
+                'isTemporary' => false,
                 'locale' => 'stu',
                 'recipeMode' => 'vwx',
                 'mods' => [],

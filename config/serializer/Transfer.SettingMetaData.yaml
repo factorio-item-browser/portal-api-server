@@ -8,3 +8,5 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData:
       type: string
     status:
       type: string
+    isTemporary:
+      type: boolean

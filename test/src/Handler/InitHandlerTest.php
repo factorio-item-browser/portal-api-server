@@ -119,9 +119,8 @@ class InitHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingHash = 'abc';
-        $locale = 'def';
-        $scriptVersion = 'ghi';
+        $locale = 'abc';
+        $scriptVersion = 'def';
 
         $setting = $this->createMock(SettingMetaData::class);
 
@@ -132,7 +131,6 @@ class InitHandlerTest extends TestCase
 
         $expectedTransfer = new InitData();
         $expectedTransfer->setSetting($setting)
-                         ->setSettingHash($settingHash)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities)
                          ->setScriptVersion($scriptVersion);
@@ -147,10 +145,6 @@ class InitHandlerTest extends TestCase
                             ->method('createSettingMeta')
                             ->with($this->identicalTo($this->currentSetting))
                             ->willReturn($setting);
-        $this->settingHelper->expects($this->once())
-                            ->method('calculateHash')
-                            ->with($this->identicalTo($this->currentSetting))
-                            ->willReturn($settingHash);
 
         $handler = $this->getMockBuilder(InitHandler::class)
                         ->onlyMethods(['updateCombinationStatus', 'updateSetting', 'getCurrentSidebarEntities'])

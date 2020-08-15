@@ -6,8 +6,8 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Middleware;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTime;
-use Dflydev\FigCookies\SetCookie;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
@@ -107,10 +107,15 @@ class SessionMiddlewareTest extends TestCase
     public function testProcess(): void
     {
         $user = $this->createMock(User::class);
-        $setting = $this->createMock(Setting::class);
         $request = $this->createMock(ServerRequestInterface::class);
         $response1 = $this->createMock(ResponseInterface::class);
         $response2 = $this->createMock(ResponseInterface::class);
+
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('setLastUsageTime')
+                ->with($this->isInstanceOf(DateTime::class))
+                ->willReturnSelf();
 
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
@@ -144,7 +149,6 @@ class SessionMiddlewareTest extends TestCase
                            ->onlyMethods([
                                'getCurrentUser',
                                'getCurrentSetting',
-                               'updateUser',
                            ])
                            ->setConstructorArgs([
                                $this->cookieHelper,
@@ -161,9 +165,6 @@ class SessionMiddlewareTest extends TestCase
                    ->method('getCurrentSetting')
                    ->with($this->identicalTo($request), $this->identicalTo($user))
                    ->willReturn($setting);
-        $middleware->expects($this->once())
-                   ->method('updateUser')
-                   ->with($this->identicalTo($request), $this->identicalTo($user), $this->identicalTo($setting));
 
         $result = $middleware->process($request, $handler);
 
@@ -365,15 +366,12 @@ class SessionMiddlewareTest extends TestCase
         $user->expects($this->any())
              ->method('getSettings')
              ->willReturn(new ArrayCollection([$setting1, $setting2]));
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn(null);
 
         $this->settingRepository->expects($this->never())
                                 ->method('createTemporarySetting');
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'isInitRoute'])
+                           ->onlyMethods(['readIdFromHeader', 'getFallbackSetting'])
                            ->setConstructorArgs([
                                $this->cookieHelper,
                                $this->serviceManager,
@@ -381,12 +379,12 @@ class SessionMiddlewareTest extends TestCase
                                $this->userRepository,
                            ])
                            ->getMock();
+        $middleware->expects($this->never())
+                   ->method('getFallbackSetting');
         $middleware->expects($this->once())
                    ->method('readIdFromHeader')
                    ->with($this->identicalTo($request))
                    ->willReturn($combinationId);
-        $middleware->expects($this->never())
-                   ->method('isInitRoute');
 
         $result = $this->invokeMethod($middleware, 'getCurrentSetting', $request, $user);
 
@@ -398,23 +396,21 @@ class SessionMiddlewareTest extends TestCase
      * @throws ReflectionException
      * @covers ::getCurrentSetting
      */
-    public function testGetCurrentSettingWithMissingCombinationId(): void
+    public function testGetCurrentSettingWithFallbackSetting(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
+        $setting = $this->createMock(Setting::class);
 
         $user = $this->createMock(User::class);
         $user->expects($this->any())
              ->method('getSettings')
              ->willReturn(new ArrayCollection([]));
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn(new Setting());
 
         $this->settingRepository->expects($this->never())
                                 ->method('createTemporarySetting');
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'isInitRoute'])
+                           ->onlyMethods(['readIdFromHeader', 'getFallbackSetting'])
                            ->setConstructorArgs([
                                $this->cookieHelper,
                                $this->serviceManager,
@@ -427,61 +423,13 @@ class SessionMiddlewareTest extends TestCase
                    ->with($this->identicalTo($request))
                    ->willReturn(null);
         $middleware->expects($this->once())
-                   ->method('isInitRoute')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(false);
-
-        $this->expectException(MissingCombinationIdException::class);
-
-        $this->invokeMethod($middleware, 'getCurrentSetting', $request, $user);
-    }
-
-    /**
-     * Tests the getCurrentSetting method.
-     * @throws ReflectionException
-     * @covers ::getCurrentSetting
-     */
-    public function testGetCurrentSettingWithInitRoute(): void
-    {
-        $request = $this->createMock(ServerRequestInterface::class);
-
-        $combination1 = new Combination();
-        $combination1->setId(Uuid::fromString('1cf0951d-0579-4523-99fd-9d50679b7ab6'));
-        $setting1 = new Setting();
-        $setting1->setCombination($combination1);
-
-        $user = $this->createMock(User::class);
-        $user->expects($this->any())
-             ->method('getSettings')
-             ->willReturn(new ArrayCollection([]));
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn($setting1);
-
-        $this->settingRepository->expects($this->never())
-                                ->method('createTemporarySetting');
-
-        $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'isInitRoute'])
-                           ->setConstructorArgs([
-                               $this->cookieHelper,
-                               $this->serviceManager,
-                               $this->settingRepository,
-                               $this->userRepository,
-                           ])
-                           ->getMock();
-        $middleware->expects($this->once())
-                   ->method('readIdFromHeader')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(null);
-        $middleware->expects($this->once())
-                   ->method('isInitRoute')
-                   ->with($this->identicalTo($request))
-                   ->willReturn(true);
+                   ->method('getFallbackSetting')
+                   ->with($this->identicalTo($request), $this->identicalTo($user))
+                   ->willReturn($setting);
 
         $result = $this->invokeMethod($middleware, 'getCurrentSetting', $request, $user);
 
-        $this->assertSame($setting1, $result);
+        $this->assertSame($setting, $result);
     }
 
     /**
@@ -499,9 +447,6 @@ class SessionMiddlewareTest extends TestCase
         $user->expects($this->any())
              ->method('getSettings')
              ->willReturn(new ArrayCollection([]));
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn(null);
 
         $this->settingRepository->expects($this->once())
                                 ->method('createTemporarySetting')
@@ -509,7 +454,7 @@ class SessionMiddlewareTest extends TestCase
                                 ->willReturn($setting);
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
-                           ->onlyMethods(['readIdFromHeader', 'isInitRoute'])
+                           ->onlyMethods(['readIdFromHeader', 'getFallbackSetting'])
                            ->setConstructorArgs([
                                $this->cookieHelper,
                                $this->serviceManager,
@@ -522,7 +467,7 @@ class SessionMiddlewareTest extends TestCase
                    ->with($this->identicalTo($request))
                    ->willReturn($combinationId);
         $middleware->expects($this->never())
-                   ->method('isInitRoute');
+                   ->method('getFallbackSetting');
 
         $result = $this->invokeMethod($middleware, 'getCurrentSetting', $request, $user);
 
@@ -584,23 +529,22 @@ class SessionMiddlewareTest extends TestCase
     }
 
     /**
-     * Tests the updateUser method.
+     * Tests the getFallbackSetting method.
      * @throws ReflectionException
-     * @covers ::updateUser
+     * @covers ::getFallbackSetting
      */
-    public function testUpdateUser(): void
+    public function testGetFallbackSetting(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
-
         $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('setLastUsageTime')
-                ->with($this->isInstanceOf(DateTime::class));
 
         $user = $this->createMock(User::class);
         $user->expects($this->once())
-             ->method('setCurrentSetting')
-             ->with($this->identicalTo($setting));
+             ->method('getLastUsedSetting')
+             ->willReturn($setting);
+
+        $this->settingRepository->expects($this->never())
+                                ->method('createDefaultSetting');
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['isInitRoute'])
@@ -616,26 +560,75 @@ class SessionMiddlewareTest extends TestCase
                    ->with($this->identicalTo($request))
                    ->willReturn(true);
 
-        $this->invokeMethod($middleware, 'updateUser', $request, $user, $setting);
+        $result = $this->invokeMethod($middleware, 'getFallbackSetting', $request, $user);
+
+        $this->assertSame($setting, $result);
     }
 
     /**
-     * Tests the updateUser method.
+     * Tests the getFallbackSetting method.
      * @throws ReflectionException
-     * @covers ::updateUser
+     * @covers ::getFallbackSetting
      */
-    public function testUpdateUserWithoutInitRoute(): void
+    public function testGetFallbackSettingWithDefaultSetting(): void
+    {
+        $request = $this->createMock(ServerRequestInterface::class);
+        $setting = $this->createMock(Setting::class);
+
+        $settingCollection = $this->createMock(Collection::class);
+        $settingCollection->expects($this->once())
+                          ->method('add')
+                          ->with($this->identicalTo($setting));
+
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getLastUsedSetting')
+             ->willReturn(null);
+        $user->expects($this->once())
+             ->method('getSettings')
+             ->willReturn($settingCollection);
+
+        $this->settingRepository->expects($this->once())
+                                ->method('createDefaultSetting')
+                                ->with($this->identicalTo($user))
+                                ->willReturn($setting);
+
+        $middleware = $this->getMockBuilder(SessionMiddleware::class)
+                           ->onlyMethods(['isInitRoute'])
+                           ->setConstructorArgs([
+                               $this->cookieHelper,
+                               $this->serviceManager,
+                               $this->settingRepository,
+                               $this->userRepository,
+                           ])
+                           ->getMock();
+        $middleware->expects($this->once())
+                   ->method('isInitRoute')
+                   ->with($this->identicalTo($request))
+                   ->willReturn(true);
+
+        $result = $this->invokeMethod($middleware, 'getFallbackSetting', $request, $user);
+
+        $this->assertSame($setting, $result);
+    }
+
+    /**
+     * Tests the getFallbackSetting method.
+     * @throws ReflectionException
+     * @covers ::getFallbackSetting
+     */
+    public function testGetFallbackSettingWithException(): void
     {
         $request = $this->createMock(ServerRequestInterface::class);
 
-        $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('setLastUsageTime')
-                ->with($this->isInstanceOf(DateTime::class));
-
         $user = $this->createMock(User::class);
         $user->expects($this->never())
-             ->method('setCurrentSetting');
+             ->method('getLastUsedSetting');
+
+        $this->settingRepository->expects($this->never())
+                                ->method('createDefaultSetting');
+
+        $this->expectException(MissingCombinationIdException::class);
 
         $middleware = $this->getMockBuilder(SessionMiddleware::class)
                            ->onlyMethods(['isInitRoute'])
@@ -651,6 +644,6 @@ class SessionMiddlewareTest extends TestCase
                    ->with($this->identicalTo($request))
                    ->willReturn(false);
 
-        $this->invokeMethod($middleware, 'updateUser', $request, $user, $setting);
+        $this->invokeMethod($middleware, 'getFallbackSetting', $request, $user);
     }
 }

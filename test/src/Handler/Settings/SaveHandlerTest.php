@@ -10,9 +10,9 @@ use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\SaveHandler;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingOptionsData;
 use JMS\Serializer\SerializerInterface;
@@ -48,12 +48,6 @@ class SaveHandlerTest extends TestCase
     protected $serializer;
 
     /**
-     * The mocked setting helper.
-     * @var SettingHelper&MockObject
-     */
-    protected $settingHelper;
-
-    /**
      * The mocked sidebar entities helper.
      * @var SidebarEntitiesHelper&MockObject
      */
@@ -68,7 +62,6 @@ class SaveHandlerTest extends TestCase
 
         $this->currentUser = $this->createMock(User::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
-        $this->settingHelper = $this->createMock(SettingHelper::class);
         $this->sidebarEntitiesHelper = $this->createMock(SidebarEntitiesHelper::class);
     }
 
@@ -82,13 +75,11 @@ class SaveHandlerTest extends TestCase
         $handler = new SaveHandler(
             $this->currentUser,
             $this->serializer,
-            $this->settingHelper,
             $this->sidebarEntitiesHelper
         );
 
         $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
         $this->assertSame($this->serializer, $this->extractProperty($handler, 'serializer'));
-        $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
         $this->assertSame($this->sidebarEntitiesHelper, $this->extractProperty($handler, 'sidebarEntitiesHelper'));
     }
 
@@ -101,9 +92,9 @@ class SaveHandlerTest extends TestCase
     {
         $combinationIdString = 'e61afd17-0c69-4d49-bdf0-a93b416d644a';
         $combinationId = Uuid::fromString($combinationIdString);
-        $name = 'abc';
-        $locale = 'def';
-        $recipeMode = 'ghi';
+
+        $requestOptions = $this->createMock(SettingOptionsData::class);
+        $setting = $this->createMock(Setting::class);
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
@@ -111,50 +102,20 @@ class SaveHandlerTest extends TestCase
                 ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
                 ->willReturn($combinationIdString);
 
-        $requestOptions = $this->createMock(SettingOptionsData::class);
-        $requestOptions->expects($this->once())
-                       ->method('getName')
-                       ->willReturn($name);
-        $requestOptions->expects($this->once())
-                       ->method('getLocale')
-                       ->willReturn($locale);
-        $requestOptions->expects($this->once())
-                       ->method('getRecipeMode')
-                       ->willReturn($recipeMode);
-
-        $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('setName')
-                ->with($this->identicalTo($name))
-                ->willReturnSelf();
-        $setting->expects($this->once())
-                ->method('setLocale')
-                ->with($this->identicalTo($locale))
-                ->willReturnSelf();
-        $setting->expects($this->once())
-                ->method('setRecipeMode')
-                ->with($this->identicalTo($recipeMode))
-                ->willReturnSelf();
-
         $this->currentUser->expects($this->once())
-                          ->method('setCurrentSetting')
-                          ->with($this->identicalTo($setting));
-
-        $this->settingHelper->expects($this->once())
-                            ->method('findInCurrentUser')
-                            ->with($this->equalTo($combinationId))
-                            ->willReturn($setting);
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn($setting);
 
         $this->sidebarEntitiesHelper->expects($this->once())
                                     ->method('refreshLabels')
                                     ->with($this->identicalTo($setting));
 
         $handler = $this->getMockBuilder(SaveHandler::class)
-                        ->onlyMethods(['parseRequestBody', 'validateOptions'])
+                        ->onlyMethods(['parseRequestBody', 'validateOptions', 'updateSetting'])
                         ->setConstructorArgs([
                             $this->currentUser,
                             $this->serializer,
-                            $this->settingHelper,
                             $this->sidebarEntitiesHelper,
                         ])
                         ->getMock();
@@ -165,9 +126,56 @@ class SaveHandlerTest extends TestCase
         $handler->expects($this->once())
                 ->method('validateOptions')
                 ->with($this->identicalTo($requestOptions));
+        $handler->expects($this->once())
+                ->method('updateSetting')
+                ->with($this->identicalTo($requestOptions), $this->identicalTo($setting));
 
         $result = $handler->handle($request);
         $this->assertInstanceOf(EmptyResponse::class, $result);
+    }
+
+    /**
+     * Tests the handle method.
+     * @throws PortalApiServerException
+     * @covers ::handle
+     */
+    public function testHandleWithException(): void
+    {
+        $combinationIdString = 'e61afd17-0c69-4d49-bdf0-a93b416d644a';
+        $combinationId = Uuid::fromString($combinationIdString);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getAttribute')
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn(null);
+
+        $this->sidebarEntitiesHelper->expects($this->never())
+                                    ->method('refreshLabels');
+
+        $this->expectException(MissingSettingException::class);
+
+        $handler = $this->getMockBuilder(SaveHandler::class)
+                        ->onlyMethods(['parseRequestBody', 'validateOptions', 'updateSetting'])
+                        ->setConstructorArgs([
+                            $this->currentUser,
+                            $this->serializer,
+                            $this->sidebarEntitiesHelper,
+                        ])
+                        ->getMock();
+        $handler->expects($this->never())
+                ->method('parseRequestBody');
+        $handler->expects($this->never())
+                ->method('validateOptions');
+        $handler->expects($this->never())
+                ->method('updateSetting');
+
+        $handler->handle($request);
     }
 
     /**
@@ -203,7 +211,6 @@ class SaveHandlerTest extends TestCase
         $handler = new SaveHandler(
             $this->currentUser,
             $this->serializer,
-            $this->settingHelper,
             $this->sidebarEntitiesHelper
         );
         $result = $this->invokeMethod($handler, 'parseRequestBody', $request);
@@ -244,7 +251,6 @@ class SaveHandlerTest extends TestCase
         $handler = new SaveHandler(
             $this->currentUser,
             $this->serializer,
-            $this->settingHelper,
             $this->sidebarEntitiesHelper
         );
         $this->invokeMethod($handler, 'parseRequestBody', $request);
@@ -296,9 +302,57 @@ class SaveHandlerTest extends TestCase
         $handler = new SaveHandler(
             $this->currentUser,
             $this->serializer,
-            $this->settingHelper,
             $this->sidebarEntitiesHelper
         );
         $this->invokeMethod($handler, 'validateOptions', $options);
+    }
+
+    /**
+     * Tests the updateSetting method.
+     * @throws ReflectionException
+     * @covers ::updateSetting
+     */
+    public function testUpdateSetting(): void
+    {
+        $name = 'abc';
+        $locale = 'def';
+        $recipeMode = 'ghi';
+
+        $requestOptions = $this->createMock(SettingOptionsData::class);
+        $requestOptions->expects($this->once())
+                       ->method('getName')
+                       ->willReturn($name);
+        $requestOptions->expects($this->once())
+                       ->method('getLocale')
+                       ->willReturn($locale);
+        $requestOptions->expects($this->once())
+                       ->method('getRecipeMode')
+                       ->willReturn($recipeMode);
+
+        $setting = $this->createMock(Setting::class);
+        $setting->expects($this->once())
+                ->method('setName')
+                ->with($this->identicalTo($name))
+                ->willReturnSelf();
+        $setting->expects($this->once())
+                ->method('setLocale')
+                ->with($this->identicalTo($locale))
+                ->willReturnSelf();
+        $setting->expects($this->once())
+                ->method('setRecipeMode')
+                ->with($this->identicalTo($recipeMode))
+                ->willReturnSelf();
+        $setting->expects($this->once())
+                ->method('setIsTemporary')
+                ->with($this->isFalse())
+                ->willReturnSelf();
+
+        $handler = new SaveHandler(
+            $this->currentUser,
+            $this->serializer,
+            $this->sidebarEntitiesHelper
+        );
+
+        $this->invokeMethod($handler, 'updateSetting', $requestOptions, $setting);
     }
 }

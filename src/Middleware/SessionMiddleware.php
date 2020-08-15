@@ -86,7 +86,7 @@ class SessionMiddleware implements MiddlewareInterface
     {
         $user = $this->getCurrentUser($request);
         $setting = $this->getCurrentSetting($request, $user);
-        $this->updateUser($request, $user, $setting);
+        $setting->setLastUsageTime(new DateTime());
 
         $this->serviceManager->setService(User::class . ' $currentUser', $user);
         $this->serviceManager->setService(Setting::class . ' $currentSetting', $setting);
@@ -143,11 +143,7 @@ class SessionMiddleware implements MiddlewareInterface
     {
         $combinationId = $this->readIdFromHeader($request, 'Combination-Id');
         if ($combinationId === null) {
-            $currentSetting = $user->getCurrentSetting();
-            if ($currentSetting === null || !$this->isInitRoute($request)) {
-                throw new MissingCombinationIdException();
-            }
-            return $currentSetting;
+            return $this->getFallbackSetting($request, $user);
         }
 
         foreach ($user->getSettings() as $setting) {
@@ -178,17 +174,23 @@ class SessionMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Updates the specified user and setting.
+     * Returns the fallback setting to use.
      * @param ServerRequestInterface $request
      * @param User $user
-     * @param Setting $setting
+     * @return Setting
+     * @throws Exception
      */
-    protected function updateUser(ServerRequestInterface $request, User $user, Setting $setting): void
+    protected function getFallbackSetting(ServerRequestInterface $request, User $user): Setting
     {
-        if ($this->isInitRoute($request)) {
-            $user->setCurrentSetting($setting);
+        if (!$this->isInitRoute($request)) {
+            throw new MissingCombinationIdException();
         }
 
-        $setting->setLastUsageTime(new DateTime());
+        $setting = $user->getLastUsedSetting();
+        if ($setting === null) {
+            $setting = $this->settingRepository->createDefaultSetting($user);
+            $user->getSettings()->add($setting);
+        }
+        return $setting;
     }
 }

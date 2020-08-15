@@ -182,6 +182,5 @@ class CreateHandler implements RequestHandlerInterface
         $setting->setName($settingData->getName())
                 ->setRecipeMode($settingData->getRecipeMode())
                 ->setLocale($settingData->getLocale());
-        $this->currentUser->setCurrentSetting($setting);
     }
 }

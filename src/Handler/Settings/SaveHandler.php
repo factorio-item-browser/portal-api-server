@@ -6,10 +6,11 @@ namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
 
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
+use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingOptionsData;
 use JMS\Serializer\SerializerInterface;
@@ -49,12 +50,6 @@ class SaveHandler implements RequestHandlerInterface
     protected $serializer;
 
     /**
-     * The setting helper.
-     * @var SettingHelper
-     */
-    protected $settingHelper;
-
-    /**
      * The sidebar entities helper.
      * @var SidebarEntitiesHelper
      */
@@ -64,18 +59,15 @@ class SaveHandler implements RequestHandlerInterface
      * Initializes the handler.
      * @param User $currentUser
      * @param SerializerInterface $portalApiServerSerializer
-     * @param SettingHelper $settingHelper
      * @param SidebarEntitiesHelper $sidebarEntitiesHelper
      */
     public function __construct(
         User $currentUser,
         SerializerInterface $portalApiServerSerializer,
-        SettingHelper $settingHelper,
         SidebarEntitiesHelper $sidebarEntitiesHelper
     ) {
         $this->currentUser = $currentUser;
         $this->serializer = $portalApiServerSerializer;
-        $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
     }
 
@@ -87,16 +79,15 @@ class SaveHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $combinationId = $request->getAttribute('combination-id', '');
+        $combinationId = Uuid::fromString($request->getAttribute('combination-id', ''));
+        $setting = $this->currentUser->getSettingByCombinationId($combinationId);
+        if ($setting === null) {
+            throw new MissingSettingException($combinationId);
+        }
+
         $requestOptions = $this->parseRequestBody($request);
-        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($combinationId));
         $this->validateOptions($requestOptions);
-
-        $setting->setName($requestOptions->getName())
-                ->setLocale($requestOptions->getLocale())
-                ->setRecipeMode($requestOptions->getRecipeMode());
-
-        $this->currentUser->setCurrentSetting($setting);
+        $this->updateSetting($requestOptions, $setting);
         $this->sidebarEntitiesHelper->refreshLabels($setting);
 
         return new EmptyResponse();
@@ -132,5 +123,18 @@ class SaveHandler implements RequestHandlerInterface
         if (!in_array($options->getRecipeMode(), self::VALID_RECIPE_MODES, true)) {
             throw new InvalidRequestException('The specified recipeMode is invalid.');
         }
+    }
+
+    /**
+     * Updates the setting to the request options.
+     * @param SettingOptionsData $requestOptions
+     * @param Setting $setting
+     */
+    protected function updateSetting(SettingOptionsData $requestOptions, Setting $setting): void
+    {
+        $setting->setName($requestOptions->getName())
+                ->setLocale($requestOptions->getLocale())
+                ->setRecipeMode($requestOptions->getRecipeMode())
+                ->setIsTemporary(false);
     }
 }

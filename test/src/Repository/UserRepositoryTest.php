@@ -77,33 +77,22 @@ class UserRepositoryTest extends TestCase
      */
     public function testGetUser(): void
     {
-        /* @var UuidInterface&MockObject $userId */
         $userId = $this->createMock(UuidInterface::class);
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
 
-        /* @var AbstractQuery&MockObject $query */
         $query = $this->createMock(AbstractQuery::class);
         $query->expects($this->once())
               ->method('getOneOrNullResult')
               ->willReturn($user);
 
-        /* @var QueryBuilder&MockObject $queryBuilder */
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->once())
                      ->method('select')
-                     ->with($this->identicalTo('u'), $this->identicalTo('s'), $this->identicalTo('c'))
+                     ->with($this->identicalTo('u'))
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('from')
                      ->with($this->identicalTo(User::class), $this->identicalTo('u'))
-                     ->willReturnSelf();
-        $queryBuilder->expects($this->exactly(2))
-                     ->method('leftJoin')
-                     ->withConsecutive(
-                         [$this->identicalTo('u.currentSetting'), $this->identicalTo('s')],
-                         [$this->identicalTo('s.combination'), $this->identicalTo('c')]
-                     )
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('where')
@@ -137,31 +126,21 @@ class UserRepositoryTest extends TestCase
      */
     public function testGetUserWithException(): void
     {
-        /* @var UuidInterface&MockObject $userId */
         $userId = $this->createMock(UuidInterface::class);
 
-        /* @var AbstractQuery&MockObject $query */
         $query = $this->createMock(AbstractQuery::class);
         $query->expects($this->once())
               ->method('getOneOrNullResult')
               ->willThrowException($this->createMock(NonUniqueResultException::class));
 
-        /* @var QueryBuilder&MockObject $queryBuilder */
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->once())
                      ->method('select')
-                     ->with($this->identicalTo('u'), $this->identicalTo('s'), $this->identicalTo('c'))
+                     ->with($this->identicalTo('u'))
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('from')
                      ->with($this->identicalTo(User::class), $this->identicalTo('u'))
-                     ->willReturnSelf();
-        $queryBuilder->expects($this->exactly(2))
-                     ->method('leftJoin')
-                     ->withConsecutive(
-                         [$this->identicalTo('u.currentSetting'), $this->identicalTo('s')],
-                         [$this->identicalTo('s.combination'), $this->identicalTo('c')]
-                     )
                      ->willReturnSelf();
         $queryBuilder->expects($this->once())
                      ->method('where')
@@ -197,7 +176,6 @@ class UserRepositoryTest extends TestCase
      */
     public function testCreateUser(): void
     {
-        /* @var Setting&MockObject $defaultSetting */
         $defaultSetting = $this->createMock(Setting::class);
 
         $this->entityManager->expects($this->once())
@@ -214,7 +192,6 @@ class UserRepositoryTest extends TestCase
         $repository = new UserRepository($this->entityManager, $this->settingRepository);
         $result = $repository->createUser();
 
-        $this->assertSame($defaultSetting, $result->getCurrentSetting());
         $this->assertSame([$defaultSetting], $result->getSettings()->toArray());
     }
 
@@ -225,24 +202,14 @@ class UserRepositoryTest extends TestCase
      */
     public function testPersist(): void
     {
-        /* @var Setting&MockObject $currentSetting */
-        $currentSetting = $this->createMock(Setting::class);
-
-        /* @var User&MockObject $user */
         $user = $this->createMock(User::class);
         $user->expects($this->once())
              ->method('setLastVisitTime')
              ->with($this->isInstanceOf(DateTime::class));
-        $user->expects($this->any())
-             ->method('getCurrentSetting')
-             ->willReturn($currentSetting);
 
-        $this->entityManager->expects($this->exactly(2))
+        $this->entityManager->expects($this->once())
                             ->method('persist')
-                            ->withConsecutive(
-                                [$this->identicalTo($user)],
-                                [$this->identicalTo($currentSetting)]
-                            );
+                            ->with($this->identicalTo($user));
         $this->entityManager->expects($this->once())
                             ->method('flush');
 
@@ -257,14 +224,12 @@ class UserRepositoryTest extends TestCase
      */
     public function testCleanupOldSessions(): void
     {
-        /* @var DateTime&MockObject $timeCut */
         $timeCut = $this->createMock(DateTime::class);
         $userIds = [
             $this->createMock(UuidInterface::class),
             $this->createMock(UuidInterface::class),
         ];
 
-        /* @var UserRepository&MockObject $repository */
         $repository = $this->getMockBuilder(UserRepository::class)
                            ->onlyMethods(['findUserIdsWithOldSession', 'removeUsers'])
                            ->setConstructorArgs([$this->entityManager, $this->settingRepository])
@@ -287,10 +252,8 @@ class UserRepositoryTest extends TestCase
      */
     public function testCleanupOldSessionsWithoutUserIds(): void
     {
-        /* @var DateTime&MockObject $timeCut */
         $timeCut = $this->createMock(DateTime::class);
 
-        /* @var UserRepository&MockObject $repository */
         $repository = $this->getMockBuilder(UserRepository::class)
                            ->onlyMethods(['findUserIdsWithOldSession', 'removeUsers'])
                            ->setConstructorArgs([$this->entityManager, $this->settingRepository])
@@ -312,11 +275,8 @@ class UserRepositoryTest extends TestCase
      */
     public function testFindUserIdsWithOldSession(): void
     {
-        /* @var DateTime&MockObject $timeCut */
         $timeCut = $this->createMock(DateTime::class);
-        /* @var UuidInterface&MockObject $userId1 */
         $userId1 = $this->createMock(UuidInterface::class);
-        /* @var UuidInterface&MockObject $userId2 */
         $userId2 = $this->createMock(UuidInterface::class);
 
         $queryResult = [
@@ -325,13 +285,11 @@ class UserRepositoryTest extends TestCase
         ];
         $expectedResult = [$userId1, $userId2];
 
-        /* @var AbstractQuery&MockObject $query */
         $query = $this->createMock(AbstractQuery::class);
         $query->expects($this->once())
               ->method('getResult')
               ->willReturn($queryResult);
 
-        /* @var QueryBuilder&MockObject $queryBuilder */
         $queryBuilder = $this->createMock(QueryBuilder::class);
         $queryBuilder->expects($this->once())
                      ->method('select')
@@ -379,24 +337,18 @@ class UserRepositoryTest extends TestCase
             hex2bin('f463945804904ce492ee71197aae0551'),
         ];
         
-        /* @var AbstractQuery&MockObject $query1 */
         $query1 = $this->createMock(AbstractQuery::class);
         $query1->expects($this->once())
                ->method('execute');
         
-        /* @var QueryBuilder&MockObject $queryBuilder1 */
         $queryBuilder1 = $this->createMock(QueryBuilder::class);
         $queryBuilder1->expects($this->once())
-                      ->method('update')
-                      ->with($this->identicalTo(User::class), $this->identicalTo('u'))
-                      ->willReturnSelf();
-        $queryBuilder1->expects($this->once())
-                      ->method('set')
-                      ->with($this->identicalTo('u.currentSetting'), $this->identicalTo('NULL'))
+                      ->method('delete')
+                      ->with($this->identicalTo(Setting::class), $this->identicalTo('s'))
                       ->willReturnSelf();
         $queryBuilder1->expects($this->once())
                       ->method('where')
-                      ->with($this->identicalTo('u.id IN (:userIds)'))
+                      ->with($this->identicalTo('s.user IN (:userIds)'))
                       ->willReturnSelf();
         $queryBuilder1->expects($this->once())
                       ->method('setParameter')
@@ -406,61 +358,34 @@ class UserRepositoryTest extends TestCase
                       ->method('getQuery')
                       ->willReturn($query1);
         
-        /* @var AbstractQuery&MockObject $query3 */
-        $query3 = $this->createMock(AbstractQuery::class);
-        $query3->expects($this->once())
+        $query2 = $this->createMock(AbstractQuery::class);
+        $query2->expects($this->once())
                ->method('execute');
         
-        /* @var QueryBuilder&MockObject $queryBuilder3 */
-        $queryBuilder3 = $this->createMock(QueryBuilder::class);
-        $queryBuilder3->expects($this->once())
-                      ->method('delete')
-                      ->with($this->identicalTo(Setting::class), $this->identicalTo('s'))
-                      ->willReturnSelf();
-        $queryBuilder3->expects($this->once())
-                      ->method('where')
-                      ->with($this->identicalTo('s.user IN (:userIds)'))
-                      ->willReturnSelf();
-        $queryBuilder3->expects($this->once())
-                      ->method('setParameter')
-                      ->with($this->identicalTo('userIds'), $this->identicalTo($expectedMappedUserIds))
-                      ->willReturnSelf();
-        $queryBuilder3->expects($this->once())
-                      ->method('getQuery')
-                      ->willReturn($query3);
-        
-        /* @var AbstractQuery&MockObject $query4 */
-        $query4 = $this->createMock(AbstractQuery::class);
-        $query4->expects($this->once())
-               ->method('execute');
-        
-        /* @var QueryBuilder&MockObject $queryBuilder4 */
-        $queryBuilder4 = $this->createMock(QueryBuilder::class);
-        $queryBuilder4->expects($this->once())
+        $queryBuilder2 = $this->createMock(QueryBuilder::class);
+        $queryBuilder2->expects($this->once())
                       ->method('delete')
                       ->with($this->identicalTo(User::class), $this->identicalTo('u'))
                       ->willReturnSelf();
-        $queryBuilder4->expects($this->once())
+        $queryBuilder2->expects($this->once())
                       ->method('where')
                       ->with($this->identicalTo('u.id IN (:userIds)'))
                       ->willReturnSelf();
-        $queryBuilder4->expects($this->once())
+        $queryBuilder2->expects($this->once())
                       ->method('setParameter')
                       ->with($this->identicalTo('userIds'), $this->identicalTo($expectedMappedUserIds))
                       ->willReturnSelf();
-        $queryBuilder4->expects($this->once())
+        $queryBuilder2->expects($this->once())
                       ->method('getQuery')
-                      ->willReturn($query4);
+                      ->willReturn($query2);
 
-        $this->entityManager->expects($this->exactly(3))
+        $this->entityManager->expects($this->exactly(2))
                             ->method('createQueryBuilder')
                             ->willReturnOnConsecutiveCalls(
                                 $queryBuilder1,
-                                $queryBuilder3,
-                                $queryBuilder4
+                                $queryBuilder2
                             );
 
-        /* @var UserRepository&MockObject $repository */
         $repository = $this->getMockBuilder(UserRepository::class)
                            ->onlyMethods(['removeSidebarEntities'])
                            ->setConstructorArgs([$this->entityManager, $this->settingRepository])
@@ -491,13 +416,11 @@ class UserRepositoryTest extends TestCase
         $expectedQuery = 'DELETE se FROM `SidebarEntity` se INNER JOIN `Setting` s ON s.id = se.settingId '
             . 'WHERE s.userId IN (UNHEX(?),UNHEX(?))';
 
-        /* @var Statement&MockObject $statement */
         $statement = $this->createMock(Statement::class);
         $statement->expects($this->once())
                   ->method('execute')
                   ->with($this->identicalTo($expectedMappedUserIds));
 
-        /* @var Connection&MockObject $connection */
         $connection = $this->createMock(Connection::class);
         $connection->expects($this->once())
                    ->method('prepare')

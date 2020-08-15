@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
 
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
@@ -21,6 +23,12 @@ use Ramsey\Uuid\Uuid;
 class DetailsHandler implements RequestHandlerInterface
 {
     /**
+     * The current user.
+     * @var User
+     */
+    protected $currentUser;
+
+    /**
      * The setting helper.
      * @var SettingHelper
      */
@@ -28,10 +36,12 @@ class DetailsHandler implements RequestHandlerInterface
 
     /**
      * Initializes the handler.
+     * @param User $currentUser
      * @param SettingHelper $settingHelper
      */
-    public function __construct(SettingHelper $settingHelper)
+    public function __construct(User $currentUser, SettingHelper $settingHelper)
     {
+        $this->currentUser = $currentUser;
         $this->settingHelper = $settingHelper;
     }
 
@@ -43,8 +53,12 @@ class DetailsHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $combinationId = $request->getAttribute('combination-id', '');
-        $setting = $this->settingHelper->findInCurrentUser(Uuid::fromString($combinationId));
+        $combinationId = Uuid::fromString($request->getAttribute('combination-id', ''));
+        $setting = $this->currentUser->getSettingByCombinationId($combinationId);
+        if ($setting === null) {
+            throw new MissingSettingException($combinationId);
+        }
+
         $settingDetails = $this->settingHelper->createSettingDetails($setting);
         return new TransferResponse($settingDetails);
     }

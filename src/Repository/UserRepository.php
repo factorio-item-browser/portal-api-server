@@ -54,10 +54,8 @@ class UserRepository
     public function getUser(UuidInterface $userId): ?User
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->select('u', 's', 'c')
+        $queryBuilder->select('u')
                      ->from(User::class, 'u')
-                     ->leftJoin('u.currentSetting', 's')
-                     ->leftJoin('s.combination', 'c')
                      ->where('u.id = :userId')
                      ->setParameter('userId', $userId, UuidBinaryType::NAME);
 
@@ -83,7 +81,6 @@ class UserRepository
         $defaultSetting = $this->settingRepository->createDefaultSetting($user);
 
         $user->getSettings()->add($defaultSetting);
-        $user->setCurrentSetting($defaultSetting);
         return $user;
     }
 
@@ -96,9 +93,6 @@ class UserRepository
     {
         $user->setLastVisitTime(new DateTime());
         $this->entityManager->persist($user);
-        if ($user->getCurrentSetting() !== null) {
-            $this->entityManager->persist($user->getCurrentSetting());
-        }
         $this->entityManager->flush();
     }
 
@@ -146,25 +140,17 @@ class UserRepository
             return $userId->getBytes();
         }, $userIds));
 
-        // 1. Set currentSetting of the users to NULL to break the circular references.
-        $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->update(User::class, 'u')
-                     ->set('u.currentSetting', 'NULL')
-                     ->where('u.id IN (:userIds)')
-                     ->setParameter('userIds', $mappedUserIds);
-        $queryBuilder->getQuery()->execute();
-
-        // 2. Remove all sidebar entities of the users.
+        // 1. Remove all sidebar entities of the users.
         $this->removeSidebarEntities($userIds);
 
-        // 3. Remove all settings of the users.
+        // 2. Remove all settings of the users.
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->delete(Setting::class, 's')
                      ->where('s.user IN (:userIds)')
                      ->setParameter('userIds', $mappedUserIds);
         $queryBuilder->getQuery()->execute();
 
-        // 4. Remove the actual users.
+        // 3. Remove the actual users.
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->delete(User::class, 'u')
                      ->where('u.id IN (:userIds)')

@@ -110,6 +110,13 @@ class InitHandler implements RequestHandlerInterface
              ->setSidebarEntities($this->getCurrentSidebarEntities())
              ->setScriptVersion($this->scriptVersion);
 
+        if ($this->currentSetting->getIsTemporary()) {
+            $lastUsedSetting = $this->currentSetting->getUser()->getLastUsedSetting();
+            if ($lastUsedSetting !== null) {
+                $data->setLastUsedSetting($this->settingHelper->createSettingMeta($lastUsedSetting));
+            }
+        }
+
         return new TransferResponse($data);
     }
 

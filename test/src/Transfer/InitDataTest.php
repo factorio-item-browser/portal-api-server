@@ -7,7 +7,6 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,12 +25,25 @@ class InitDataTest extends TestCase
      */
     public function testSetAndGetSetting(): void
     {
-        /* @var SettingMetaData&MockObject $setting */
         $setting = $this->createMock(SettingMetaData::class);
         $transfer = new InitData();
 
         $this->assertSame($transfer, $transfer->setSetting($setting));
         $this->assertSame($setting, $transfer->getSetting());
+    }
+
+    /**
+     * Tests the setting and getting the last used setting.
+     * @covers ::getLastUsedSetting
+     * @covers ::setLastUsedSetting
+     */
+    public function testSetAndGetLastUsedSetting(): void
+    {
+        $lastUsedSetting = $this->createMock(SettingMetaData::class);
+        $transfer = new InitData();
+
+        $this->assertSame($transfer, $transfer->setLastUsedSetting($lastUsedSetting));
+        $this->assertSame($lastUsedSetting, $transfer->getLastUsedSetting());
     }
 
     /**

@@ -19,6 +19,12 @@ class InitData
     protected $setting;
 
     /**
+     * The last setting used in the session. Only present if the current one is temporary.
+     * @var SettingMetaData|null
+     */
+    protected $lastUsedSetting;
+
+    /**
      * The locale to use for the page.
      * @var string
      */
@@ -54,6 +60,26 @@ class InitData
     public function getSetting(): SettingMetaData
     {
         return $this->setting;
+    }
+
+    /**
+     * Sets the last setting used in the session. Only present if the current one is temporary.
+     * @param SettingMetaData|null $lastUsedSetting
+     * @return $this
+     */
+    public function setLastUsedSetting(?SettingMetaData $lastUsedSetting): self
+    {
+        $this->lastUsedSetting = $lastUsedSetting;
+        return $this;
+    }
+
+    /**
+     * Returns the last setting used in the session. Only present if the current one is temporary.
+     * @return SettingMetaData|null
+     */
+    public function getLastUsedSetting(): ?SettingMetaData
+    {
+        return $this->lastUsedSetting;
     }
 
     /**

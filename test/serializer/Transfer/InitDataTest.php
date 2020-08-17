@@ -46,8 +46,15 @@ class InitDataTest extends SerializerTestCase
                 ->setStatus('yza')
                 ->setIsTemporary(true);
 
+        $lastUsedSetting = new SettingMetaData();
+        $lastUsedSetting->setCombinationId('klm')
+                        ->setName('nop')
+                        ->setStatus('qrs')
+                        ->setIsTemporary(false);
+
         $object = new InitData();
         $object->setSetting($setting)
+               ->setLastUsedSetting($lastUsedSetting)
                ->setLocale('efg')
                ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
                ->setScriptVersion('hij');
@@ -66,6 +73,12 @@ class InitDataTest extends SerializerTestCase
                 'name' => 'vwx',
                 'status' => 'yza',
                 'isTemporary' => true,
+            ],
+            'lastUsedSetting' => [
+                'combinationId' => 'klm',
+                'name' => 'nop',
+                'status' => 'qrs',
+                'isTemporary' => false,
             ],
             'locale' => 'efg',
             'sidebarEntities' => [

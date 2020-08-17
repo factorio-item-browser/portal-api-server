@@ -453,6 +453,8 @@ components:
       properties:
         setting:
           $ref: "#/components/schemas/SettingMetaData"
+        lastUsedSetting:
+          $ref: "#/components/schemas/SettingMetaData"
         locale:
           type: string
           description: The locale to use for the page.
@@ -466,6 +468,11 @@ components:
           type: string
           description: The current version of the scripts.
           example: 1650be3c220267a96f3d
+      required:
+        - setting
+        - locale
+        - sidebarEntities
+        - scriptVersion
 
     ItemRecipesData:
       type: object

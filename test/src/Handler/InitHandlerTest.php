@@ -17,6 +17,7 @@ use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Handler\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
@@ -131,6 +132,7 @@ class InitHandlerTest extends TestCase
 
         $expectedTransfer = new InitData();
         $expectedTransfer->setSetting($setting)
+                         ->setLastUsedSetting(null)
                          ->setLocale($locale)
                          ->setSidebarEntities($sidebarEntities)
                          ->setScriptVersion($scriptVersion);
@@ -140,6 +142,9 @@ class InitHandlerTest extends TestCase
         $this->currentSetting->expects($this->once())
                              ->method('getLocale')
                              ->willReturn($locale);
+        $this->currentSetting->expects($this->once())
+                             ->method('getIsTemporary')
+                             ->willReturn(false);
 
         $this->settingHelper->expects($this->once())
                             ->method('createSettingMeta')
@@ -165,6 +170,87 @@ class InitHandlerTest extends TestCase
                 ->method('getCurrentSidebarEntities')
                 ->willReturn($sidebarEntities);
 
+        /* @var TransferResponse $result */
+        $result = $handler->handle($request);
+
+        $this->assertInstanceOf(TransferResponse::class, $result);
+        $this->assertEquals($expectedTransfer, $result->getTransfer());
+    }
+
+    /**
+     * Tests the handle method.
+     * @throws Exception
+     * @covers ::handle
+     */
+    public function testHandleWithTemporarySetting(): void
+    {
+        $locale = 'abc';
+        $scriptVersion = 'def';
+
+        $setting = $this->createMock(SettingMetaData::class);
+        $lastUsedSetting = $this->createMock(Setting::class);
+        $lastUsedSettingMeta = $this->createMock(SettingMetaData::class);
+
+        $sidebarEntities = [
+            $this->createMock(SidebarEntityData::class),
+            $this->createMock(SidebarEntityData::class),
+        ];
+
+        $expectedTransfer = new InitData();
+        $expectedTransfer->setSetting($setting)
+                         ->setLastUsedSetting($lastUsedSettingMeta)
+                         ->setLocale($locale)
+                         ->setSidebarEntities($sidebarEntities)
+                         ->setScriptVersion($scriptVersion);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getLastUsedSetting')
+             ->willReturn($lastUsedSetting);
+
+        $this->currentSetting->expects($this->once())
+                             ->method('getLocale')
+                             ->willReturn($locale);
+        $this->currentSetting->expects($this->once())
+                             ->method('getIsTemporary')
+                             ->willReturn(true);
+        $this->currentSetting->expects($this->once())
+                             ->method('getUser')
+                             ->willReturn($user);
+
+        $this->settingHelper->expects($this->exactly(2))
+                            ->method('createSettingMeta')
+                            ->withConsecutive(
+                                [$this->identicalTo($this->currentSetting)],
+                                [$this->identicalTo($lastUsedSetting)]
+                            )
+                            ->willReturnOnConsecutiveCalls(
+                                $setting,
+                                $lastUsedSettingMeta,
+                            );
+
+        $handler = $this->getMockBuilder(InitHandler::class)
+                        ->onlyMethods(['updateCombinationStatus', 'updateSetting', 'getCurrentSidebarEntities'])
+                        ->setConstructorArgs([
+                            $this->apiClientFactory,
+                            $this->combinationHelper,
+                            $this->currentSetting,
+                            $this->settingHelper,
+                            $this->sidebarEntitiesHelper,
+                            $scriptVersion,
+                        ])
+                        ->getMock();
+        $handler->expects($this->once())
+                ->method('updateCombinationStatus');
+        $handler->expects($this->once())
+                ->method('updateSetting');
+        $handler->expects($this->once())
+                ->method('getCurrentSidebarEntities')
+                ->willReturn($sidebarEntities);
+
+        /* @var TransferResponse $result */
         $result = $handler->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);

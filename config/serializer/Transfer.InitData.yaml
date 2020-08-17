@@ -4,6 +4,8 @@ FactorioItemBrowser\PortalApi\Server\Transfer\InitData:
   properties:
     setting:
       type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
+    lastUsedSetting:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
     locale:
       type: string
     sidebarEntities:

@@ -71,4 +71,9 @@ interface ConfigKey
      * The key holding the lifetime of the sessions themselves.
      */
     public const SESSION_LIFETIME = 'session-lifetime';
+
+    /**
+     * The key holding the lifetime of the temporary settings.
+     */
+    public const TEMPORARY_SETTING_LIFETIME = 'temporary-setting-lifetime';
 }

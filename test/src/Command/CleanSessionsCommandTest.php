@@ -9,6 +9,7 @@ use DateTime;
 use DateTimeInterface;
 use FactorioItemBrowser\PortalApi\Server\Command\CleanSessionsCommand;
 use FactorioItemBrowser\PortalApi\Server\Constant\CommandName;
+use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,12 @@ class CleanSessionsCommandTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked setting repository.
+     * @var SettingRepository&MockObject
+     */
+    protected $settingRepository;
+
+    /**
      * The mocked user repository.
      * @var UserRepository&MockObject
      */
@@ -40,6 +47,7 @@ class CleanSessionsCommandTest extends TestCase
     {
         parent::setUp();
 
+        $this->settingRepository = $this->createMock(SettingRepository::class);
         $this->userRepository = $this->createMock(UserRepository::class);
     }
 
@@ -51,11 +59,19 @@ class CleanSessionsCommandTest extends TestCase
     public function testConstruct(): void
     {
         $sessionLifeTime = 'abc';
+        $temporarySettingLifeTime = 'def';
 
-        $command = new CleanSessionsCommand($this->userRepository, $sessionLifeTime);
+        $command = new CleanSessionsCommand(
+            $this->settingRepository,
+            $this->userRepository,
+            $sessionLifeTime,
+            $temporarySettingLifeTime,
+        );
 
+        $this->assertSame($this->settingRepository, $this->extractProperty($command, 'settingRepository'));
         $this->assertSame($this->userRepository, $this->extractProperty($command, 'userRepository'));
         $this->assertSame($sessionLifeTime, $this->extractProperty($command, 'sessionLifeTime'));
+        $this->assertSame($temporarySettingLifeTime, $this->extractProperty($command, 'temporarySettingLifeTime'));
     }
 
     /**
@@ -65,10 +81,9 @@ class CleanSessionsCommandTest extends TestCase
      */
     public function testConfigure(): void
     {
-        /* @var CleanSessionsCommand&MockObject $command */
         $command = $this->getMockBuilder(CleanSessionsCommand::class)
                         ->onlyMethods(['setName', 'setDescription'])
-                        ->setConstructorArgs([$this->userRepository, ''])
+                        ->setConstructorArgs([$this->settingRepository, $this->userRepository, '', ''])
                         ->getMock();
         $command->expects($this->once())
                 ->method('setName')
@@ -87,25 +102,41 @@ class CleanSessionsCommandTest extends TestCase
      */
     public function testExecute(): void
     {
-        /* @var DateTime&MockObject $timeCut */
-        $timeCut = $this->createMock(DateTime::class);
-        /* @var InputInterface&MockObject $input */
+        $sessionLifeTime = 'abc';
+        $temporarySettingLifeTime = 'def';
+
+
+        $timeCut1 = $this->createMock(DateTime::class);
+        $timeCut2 = $this->createMock(DateTime::class);
         $input = $this->createMock(InputInterface::class);
-        /* @var OutputInterface&MockObject $output */
         $output = $this->createMock(OutputInterface::class);
 
         $this->userRepository->expects($this->once())
                              ->method('cleanupOldSessions')
-                             ->with($this->identicalTo($timeCut));
+                             ->with($this->identicalTo($timeCut1));
+        $this->settingRepository->expects($this->once())
+                                ->method('cleanupTemporarySettings')
+                                ->with($this->identicalTo($timeCut2));
 
-        /* @var CleanSessionsCommand&MockObject $command */
         $command = $this->getMockBuilder(CleanSessionsCommand::class)
                         ->onlyMethods(['calculateTimeCut'])
-                        ->setConstructorArgs([$this->userRepository, ''])
+                        ->setConstructorArgs([
+                            $this->settingRepository,
+                            $this->userRepository,
+                            $sessionLifeTime,
+                            $temporarySettingLifeTime,
+                        ])
                         ->getMock();
-        $command->expects($this->once())
+        $command->expects($this->exactly(2))
                 ->method('calculateTimeCut')
-                ->willReturn($timeCut);
+                ->withConsecutive(
+                    [$this->identicalTo($sessionLifeTime)],
+                    [$this->identicalTo($temporarySettingLifeTime)],
+                )
+                ->willReturnOnConsecutiveCalls(
+                    $timeCut1,
+                    $timeCut2,
+                );
 
         $this->invokeMethod($command, 'execute', $input, $output);
     }
@@ -117,11 +148,12 @@ class CleanSessionsCommandTest extends TestCase
      */
     public function testCalculateTimeCut(): void
     {
-        $lifeTimeSession = '+1 day';
+        $lifeTime = '+1 day';
 
-        $command = new CleanSessionsCommand($this->userRepository, $lifeTimeSession);
+        $command = new CleanSessionsCommand($this->settingRepository, $this->userRepository, '', '');
+
         /* @var DateTimeInterface $result */
-        $result = $this->invokeMethod($command, 'calculateTimeCut');
+        $result = $this->invokeMethod($command, 'calculateTimeCut', $lifeTime);
 
         $this->assertGreaterThanOrEqual(3600, time() - $result->getTimestamp());
     }

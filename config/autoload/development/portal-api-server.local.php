@@ -26,6 +26,7 @@ return [
             ConfigKey::SESSION_COOKIE_LIFETIME => '+30 days',
             ConfigKey::SESSION_COOKIE_SECURE => false,
             ConfigKey::SESSION_LIFETIME => '+30 days',
+            ConfigKey::TEMPORARY_SETTING_LIFETIME => '1 hours',
         ],
     ],
 ];

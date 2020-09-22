@@ -6,7 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use DateTime;
 use DateTimeInterface;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -99,6 +99,7 @@ class UserRepository
     /**
      * Cleans up old sessions.
      * @param DateTimeInterface $timeCut
+     * @throws DriverException
      * @throws Exception
      */
     public function cleanupOldSessions(DateTimeInterface $timeCut): void
@@ -132,7 +133,7 @@ class UserRepository
     /**
      * Removes all users with the specified ids from the database.
      * @param array<UuidInterface>|UuidInterface[] $userIds
-     * @throws DBALException
+     * @throws DriverException
      */
     public function removeUsers(array $userIds): void
     {
@@ -162,7 +163,8 @@ class UserRepository
      * Removes the sidebar entities of the specified user ids.
      * Note: DQL does not support JOINs in DELETE statements, so we have to use a native query instead.
      * @param array<UuidInterface>|UuidInterface[] $userIds
-     * @throws DBALException
+     * @throws DriverException
+     * @throws Exception
      */
     protected function removeSidebarEntities(array $userIds): void
     {

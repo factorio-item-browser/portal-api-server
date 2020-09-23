@@ -123,6 +123,13 @@ class SettingRepository
                 ->setIsTemporary(true)
                 ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
                 ->setLocale(self::DEFAULT_LOCALE);
+
+        $lastSetting = $user->getLastUsedSetting();
+        if ($lastSetting !== null) {
+            $setting->setRecipeMode($lastSetting->getRecipeMode())
+                    ->setLocale($lastSetting->getLocale());
+        }
+
         return $setting;
     }
 

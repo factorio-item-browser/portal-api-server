@@ -126,9 +126,49 @@ class SettingRepositoryTest extends TestCase
      */
     public function testCreateTemporarySetting(): void
     {
-        $user = $this->createMock(User::class);
         $combinationId = $this->createMock(UuidInterface::class);
         $combination = $this->createMock(Combination::class);
+
+        $lastSetting = new Setting();
+        $lastSetting->setLocale('abc')
+                    ->setRecipeMode('def');
+
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getLastUsedSetting')
+             ->willReturn($lastSetting);
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn($combination);
+
+        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
+        $result = $repository->createTemporarySetting($user, $combinationId);
+
+        $result->getId(); // Asserted by type-hint.
+        $this->assertSame($user, $result->getUser());
+        $this->assertSame($combination, $result->getCombination());
+        $this->assertSame('Temporary', $result->getName());
+        $this->assertSame('def', $result->getRecipeMode());
+        $this->assertSame('abc', $result->getLocale());
+        $this->assertTrue($result->getIsTemporary());
+    }
+
+    /**
+     * Tests the createTemporarySetting method.
+     * @throws Exception
+     * @covers ::createTemporarySetting
+     */
+    public function testCreateTemporarySettingWithoutLastSetting(): void
+    {
+        $combinationId = $this->createMock(UuidInterface::class);
+        $combination = $this->createMock(Combination::class);
+
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())
+             ->method('getLastUsedSetting')
+             ->willReturn(null);
 
         $this->combinationRepository->expects($this->once())
                                     ->method('getCombination')

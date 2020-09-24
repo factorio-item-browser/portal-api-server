@@ -12,10 +12,12 @@ use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusRespons
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use JMS\Serializer\SerializerInterface;
@@ -50,28 +52,46 @@ class StatusHandler implements RequestHandlerInterface
     protected $currentSetting;
 
     /**
+     * The current user.
+     * @var User
+     */
+    protected $currentUser;
+
+    /**
      * The serializer.
      * @var SerializerInterface
      */
     protected $serializer;
 
     /**
+     * The setting helper.
+     * @var SettingHelper
+     */
+    protected $settingHelper;
+
+    /**
      * Initializes the handler.
      * @param ApiClientFactory $apiClientFactory
      * @param CombinationHelper $combinationHelper
      * @param Setting $currentSetting
+     * @param User $currentUser
      * @param SerializerInterface $portalApiServerSerializer
+     * @param SettingHelper $settingHelper
      */
     public function __construct(
         ApiClientFactory $apiClientFactory,
         CombinationHelper $combinationHelper,
         Setting $currentSetting,
-        SerializerInterface $portalApiServerSerializer
+        User $currentUser,
+        SerializerInterface $portalApiServerSerializer,
+        SettingHelper $settingHelper
     ) {
         $this->apiClientFactory = $apiClientFactory;
         $this->combinationHelper = $combinationHelper;
         $this->currentSetting = $currentSetting;
+        $this->currentUser = $currentUser;
         $this->serializer = $portalApiServerSerializer;
+        $this->settingHelper = $settingHelper;
     }
 
     /**
@@ -85,6 +105,7 @@ class StatusHandler implements RequestHandlerInterface
         $apiClient = $this->getApiClientForRequest($request);
         $combinationStatus = $this->requestCombinationStatus($apiClient);
         $combination = $this->combinationHelper->createCombinationFromStatusResponse($combinationStatus);
+
         $settingStatus = $this->createSettingStatus($combination);
         return new TransferResponse($settingStatus);
     }
@@ -150,12 +171,19 @@ class StatusHandler implements RequestHandlerInterface
      * Creates the setting status from the combination.
      * @param Combination $combination
      * @return SettingStatusData
+     * @throws PortalApiServerException
      */
     protected function createSettingStatus(Combination $combination): SettingStatusData
     {
         $settingStatus = new SettingStatusData();
         $settingStatus->setStatus($combination->getStatus())
                       ->setExportTime($combination->getExportTime());
+
+        $existingSetting = $this->currentUser->getSettingByCombinationId($combination->getId());
+        if ($existingSetting !== null) {
+            $settingStatus->setExistingSetting($this->settingHelper->createSettingMeta($existingSetting));
+        }
+
         return $settingStatus;
     }
 }

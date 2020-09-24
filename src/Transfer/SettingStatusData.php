@@ -27,6 +27,12 @@ class SettingStatusData
     protected $exportTime;
 
     /**
+     * The setting which is already using the combination.
+     * @var SettingMetaData|null
+     */
+    protected $existingSetting;
+
+    /**
      * Sets the export status of the combination.
      * @param string $status
      * @return $this
@@ -64,5 +70,25 @@ class SettingStatusData
     public function getExportTime(): ?DateTimeInterface
     {
         return $this->exportTime;
+    }
+
+    /**
+     * Sets the setting which is already using the combination.
+     * @param SettingMetaData|null $existingSetting
+     * @return $this
+     */
+    public function setExistingSetting(?SettingMetaData $existingSetting): self
+    {
+        $this->existingSetting = $existingSetting;
+        return $this;
+    }
+
+    /**
+     * Returns the setting which is already using the combination.
+     * @return SettingMetaData|null
+     */
+    public function getExistingSetting(): ?SettingMetaData
+    {
+        return $this->existingSetting;
     }
 }

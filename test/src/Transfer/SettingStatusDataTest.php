@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
 use DateTime;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -45,5 +46,19 @@ class SettingStatusDataTest extends TestCase
 
         $this->assertSame($transfer, $transfer->setExportTime($exportTime));
         $this->assertSame($exportTime, $transfer->getExportTime());
+    }
+
+    /**
+     * Tests the setting and getting the existing setting.
+     * @covers ::getExistingSetting
+     * @covers ::setExistingSetting
+     */
+    public function testSetAndGetExistingSetting(): void
+    {
+        $existingSetting = $this->createMock(SettingMetaData::class);
+        $transfer = new SettingStatusData();
+
+        $this->assertSame($transfer, $transfer->setExistingSetting($existingSetting));
+        $this->assertSame($existingSetting, $transfer->getExistingSetting());
     }
 }

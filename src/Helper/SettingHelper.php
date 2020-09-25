@@ -110,6 +110,24 @@ class SettingHelper
     }
 
     /**
+     * Creates the setting details, without requesting the mod data. This is a temporary solution until the settings get
+     * refactored when separating mod icons from their list.
+     * @param Setting $setting
+     * @return SettingDetailsData
+     * @throws MappingException
+     */
+    public function createSettingDetailsWithoutMods(Setting $setting): SettingDetailsData
+    {
+        $settingData = new SettingDetailsData();
+        try {
+            $this->mapperManager->map($setting, $settingData);
+        } catch (MapperException $e) {
+            throw new MappingException($e);
+        }
+        return $settingData;
+    }
+
+    /**
      * Extracts the mod names from the setting.
      * @param Setting $setting
      * @return NamesByTypes

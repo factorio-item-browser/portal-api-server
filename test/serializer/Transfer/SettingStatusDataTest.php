@@ -6,7 +6,7 @@ namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
 use DateTime;
 use Exception;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
 
@@ -25,11 +25,13 @@ class SettingStatusDataTest extends SerializerTestCase
      */
     protected function getObject(): object
     {
-        $setting = new SettingMetaData();
+        $setting = new SettingDetailsData();
         $setting->setCombinationId('def')
                 ->setName('ghi')
                 ->setStatus('jkl')
-                ->setIsTemporary(true);
+                ->setIsTemporary(true)
+                ->setRecipeMode('mno')
+                ->setLocale('pqr');
 
         $object = new SettingStatusData();
         $object->setStatus('abc')
@@ -53,6 +55,13 @@ class SettingStatusDataTest extends SerializerTestCase
                 'name' => 'ghi',
                 'status' => 'jkl',
                 'isTemporary' => true,
+                'recipeMode' => 'mno',
+                'locale' => 'pqr',
+                'mods' => [],
+                'modIconsStyle' => [
+                    'processedEntities' => [],
+                    'style' => '',
+                ]
             ],
         ];
     }

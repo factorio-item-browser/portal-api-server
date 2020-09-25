@@ -21,7 +21,7 @@ use FactorioItemBrowser\PortalApi\Server\Handler\Settings\StatusHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use JMS\Serializer\SerializerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -451,7 +451,7 @@ class StatusHandlerTest extends TestCase
         $combinationId = $this->createMock(UuidInterface::class);
         $exportTime = $this->createMock(DateTime::class);
         $existingSetting = $this->createMock(Setting::class);
-        $existingSettingMeta = $this->createMock(SettingMetaData::class);
+        $existingSettingDetails = $this->createMock(SettingDetailsData::class);
 
         $combination = new Combination();
         $combination->setId($combinationId)
@@ -461,7 +461,7 @@ class StatusHandlerTest extends TestCase
         $expectedResult = new SettingStatusData();
         $expectedResult->setStatus($status)
                        ->setExportTime($exportTime)
-                       ->setExistingSetting($existingSettingMeta);
+                       ->setExistingSetting($existingSettingDetails);
 
         $this->currentUser->expects($this->once())
                           ->method('getSettingByCombinationId')
@@ -469,9 +469,9 @@ class StatusHandlerTest extends TestCase
                           ->willReturn($existingSetting);
 
         $this->settingHelper->expects($this->once())
-                            ->method('createSettingMeta')
+                            ->method('createSettingDetailsWithoutMods')
                             ->with($this->identicalTo($existingSetting))
-                            ->willReturn($existingSettingMeta);
+                            ->willReturn($existingSettingDetails);
 
         $handler = new StatusHandler(
             $this->apiClientFactory,
@@ -514,7 +514,7 @@ class StatusHandlerTest extends TestCase
                           ->willReturn(null);
 
         $this->settingHelper->expects($this->never())
-                            ->method('createSettingMeta');
+                            ->method('createSettingDetailsWithoutMods');
 
         $handler = new StatusHandler(
             $this->apiClientFactory,

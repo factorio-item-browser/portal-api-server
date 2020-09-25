@@ -7,4 +7,4 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData:
     exportTime:
       type: DateTime<'Y-m-d\TH:i:s.vP'>
     existingSetting:
-      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData

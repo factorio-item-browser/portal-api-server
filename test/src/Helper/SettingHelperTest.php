@@ -317,6 +317,52 @@ class SettingHelperTest extends TestCase
         $helper->createSettingDetails($setting);
     }
 
+
+    /**
+     * Tests the createSettingDetailsWithoutMods method.
+     * @throws PortalApiServerException
+     * @covers ::createSettingDetailsWithoutMods
+     */
+    public function testCreateSettingDetailsWithoutMods(): void
+    {
+        $setting = $this->createMock(Setting::class);
+
+        $this->mapperManager->expects($this->once())
+                            ->method('map')
+                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingDetailsData::class));
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $helper->createSettingDetailsWithoutMods($setting);
+    }
+
+    /**
+     * Tests the createSettingDetailsWithoutMods method.
+     * @throws PortalApiServerException
+     * @covers ::createSettingDetailsWithoutMods
+     */
+    public function testCreateSettingMetaWithoutModsWithException(): void
+    {
+        $setting = $this->createMock(Setting::class);
+
+        $this->mapperManager->expects($this->once())
+                            ->method('map')
+                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingDetailsData::class))
+                            ->willThrowException($this->createMock(MapperException::class));
+
+        $this->expectException(MappingException::class);
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $helper->createSettingDetailsWithoutMods($setting);
+    }
+
     /**
      * Tests the extractModNames method.
      * @throws ReflectionException

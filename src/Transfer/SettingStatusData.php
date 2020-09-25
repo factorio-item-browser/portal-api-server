@@ -28,7 +28,7 @@ class SettingStatusData
 
     /**
      * The setting which is already using the combination.
-     * @var SettingMetaData|null
+     * @var SettingDetailsData|null
      */
     protected $existingSetting;
 
@@ -74,10 +74,10 @@ class SettingStatusData
 
     /**
      * Sets the setting which is already using the combination.
-     * @param SettingMetaData|null $existingSetting
+     * @param SettingDetailsData|null $existingSetting
      * @return $this
      */
-    public function setExistingSetting(?SettingMetaData $existingSetting): self
+    public function setExistingSetting(?SettingDetailsData $existingSetting): self
     {
         $this->existingSetting = $existingSetting;
         return $this;
@@ -85,9 +85,9 @@ class SettingStatusData
 
     /**
      * Returns the setting which is already using the combination.
-     * @return SettingMetaData|null
+     * @return SettingDetailsData|null
      */
-    public function getExistingSetting(): ?SettingMetaData
+    public function getExistingSetting(): ?SettingDetailsData
     {
         return $this->existingSetting;
     }

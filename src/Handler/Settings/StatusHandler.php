@@ -181,7 +181,7 @@ class StatusHandler implements RequestHandlerInterface
 
         $existingSetting = $this->currentUser->getSettingByCombinationId($combination->getId());
         if ($existingSetting !== null) {
-            $settingStatus->setExistingSetting($this->settingHelper->createSettingMeta($existingSetting));
+            $settingStatus->setExistingSetting($this->settingHelper->createSettingDetailsWithoutMods($existingSetting));
         }
 
         return $settingStatus;

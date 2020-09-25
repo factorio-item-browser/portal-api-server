@@ -778,7 +778,7 @@ components:
           description: The timestamp when the data was exported from Factorio.
           example: "2038-01-19T03:14:07.000Z"
         existingSetting:
-          $ref: "#/components/schemas/SettingMetaData"
+          $ref: "#/components/schemas/SettingDetailsData"
       required:
         - status
 

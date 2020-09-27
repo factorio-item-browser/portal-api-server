@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\PortalApi\Server\Handler\Session;
+namespace FactorioItemBrowser\PortalApi\Server\Handler;
 
 use DateTime;
 use Exception;
@@ -18,7 +18,7 @@ use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -104,12 +104,18 @@ class InitHandler implements RequestHandlerInterface
         $this->updateCombinationStatus();
         $this->updateSetting();
 
-        $data = new SessionInitData();
+        $data = new InitData();
         $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
-             ->setSettingHash($this->settingHelper->calculateHash($this->currentSetting))
              ->setLocale($this->currentSetting->getLocale())
              ->setSidebarEntities($this->getCurrentSidebarEntities())
              ->setScriptVersion($this->scriptVersion);
+
+        if ($this->currentSetting->getIsTemporary()) {
+            $lastUsedSetting = $this->currentSetting->getUser()->getLastUsedSetting();
+            if ($lastUsedSetting !== null) {
+                $data->setLastUsedSetting($this->settingHelper->createSettingMeta($lastUsedSetting));
+            }
+        }
 
         return new TransferResponse($data);
     }

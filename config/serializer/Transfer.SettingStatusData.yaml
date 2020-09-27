@@ -6,3 +6,5 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData:
       type: string
     exportTime:
       type: DateTime<'Y-m-d\TH:i:s.vP'>
+    existingSetting:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData

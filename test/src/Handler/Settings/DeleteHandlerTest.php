@@ -8,9 +8,9 @@ use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\DeleteActiveSettingException;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\DeleteHandler;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use Laminas\Diactoros\Response\EmptyResponse;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,16 +31,16 @@ class DeleteHandlerTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked current setting.
+     * @var Setting&MockObject
+     */
+    protected $currentSetting;
+
+    /**
      * The mocked current user.
      * @var User&MockObject
      */
     protected $currentUser;
-
-    /**
-     * The mocked setting helper.
-     * @var SettingHelper&MockObject
-     */
-    protected $settingHelper;
 
     /**
      * The mocked setting repository.
@@ -55,8 +55,8 @@ class DeleteHandlerTest extends TestCase
     {
         parent::setUp();
 
+        $this->currentSetting = $this->createMock(Setting::class);
         $this->currentUser = $this->createMock(User::class);
-        $this->settingHelper = $this->createMock(SettingHelper::class);
         $this->settingRepository = $this->createMock(SettingRepository::class);
     }
 
@@ -67,10 +67,10 @@ class DeleteHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $handler = new DeleteHandler($this->currentUser, $this->settingHelper, $this->settingRepository);
+        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
 
+        $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
-        $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
         $this->assertSame($this->settingRepository, $this->extractProperty($handler, 'settingRepository'));
     }
 
@@ -81,45 +81,32 @@ class DeleteHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
-        $settingId = Uuid::fromString($settingIdString);
+        $combinationIdString = '0b08779e-9639-4730-b9fc-66a1ceaeb216';
+        $combinationId = Uuid::fromString($combinationIdString);
 
-        $currentSettingIdString = '0db518a9-6829-4a56-81f6-8b82d3a9d676';
-        $currentSettingId = Uuid::fromString($currentSettingIdString);
+        $setting = new Setting();
+        $setting->setId(Uuid::fromString('15c38bec-60d9-4908-ab4e-aa0f14036221'));
 
-        /* @var ServerRequestInterface&MockObject $request */
+        $this->currentSetting->expects($this->any())
+                             ->method('getId')
+                             ->willReturn(Uuid::fromString('2b0afa54-bcf7-4152-a439-3d53cedbf720'));
+
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('getId')
-                ->willReturn($settingId);
-
-        /* @var Setting&MockObject $currentSetting */
-        $currentSetting = $this->createMock(Setting::class);
-        $currentSetting->expects($this->once())
-                       ->method('getId')
-                       ->willReturn($currentSettingId);
-
-        $this->currentUser->expects($this->atLeastOnce())
-                          ->method('getCurrentSetting')
-                          ->willReturn($currentSetting);
-
-        $this->settingHelper->expects($this->once())
-                            ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
-                            ->willReturn($setting);
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn($setting);
 
         $this->settingRepository->expects($this->once())
                                 ->method('deleteSetting')
                                 ->with($this->identicalTo($setting));
 
-        $handler = new DeleteHandler($this->currentUser, $this->settingHelper, $this->settingRepository);
+        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
         $result = $handler->handle($request);
 
         $this->assertInstanceOf(EmptyResponse::class, $result);
@@ -130,48 +117,69 @@ class DeleteHandlerTest extends TestCase
      * @throws PortalApiServerException
      * @covers ::handle
      */
-    public function testHandleWithException(): void
+    public function testHandleWithMissingSettingException(): void
     {
-        $settingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
-        $settingId = Uuid::fromString($settingIdString);
+        $combinationIdString = '0b08779e-9639-4730-b9fc-66a1ceaeb216';
+        $combinationId = Uuid::fromString($combinationIdString);
 
-        $currentSettingIdString = 'ed770932-42bc-4093-9572-e2287113be90';
-        $currentSettingId = Uuid::fromString($currentSettingIdString);
+        $this->currentSetting->expects($this->any())
+                             ->method('getId')
+                             ->willReturn(Uuid::fromString('2b0afa54-bcf7-4152-a439-3d53cedbf720'));
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        /* @var Setting&MockObject $setting */
-        $setting = $this->createMock(Setting::class);
-        $setting->expects($this->once())
-                ->method('getId')
-                ->willReturn($settingId);
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn(null);
 
-        /* @var Setting&MockObject $currentSetting */
-        $currentSetting = $this->createMock(Setting::class);
-        $currentSetting->expects($this->once())
-                       ->method('getId')
-                       ->willReturn($currentSettingId);
+        $this->settingRepository->expects($this->never())
+                                ->method('deleteSetting');
 
-        $this->currentUser->expects($this->atLeastOnce())
-                          ->method('getCurrentSetting')
-                          ->willReturn($currentSetting);
+        $this->expectException(MissingSettingException::class);
 
-        $this->settingHelper->expects($this->once())
-                            ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
-                            ->willReturn($setting);
+        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
+        $handler->handle($request);
+    }
+    
+    /**
+     * Tests the handle method.
+     * @throws PortalApiServerException
+     * @covers ::handle
+     */
+    public function testHandleWithDeleteActiveSettingException(): void
+    {
+        $combinationIdString = '0b08779e-9639-4730-b9fc-66a1ceaeb216';
+        $combinationId = Uuid::fromString($combinationIdString);
+
+        $setting = new Setting();
+        $setting->setId(Uuid::fromString('15c38bec-60d9-4908-ab4e-aa0f14036221'));
+
+        $this->currentSetting->expects($this->any())
+                             ->method('getId')
+                             ->willReturn(Uuid::fromString('15c38bec-60d9-4908-ab4e-aa0f14036221'));
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getAttribute')
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn($setting);
 
         $this->settingRepository->expects($this->never())
                                 ->method('deleteSetting');
 
         $this->expectException(DeleteActiveSettingException::class);
 
-        $handler = new DeleteHandler($this->currentUser, $this->settingHelper, $this->settingRepository);
+        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
         $handler->handle($request);
     }
 }

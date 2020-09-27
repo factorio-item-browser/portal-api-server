@@ -32,6 +32,7 @@ return [
 
             Command\CleanSessionsCommand::class => AutoWireFactory::class,
 
+            Handler\InitHandler::class => AutoWireFactory::class,
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
@@ -39,7 +40,6 @@ return [
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
             Handler\Recipe\MachinesHandler::class => AutoWireFactory::class,
             Handler\SearchHandler::class => AutoWireFactory::class,
-            Handler\Session\InitHandler::class => AutoWireFactory::class,
             Handler\Settings\CreateHandler::class => AutoWireFactory::class,
             Handler\Settings\DeleteHandler::class => AutoWireFactory::class,
             Handler\Settings\DetailsHandler::class => AutoWireFactory::class,
@@ -52,6 +52,7 @@ return [
             Handler\Tooltip\RecipeHandler::class => AutoWireFactory::class,
 
             Helper\CombinationHelper::class => AutoWireFactory::class,
+            Helper\CookieHelper::class => AutoWireFactory::class,
             Helper\IconsStyleFetcher::class => AutoWireFactory::class,
             Helper\RecipeSelector::class => AutoWireFactory::class,
             Helper\SettingHelper::class => AutoWireFactory::class,
@@ -94,6 +95,7 @@ return [
             'array $allowedOrigins' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::ALLOWED_ORIGINS),
 
             'bool $isDebug' => readConfig('debug'),
+            'bool $useSecureCookie' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_SECURE),
 
             'int $numberOfRecipesPerResult' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::NUMBER_OF_RECIPES_PER_RESULT),
 
@@ -103,6 +105,7 @@ return [
             'string $sessionCookieName' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_NAME),
             'string $sessionCookiePath' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_PATH),
             'string $sessionLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_LIFETIME),
+            'string $temporarySettingLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::TEMPORARY_SETTING_LIFETIME),
             'string $version' => readConfig('version'),
         ],
     ],

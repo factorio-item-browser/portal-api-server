@@ -31,15 +31,9 @@ class User
 
     /**
      * The settings of the user.
-     * @var Collection<int,Setting>
+     * @var Collection<int,Setting>|Setting[]
      */
     protected $settings;
-
-    /**
-     * The setting currently active for the user.
-     * @var Setting|null
-     */
-    protected $currentSetting;
 
     /**
      * Initializes the entity.
@@ -99,22 +93,36 @@ class User
     }
 
     /**
-     * Returns the setting currently active for the user.
+     * Returns the setting of the user having the specified combination id.
+     * @param UuidInterface $combinationId
      * @return Setting|null
      */
-    public function getCurrentSetting(): ?Setting
+    public function getSettingByCombinationId(UuidInterface $combinationId): ?Setting
     {
-        return $this->currentSetting;
+        foreach ($this->settings as $setting) {
+            if ($combinationId->equals($setting->getCombination()->getId())) {
+                return $setting;
+            }
+        }
+        return null;
     }
 
     /**
-     * Sets the setting currently active for the user.
-     * @param Setting|null $currentSetting
-     * @return $this
+     * Returns the setting last used by the user, excluding temporary settings.
+     * @return Setting|null
      */
-    public function setCurrentSetting(?Setting $currentSetting): self
+    public function getLastUsedSetting(): ?Setting
     {
-        $this->currentSetting = $currentSetting;
-        return $this;
+        /* @var Setting|null $lastUsedSetting */
+        $lastUsedSetting = null;
+        $lastUsedTimestamp = 0;
+
+        foreach ($this->settings as $setting) {
+            if (!$setting->getIsTemporary() && $setting->getLastUsageTime()->getTimestamp() > $lastUsedTimestamp) {
+                $lastUsedTimestamp = $setting->getLastUsageTime()->getTimestamp();
+                $lastUsedSetting = $setting;
+            }
+        }
+        return $lastUsedSetting;
     }
 }

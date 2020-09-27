@@ -6,6 +6,8 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
 use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\DetailsHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
@@ -29,6 +31,12 @@ class DetailsHandlerTest extends TestCase
     use ReflectionTrait;
 
     /**
+     * The mocked current user.
+     * @var User&MockObject
+     */
+    protected $currentUser;
+
+    /**
      * The mocked setting helper.
      * @var SettingHelper&MockObject
      */
@@ -41,6 +49,7 @@ class DetailsHandlerTest extends TestCase
     {
         parent::setUp();
 
+        $this->currentUser = $this->createMock(User::class);
         $this->settingHelper = $this->createMock(SettingHelper::class);
     }
 
@@ -51,8 +60,9 @@ class DetailsHandlerTest extends TestCase
      */
     public function testConstruct(): void
     {
-        $handler = new DetailsHandler($this->settingHelper);
+        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
 
+        $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
         $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
     }
 
@@ -63,35 +73,63 @@ class DetailsHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $settingIdString = 'a20ef5d4-59bf-48aa-9b72-2e5ddb2f2995';
-        $settingId = Uuid::fromString($settingIdString);
-        /* @var Setting&MockObject $setting */
+        $combinationIdString = 'a20ef5d4-59bf-48aa-9b72-2e5ddb2f2995';
+        $combinationId = Uuid::fromString($combinationIdString);
         $setting = $this->createMock(Setting::class);
-        /* @var SettingDetailsData&MockObject $settingDetails */
         $settingDetails = $this->createMock(SettingDetailsData::class);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getAttribute')
-                ->with($this->identicalTo('setting-id'), $this->identicalTo(''))
-                ->willReturn($settingIdString);
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
 
-        $this->settingHelper->expects($this->once())
-                            ->method('findInCurrentUser')
-                            ->with($this->equalTo($settingId))
-                            ->willReturn($setting);
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn($setting);
+
         $this->settingHelper->expects($this->once())
                             ->method('createSettingDetails')
                             ->with($this->identicalTo($setting))
                             ->willReturn($settingDetails);
 
-        $handler = new DetailsHandler($this->settingHelper);
+        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
 
         /* @var TransferResponse $result */
         $result = $handler->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertSame($settingDetails, $result->getTransfer());
+    }
+
+    /**
+     * Tests the handle method.
+     * @throws PortalApiServerException
+     * @covers ::handle
+     */
+    public function testHandleWithException(): void
+    {
+        $combinationIdString = 'a20ef5d4-59bf-48aa-9b72-2e5ddb2f2995';
+        $combinationId = Uuid::fromString($combinationIdString);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->once())
+                ->method('getAttribute')
+                ->with($this->identicalTo('combination-id'), $this->identicalTo(''))
+                ->willReturn($combinationIdString);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->equalTo($combinationId))
+                          ->willReturn(null);
+
+        $this->settingHelper->expects($this->never())
+                            ->method('createSettingDetails');
+
+        $this->expectException(MissingSettingException::class);
+
+        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
+        $handler->handle($request);
     }
 }

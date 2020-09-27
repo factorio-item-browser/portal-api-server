@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
@@ -31,6 +32,9 @@ class SettingTest extends TestCase
         $entity = new Setting();
 
         $this->assertInstanceOf(ArrayCollection::class, $entity->getSidebarEntities());
+
+        // Asserted through type hinting
+        $entity->getLastUsageTime();
     }
 
     /**
@@ -135,6 +139,20 @@ class SettingTest extends TestCase
     }
 
     /**
+     * Tests the setting and getting the last usage time.
+     * @covers ::getLastUsageTime
+     * @covers ::setLastUsageTime
+     */
+    public function testSetAndGetLastUsageTime(): void
+    {
+        $lastUsageTime = new DateTime('2038-01-19 03:14:07');
+        $entity = new Setting();
+
+        $this->assertSame($entity, $entity->setLastUsageTime($lastUsageTime));
+        $this->assertSame($lastUsageTime, $entity->getLastUsageTime());
+    }
+
+    /**
      * Tests the setting and getting the has data.
      * @covers ::getHasData
      * @covers ::setHasData
@@ -145,5 +163,18 @@ class SettingTest extends TestCase
 
         $this->assertSame($entity, $entity->setHasData(true));
         $this->assertTrue($entity->getHasData());
+    }
+
+    /**
+     * Tests the setting and getting the is temporary.
+     * @covers ::getIsTemporary
+     * @covers ::setIsTemporary
+     */
+    public function testSetAndGetIsTemporary(): void
+    {
+        $entity = new Setting();
+
+        $this->assertSame($entity, $entity->setIsTemporary(true));
+        $this->assertTrue($entity->getIsTemporary());
     }
 }

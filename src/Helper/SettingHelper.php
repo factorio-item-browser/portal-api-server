@@ -13,16 +13,13 @@ use FactorioItemBrowser\Api\Client\Response\Mod\ModListResponse;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
-use Ramsey\Uuid\UuidInterface;
 
 /**
  * The helper for managing and mapping settings.
@@ -39,12 +36,6 @@ class SettingHelper
     protected $apiClientFactory;
 
     /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
-
-    /**
      * The icons style fetcher.
      * @var IconsStyleFetcher
      */
@@ -59,37 +50,17 @@ class SettingHelper
     /**
      * Initializes the helper.
      * @param ApiClientFactory $apiClientFactory
-     * @param User $currentUser
      * @param IconsStyleFetcher $iconsStyleFetcher
      * @param MapperManagerInterface $mapperManager
      */
     public function __construct(
         ApiClientFactory $apiClientFactory,
-        User $currentUser,
         IconsStyleFetcher $iconsStyleFetcher,
         MapperManagerInterface $mapperManager
     ) {
         $this->apiClientFactory = $apiClientFactory;
-        $this->currentUser = $currentUser;
         $this->iconsStyleFetcher = $iconsStyleFetcher;
         $this->mapperManager = $mapperManager;
-    }
-
-    /**
-     * Finds the setting with the specified id in the current user.
-     * @param UuidInterface $settingId
-     * @return Setting
-     * @throws PortalApiServerException
-     */
-    public function findInCurrentUser(UuidInterface $settingId): Setting
-    {
-        foreach ($this->currentUser->getSettings() as $setting) {
-            if ($setting->getId()->compareTo($settingId) === 0) {
-                return $setting;
-            }
-        }
-
-        throw new UnknownEntityException('setting', $settingId->toString());
     }
 
     /**
@@ -139,6 +110,24 @@ class SettingHelper
     }
 
     /**
+     * Creates the setting details, without requesting the mod data. This is a temporary solution until the settings get
+     * refactored when separating mod icons from their list.
+     * @param Setting $setting
+     * @return SettingDetailsData
+     * @throws MappingException
+     */
+    public function createSettingDetailsWithoutMods(Setting $setting): SettingDetailsData
+    {
+        $settingData = new SettingDetailsData();
+        try {
+            $this->mapperManager->map($setting, $settingData);
+        } catch (MapperException $e) {
+            throw new MappingException($e);
+        }
+        return $settingData;
+    }
+
+    /**
      * Extracts the mod names from the setting.
      * @param Setting $setting
      * @return NamesByTypes
@@ -167,28 +156,5 @@ class SettingHelper
             throw new MappingException($e);
         }
         return $modData;
-    }
-
-    /**
-     * Calculates a hash for the specified setting, accounting for all its options.
-     * @param Setting $setting
-     * @return string
-     */
-    public function calculateHash(Setting $setting): string
-    {
-        $exportTime = '';
-        if ($setting->getCombination()->getExportTime() !== null) {
-            $exportTime = $setting->getCombination()->getExportTime()->format('Y-m-d\TH:i:sP');
-        }
-
-        $data = [
-            $setting->getId()->toString(),
-            $setting->getCombination()->getId()->toString(),
-            $exportTime,
-            $setting->getLocale(),
-            $setting->getRecipeMode(),
-        ];
-
-        return hash('md5', (string) json_encode($data));
     }
 }

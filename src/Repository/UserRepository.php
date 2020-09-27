@@ -6,7 +6,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
 use DateTime;
 use DateTimeInterface;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
@@ -54,10 +54,8 @@ class UserRepository
     public function getUser(UuidInterface $userId): ?User
     {
         $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->select('u', 's', 'c')
+        $queryBuilder->select('u')
                      ->from(User::class, 'u')
-                     ->leftJoin('u.currentSetting', 's')
-                     ->leftJoin('s.combination', 'c')
                      ->where('u.id = :userId')
                      ->setParameter('userId', $userId, UuidBinaryType::NAME);
 
@@ -83,7 +81,6 @@ class UserRepository
         $defaultSetting = $this->settingRepository->createDefaultSetting($user);
 
         $user->getSettings()->add($defaultSetting);
-        $user->setCurrentSetting($defaultSetting);
         return $user;
     }
 
@@ -96,15 +93,13 @@ class UserRepository
     {
         $user->setLastVisitTime(new DateTime());
         $this->entityManager->persist($user);
-        if ($user->getCurrentSetting() !== null) {
-            $this->entityManager->persist($user->getCurrentSetting());
-        }
         $this->entityManager->flush();
     }
 
     /**
      * Cleans up old sessions.
      * @param DateTimeInterface $timeCut
+     * @throws DriverException
      * @throws Exception
      */
     public function cleanupOldSessions(DateTimeInterface $timeCut): void
@@ -138,7 +133,7 @@ class UserRepository
     /**
      * Removes all users with the specified ids from the database.
      * @param array<UuidInterface>|UuidInterface[] $userIds
-     * @throws DBALException
+     * @throws DriverException
      */
     public function removeUsers(array $userIds): void
     {
@@ -146,25 +141,17 @@ class UserRepository
             return $userId->getBytes();
         }, $userIds));
 
-        // 1. Set currentSetting of the users to NULL to break the circular references.
-        $queryBuilder = $this->entityManager->createQueryBuilder();
-        $queryBuilder->update(User::class, 'u')
-                     ->set('u.currentSetting', 'NULL')
-                     ->where('u.id IN (:userIds)')
-                     ->setParameter('userIds', $mappedUserIds);
-        $queryBuilder->getQuery()->execute();
-
-        // 2. Remove all sidebar entities of the users.
+        // 1. Remove all sidebar entities of the users.
         $this->removeSidebarEntities($userIds);
 
-        // 3. Remove all settings of the users.
+        // 2. Remove all settings of the users.
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->delete(Setting::class, 's')
                      ->where('s.user IN (:userIds)')
                      ->setParameter('userIds', $mappedUserIds);
         $queryBuilder->getQuery()->execute();
 
-        // 4. Remove the actual users.
+        // 3. Remove the actual users.
         $queryBuilder = $this->entityManager->createQueryBuilder();
         $queryBuilder->delete(User::class, 'u')
                      ->where('u.id IN (:userIds)')
@@ -176,7 +163,8 @@ class UserRepository
      * Removes the sidebar entities of the specified user ids.
      * Note: DQL does not support JOINs in DELETE statements, so we have to use a native query instead.
      * @param array<UuidInterface>|UuidInterface[] $userIds
-     * @throws DBALException
+     * @throws DriverException
+     * @throws Exception
      */
     protected function removeSidebarEntities(array $userIds): void
     {

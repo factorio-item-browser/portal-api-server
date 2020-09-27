@@ -73,7 +73,7 @@ class CorsHeaderMiddleware implements MiddlewareInterface
      */
     protected function addHeaders(ResponseInterface $response, string $origin): ResponseInterface
     {
-        $response = $response->withHeader('Access-Control-Allow-Headers', 'Content-Type')
+        $response = $response->withHeader('Access-Control-Allow-Headers', 'Combination-Id,Content-Type')
                              ->withHeader('Access-Control-Allow-Credentials', 'true')
                              ->withHeader('Access-Control-Allow-Origin', $origin);
 

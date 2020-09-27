@@ -14,17 +14,21 @@ use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusRespons
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\InvalidRequestException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Settings\StatusHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
+use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use JMS\Serializer\SerializerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
+use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -57,10 +61,22 @@ class StatusHandlerTest extends TestCase
     protected $currentSetting;
 
     /**
+     * The mocked current user.
+     * @var User&MockObject
+     */
+    protected $currentUser;
+
+    /**
      * The mocked serializer.
      * @var SerializerInterface&MockObject
      */
     protected $serializer;
+
+    /**
+     * The mocked setting helper.
+     * @var SettingHelper&MockObject
+     */
+    protected $settingHelper;
 
     /**
      * Sets up the test case.
@@ -72,7 +88,9 @@ class StatusHandlerTest extends TestCase
         $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
         $this->combinationHelper = $this->createMock(CombinationHelper::class);
         $this->currentSetting = $this->createMock(Setting::class);
+        $this->currentUser = $this->createMock(User::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
+        $this->settingHelper = $this->createMock(SettingHelper::class);
     }
 
     /**
@@ -86,7 +104,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $this->assertSame($this->apiClientFactory, $this->extractProperty($handler, 'apiClientFactory'));
@@ -102,15 +122,10 @@ class StatusHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
-        /* @var CombinationStatusResponse&MockObject $combinationStatus */
         $combinationStatus = $this->createMock(CombinationStatusResponse::class);
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
-        /* @var SettingStatusData&MockObject $settingStatus */
         $settingStatus = $this->createMock(SettingStatusData::class);
 
         $this->combinationHelper->expects($this->once())
@@ -118,14 +133,15 @@ class StatusHandlerTest extends TestCase
                                 ->with($this->identicalTo($combinationStatus))
                                 ->willReturn($combination);
 
-        /* @var StatusHandler&MockObject $handler */
         $handler = $this->getMockBuilder(StatusHandler::class)
                         ->onlyMethods(['getApiClientForRequest', 'requestCombinationStatus', 'createSettingStatus'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->serializer,
+                            $this->settingHelper,
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -158,10 +174,8 @@ class StatusHandlerTest extends TestCase
         $method = 'POST';
         $modNames = ['abc', 'def'];
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getMethod')
@@ -174,14 +188,15 @@ class StatusHandlerTest extends TestCase
                                ->with($this->identicalTo($modNames))
                                ->willReturn($apiClient);
 
-        /* @var StatusHandler&MockObject $handler */
         $handler = $this->getMockBuilder(StatusHandler::class)
                         ->onlyMethods(['extractModNamesFromRequest'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->serializer,
+                            $this->settingHelper,
                         ])
                         ->getMock();
         $handler->expects($this->once())
@@ -203,10 +218,8 @@ class StatusHandlerTest extends TestCase
     {
         $method = 'GET';
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getMethod')
@@ -219,14 +232,15 @@ class StatusHandlerTest extends TestCase
         $this->apiClientFactory->expects($this->never())
                                ->method('createForModNames');
 
-        /* @var StatusHandler&MockObject $handler */
         $handler = $this->getMockBuilder(StatusHandler::class)
                         ->onlyMethods(['extractModNamesFromRequest'])
                         ->setConstructorArgs([
                             $this->apiClientFactory,
                             $this->combinationHelper,
                             $this->currentSetting,
+                            $this->currentUser,
                             $this->serializer,
+                            $this->settingHelper,
                         ])
                         ->getMock();
         $handler->expects($this->never())
@@ -247,13 +261,11 @@ class StatusHandlerTest extends TestCase
         $contents = 'abc';
         $modNames = ['def', 'ghi'];
 
-        /* @var StreamInterface&MockObject $body */
         $body = $this->createMock(StreamInterface::class);
         $body->expects($this->once())
              ->method('getContents')
              ->willReturn($contents);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
@@ -272,7 +284,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $result = $this->invokeMethod($handler, 'extractModNamesFromRequest', $request);
@@ -289,13 +303,11 @@ class StatusHandlerTest extends TestCase
     {
         $contents = 'abc';
 
-        /* @var StreamInterface&MockObject $body */
         $body = $this->createMock(StreamInterface::class);
         $body->expects($this->once())
              ->method('getContents')
              ->willReturn($contents);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
@@ -316,7 +328,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $this->invokeMethod($handler, 'extractModNamesFromRequest', $request);
@@ -332,13 +346,11 @@ class StatusHandlerTest extends TestCase
         $contents = 'abc';
         $modNames = [];
 
-        /* @var StreamInterface&MockObject $body */
         $body = $this->createMock(StreamInterface::class);
         $body->expects($this->once())
              ->method('getContents')
              ->willReturn($contents);
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
@@ -359,7 +371,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $this->invokeMethod($handler, 'extractModNamesFromRequest', $request);
@@ -374,10 +388,8 @@ class StatusHandlerTest extends TestCase
     {
         $expectedRequest = new CombinationStatusRequest();
 
-        /* @var CombinationStatusResponse&MockObject $response */
         $response = $this->createMock(CombinationStatusResponse::class);
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('fetchResponse')
@@ -388,7 +400,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $result = $this->invokeMethod($handler, 'requestCombinationStatus', $apiClient);
@@ -405,7 +419,6 @@ class StatusHandlerTest extends TestCase
     {
         $expectedRequest = new CombinationStatusRequest();
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('fetchResponse')
@@ -418,7 +431,9 @@ class StatusHandlerTest extends TestCase
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $this->invokeMethod($handler, 'requestCombinationStatus', $apiClient);
@@ -433,22 +448,81 @@ class StatusHandlerTest extends TestCase
     {
         $status = 'abc';
 
-        /* @var DateTime&MockObject $exportTime */
+        $combinationId = $this->createMock(UuidInterface::class);
+        $exportTime = $this->createMock(DateTime::class);
+        $existingSetting = $this->createMock(Setting::class);
+        $existingSettingDetails = $this->createMock(SettingDetailsData::class);
+
+        $combination = new Combination();
+        $combination->setId($combinationId)
+                    ->setStatus($status)
+                    ->setExportTime($exportTime);
+
+        $expectedResult = new SettingStatusData();
+        $expectedResult->setStatus($status)
+                       ->setExportTime($exportTime)
+                       ->setExistingSetting($existingSettingDetails);
+
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->identicalTo($combinationId))
+                          ->willReturn($existingSetting);
+
+        $this->settingHelper->expects($this->once())
+                            ->method('createSettingDetailsWithoutMods')
+                            ->with($this->identicalTo($existingSetting))
+                            ->willReturn($existingSettingDetails);
+
+        $handler = new StatusHandler(
+            $this->apiClientFactory,
+            $this->combinationHelper,
+            $this->currentSetting,
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
+        );
+
+        $result = $this->invokeMethod($handler, 'createSettingStatus', $combination);
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    /**
+     * Tests the createSettingStatus method.
+     * @throws ReflectionException
+     * @covers ::createSettingStatus
+     */
+    public function testCreateSettingStatusWithoutExistingSetting(): void
+    {
+        $status = 'abc';
+
+        $combinationId = $this->createMock(UuidInterface::class);
         $exportTime = $this->createMock(DateTime::class);
 
         $combination = new Combination();
-        $combination->setStatus($status)
+        $combination->setId($combinationId)
+                    ->setStatus($status)
                     ->setExportTime($exportTime);
 
         $expectedResult = new SettingStatusData();
         $expectedResult->setStatus($status)
                        ->setExportTime($exportTime);
 
+        $this->currentUser->expects($this->once())
+                          ->method('getSettingByCombinationId')
+                          ->with($this->identicalTo($combinationId))
+                          ->willReturn(null);
+
+        $this->settingHelper->expects($this->never())
+                            ->method('createSettingDetailsWithoutMods');
+
         $handler = new StatusHandler(
             $this->apiClientFactory,
             $this->combinationHelper,
             $this->currentSetting,
-            $this->serializer
+            $this->currentUser,
+            $this->serializer,
+            $this->settingHelper,
         );
 
         $result = $this->invokeMethod($handler, 'createSettingStatus', $combination);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Entity;
 
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Ramsey\Uuid\UuidInterface;
@@ -53,6 +55,12 @@ class Setting
     protected $recipeMode = '';
 
     /**
+     * The time when the setting was last used.
+     * @var DateTimeInterface
+     */
+    protected $lastUsageTime;
+
+    /**
      * The API authorization token used for this setting.
      * @var string
      */
@@ -63,6 +71,12 @@ class Setting
      * @var bool
      */
     protected $hasData = false;
+
+    /**
+     * Whether the setting is only temporary.
+     * @var bool
+     */
+    protected $isTemporary = false;
 
     /**
      * The sidebar entities of the setting.
@@ -76,6 +90,7 @@ class Setting
     public function __construct()
     {
         $this->sidebarEntities = new ArrayCollection();
+        $this->lastUsageTime = new DateTime();
     }
 
     /**
@@ -199,6 +214,26 @@ class Setting
     }
 
     /**
+     * Sets the time when the setting was last used.
+     * @param DateTimeInterface $lastUsageTime
+     * @return $this
+     */
+    public function setLastUsageTime(DateTimeInterface $lastUsageTime): self
+    {
+        $this->lastUsageTime = $lastUsageTime;
+        return $this;
+    }
+
+    /**
+     * Returns the time when the setting was last used.
+     * @return DateTimeInterface
+     */
+    public function getLastUsageTime(): DateTimeInterface
+    {
+        return $this->lastUsageTime;
+    }
+
+    /**
      * Sets the API authorization token used for this setting.
      * @param string $apiAuthorizationToken
      * @return $this
@@ -236,6 +271,26 @@ class Setting
     public function getHasData(): bool
     {
         return $this->hasData;
+    }
+
+    /**
+     * Sets whether the setting is only temporary.
+     * @param bool $isTemporary
+     * @return $this
+     */
+    public function setIsTemporary(bool $isTemporary): self
+    {
+        $this->isTemporary = $isTemporary;
+        return $this;
+    }
+
+    /**
+     * Returns whether the setting is only temporary.
+     * @return bool
+     */
+    public function getIsTemporary(): bool
+    {
+        return $this->isTemporary;
     }
 
     /**

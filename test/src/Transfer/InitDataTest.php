@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
-use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The PHPUnit test of the SessionInitData class.
+ * The PHPUnit test of the InitData class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData
+ * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Transfer\InitData
  */
-class SessionInitDataTest extends TestCase
+class InitDataTest extends TestCase
 {
     /**
      * Tests the setting and getting the setting.
@@ -26,26 +25,25 @@ class SessionInitDataTest extends TestCase
      */
     public function testSetAndGetSetting(): void
     {
-        /* @var SettingMetaData&MockObject $setting */
         $setting = $this->createMock(SettingMetaData::class);
-        $transfer = new SessionInitData();
+        $transfer = new InitData();
 
         $this->assertSame($transfer, $transfer->setSetting($setting));
         $this->assertSame($setting, $transfer->getSetting());
     }
 
     /**
-     * Tests the setting and getting the setting hash.
-     * @covers ::getSettingHash
-     * @covers ::setSettingHash
+     * Tests the setting and getting the last used setting.
+     * @covers ::getLastUsedSetting
+     * @covers ::setLastUsedSetting
      */
-    public function testSetAndGetSettingHash(): void
+    public function testSetAndGetLastUsedSetting(): void
     {
-        $settingHash = 'abc';
-        $transfer = new SessionInitData();
+        $lastUsedSetting = $this->createMock(SettingMetaData::class);
+        $transfer = new InitData();
 
-        $this->assertSame($transfer, $transfer->setSettingHash($settingHash));
-        $this->assertSame($settingHash, $transfer->getSettingHash());
+        $this->assertSame($transfer, $transfer->setLastUsedSetting($lastUsedSetting));
+        $this->assertSame($lastUsedSetting, $transfer->getLastUsedSetting());
     }
 
     /**
@@ -56,7 +54,7 @@ class SessionInitDataTest extends TestCase
     public function testSetAndGetLocale(): void
     {
         $locale = 'abc';
-        $transfer = new SessionInitData();
+        $transfer = new InitData();
 
         $this->assertSame($transfer, $transfer->setLocale($locale));
         $this->assertSame($locale, $transfer->getLocale());
@@ -73,7 +71,7 @@ class SessionInitDataTest extends TestCase
             $this->createMock(SidebarEntityData::class),
             $this->createMock(SidebarEntityData::class),
         ];
-        $transfer = new SessionInitData();
+        $transfer = new InitData();
 
         $this->assertSame($transfer, $transfer->setSidebarEntities($sidebarEntities));
         $this->assertSame($sidebarEntities, $transfer->getSidebarEntities());
@@ -87,7 +85,7 @@ class SessionInitDataTest extends TestCase
     public function testSetAndGetScriptVersion(): void
     {
         $scriptVersion = 'abc';
-        $transfer = new SessionInitData();
+        $transfer = new InitData();
 
         $this->assertSame($transfer, $transfer->setScriptVersion($scriptVersion));
         $this->assertSame($scriptVersion, $transfer->getScriptVersion());

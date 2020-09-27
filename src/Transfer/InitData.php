@@ -10,7 +10,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class SessionInitData
+class InitData
 {
     /**
      * The setting of the session.
@@ -19,10 +19,10 @@ class SessionInitData
     protected $setting;
 
     /**
-     * The hash of the currently loaded setting.
-     * @var string
+     * The last setting used in the session. Only present if the current one is temporary.
+     * @var SettingMetaData|null
      */
-    protected $settingHash = '';
+    protected $lastUsedSetting;
 
     /**
      * The locale to use for the page.
@@ -63,23 +63,23 @@ class SessionInitData
     }
 
     /**
-     * Sets the hash of the currently loaded setting.
-     * @param string $settingHash
+     * Sets the last setting used in the session. Only present if the current one is temporary.
+     * @param SettingMetaData|null $lastUsedSetting
      * @return $this
      */
-    public function setSettingHash(string $settingHash): self
+    public function setLastUsedSetting(?SettingMetaData $lastUsedSetting): self
     {
-        $this->settingHash = $settingHash;
+        $this->lastUsedSetting = $lastUsedSetting;
         return $this;
     }
 
     /**
-     * Returns the hash of the currently loaded setting.
-     * @return string
+     * Returns the last setting used in the session. Only present if the current one is temporary.
+     * @return SettingMetaData|null
      */
-    public function getSettingHash(): string
+    public function getLastUsedSetting(): ?SettingMetaData
     {
-        return $this->settingHash;
+        return $this->lastUsedSetting;
     }
 
     /**

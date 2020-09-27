@@ -61,15 +61,27 @@ class ListHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $settings = array_map(
-            [$this->settingHelper, 'createSettingMeta'],
-            $this->currentUser->getSettings()->toArray()
-        );
+        $settings = array_map([$this->settingHelper, 'createSettingMeta'], $this->getFilteredSettings());
         $currentSetting = $this->settingHelper->createSettingDetails($this->currentSetting);
 
         $settingList = new SettingsListData();
         $settingList->setSettings($settings)
                     ->setCurrentSetting($currentSetting);
         return new TransferResponse($settingList);
+    }
+
+    /**
+     * Returns the settings of the current user, ignoring the temporary ones.
+     * @return array|Setting[]
+     */
+    protected function getFilteredSettings(): array
+    {
+        $result = [];
+        foreach ($this->currentUser->getSettings() as $setting) {
+            if (!$setting->getIsTemporary() || $setting->getId()->equals($this->currentSetting->getId())) {
+                $result[] = $setting;
+            }
+        }
+        return $result;
     }
 }

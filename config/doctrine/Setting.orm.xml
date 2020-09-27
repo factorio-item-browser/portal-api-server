@@ -43,6 +43,12 @@
             </options>
         </field>
 
+        <field name="lastUsageTime" type="timestamp">
+            <options>
+                <option name="comment">The time when the setting was last used.</option>
+            </options>
+        </field>
+
         <field name="apiAuthorizationToken" type="text" length="65535">
             <options>
                 <option name="comment">The API authorization token used for this setting.</option>
@@ -52,6 +58,12 @@
         <field name="hasData" type="boolean">
             <options>
                 <option name="comment">Whether the setting has its data actually available.</option>
+            </options>
+        </field>
+
+        <field name="isTemporary" type="boolean">
+            <options>
+                <option name="comment">Whether the setting is only temporary.</option>
             </options>
         </field>
 

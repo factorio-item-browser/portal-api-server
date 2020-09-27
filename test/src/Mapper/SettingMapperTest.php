@@ -58,18 +58,18 @@ class SettingMapperTest extends TestCase
      */
     public function testMap(): void
     {
-        $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
+        $combinationId = 'bc845964-3422-45ad-b8c1-819af3763667';
 
         $combination = new Combination();
-        $combination->setStatus('def');
+        $combination->setId(Uuid::fromString($combinationId))
+                    ->setStatus('def');
 
         $source = new Setting();
-        $source->setId(Uuid::fromString($settingId))
-               ->setName('abc')
+        $source->setName('abc')
                ->setCombination($combination);
 
         $expectedDestination = new SettingMetaData();
-        $expectedDestination->setId($settingId)
+        $expectedDestination->setCombinationId($combinationId)
                             ->setName('abc')
                             ->setStatus('def');
 
@@ -87,20 +87,20 @@ class SettingMapperTest extends TestCase
      */
     public function testMapWithDetails(): void
     {
-        $settingId = 'bc845964-3422-45ad-b8c1-819af3763667';
+        $combinationId = 'bc845964-3422-45ad-b8c1-819af3763667';
 
         $combination = new Combination();
-        $combination->setStatus('def');
+        $combination->setId(Uuid::fromString($combinationId))
+                    ->setStatus('def');
 
         $source = new Setting();
-        $source->setId(Uuid::fromString($settingId))
-               ->setName('abc')
+        $source->setName('abc')
                ->setCombination($combination)
                ->setLocale('ghi')
                ->setRecipeMode('jkl');
 
         $expectedDestination = new SettingDetailsData();
-        $expectedDestination->setId($settingId)
+        $expectedDestination->setCombinationId($combinationId)
                             ->setName('abc')
                             ->setStatus('def')
                             ->setLocale('ghi')

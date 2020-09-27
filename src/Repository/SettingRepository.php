@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Repository;
 
+use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
+use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * The repository of the settings.
@@ -34,6 +38,11 @@ class SettingRepository
      * The locale of the default setting.
      */
     protected const DEFAULT_LOCALE = 'en';
+
+    /**
+     * The name of a temporary setting.
+     */
+    protected const TEMPORARY_NAME = 'Temporary';
 
     /**
      * The combination repository.
@@ -96,14 +105,99 @@ class SettingRepository
     }
 
     /**
+     * Creates a temporary setting for the user.
+     * @param User $user
+     * @param UuidInterface $combinationId
+     * @return Setting
+     * @throws Exception
+     */
+    public function createTemporarySetting(User $user, UuidInterface $combinationId): Setting
+    {
+        $combination = $this->combinationRepository->getCombination($combinationId);
+        if ($combination === null) {
+            throw new UnknownEntityException('combination', $combinationId->toString());
+        }
+
+        $setting = $this->createSetting($user, $combination);
+        $setting->setName(self::TEMPORARY_NAME)
+                ->setIsTemporary(true)
+                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
+                ->setLocale(self::DEFAULT_LOCALE);
+
+        $lastSetting = $user->getLastUsedSetting();
+        if ($lastSetting !== null) {
+            $setting->setRecipeMode($lastSetting->getRecipeMode())
+                    ->setLocale($lastSetting->getLocale());
+        }
+
+        return $setting;
+    }
+
+    /**
      * Deletes the specified setting from the database.
      * @param Setting $setting
      */
     public function deleteSetting(Setting $setting): void
     {
-        foreach ($setting->getSidebarEntities() as $sidebarEntity) {
-            $this->entityManager->remove($sidebarEntity);
+        $this->removeSettings([$setting->getId()]);
+    }
+
+    /**
+     * Cleans the temporary settings which did not have been used in the specified time.
+     * @param DateTimeInterface $timeCut
+     */
+    public function cleanupTemporarySettings(DateTimeInterface $timeCut): void
+    {
+        $settingIds = $this->findOldTemporarySettings($timeCut);
+        if (count($settingIds) > 0) {
+            $this->removeSettings($settingIds);
         }
-        $this->entityManager->remove($setting);
+    }
+
+    /**
+     * Searches for old temporary settings which can be removed.
+     * @param DateTimeInterface $timeCut
+     * @return array<UuidInterface>
+     */
+    protected function findOldTemporarySettings(DateTimeInterface $timeCut): array
+    {
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->select('s.id')
+                     ->from(Setting::class, 's')
+                     ->andWhere('s.isTemporary = :temporary')
+                     ->andWhere('s.lastUsageTime < :timeCut')
+                     ->setParameter('temporary', true)
+                     ->setParameter('timeCut', $timeCut);
+
+        $result = [];
+        foreach ($queryBuilder->getQuery()->getResult() as $row) {
+            $result[] = $row['id'];
+        }
+        return $result;
+    }
+
+    /**
+     * Removes the settings with the specified ids.
+     * @param array<UuidInterface> $settingIds
+     */
+    protected function removeSettings(array $settingIds): void
+    {
+        $mappedSettingIds = array_values(array_map(function (UuidInterface $settingId): string {
+            return $settingId->getBytes();
+        }, $settingIds));
+
+        // 1. Remove all sidebar entities of the settings.
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->delete(SidebarEntity::class, 'se')
+                     ->where('se.setting IN (:settingIds)')
+                     ->setParameter('settingIds', $mappedSettingIds);
+        $queryBuilder->getQuery()->execute();
+
+        // 2. Remove the actual settings.
+        $queryBuilder = $this->entityManager->createQueryBuilder();
+        $queryBuilder->delete(Setting::class, 's')
+                     ->where('s.id IN (:settingIds)')
+                     ->setParameter('settingIds', $mappedSettingIds);
+        $queryBuilder->getQuery()->execute();
     }
 }

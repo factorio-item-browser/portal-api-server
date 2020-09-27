@@ -24,17 +24,18 @@ class SettingsListDataTest extends SerializerTestCase
     protected function getObject(): object
     {
         $setting1 = new SettingMetaData();
-        $setting1->setId('abc')
+        $setting1->setCombinationId('abc')
                  ->setName('def')
                  ->setStatus('yza');
 
         $setting2 = new SettingMetaData();
-        $setting2->setId('ghi')
+        $setting2->setCombinationId('ghi')
                  ->setName('jkl')
-                 ->setStatus('bcd');
+                 ->setStatus('bcd')
+                 ->setIsTemporary(true);
 
         $currentSetting = new SettingDetailsData();
-        $currentSetting->setId('mno')
+        $currentSetting->setCombinationId('mno')
                        ->setName('pqr')
                        ->setStatus('efg')
                        ->setLocale('stu')
@@ -56,20 +57,23 @@ class SettingsListDataTest extends SerializerTestCase
         return [
             'settings' => [
                 [
-                    'id' => 'abc',
+                    'combinationId' => 'abc',
                     'name' => 'def',
                     'status' => 'yza',
+                    'isTemporary' => false,
                 ],
                 [
-                    'id' => 'ghi',
+                    'combinationId' => 'ghi',
                     'name' => 'jkl',
                     'status' => 'bcd',
+                    'isTemporary' => true,
                 ],
             ],
             'currentSetting' => [
-                'id' => 'mno',
+                'combinationId' => 'mno',
                 'name' => 'pqr',
                 'status' => 'efg',
+                'isTemporary' => false,
                 'locale' => 'stu',
                 'recipeMode' => 'vwx',
                 'mods' => [],

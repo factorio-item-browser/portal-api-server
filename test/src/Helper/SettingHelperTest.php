@@ -7,8 +7,6 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
-use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\Api\Client\ApiClientInterface;
 use FactorioItemBrowser\Api\Client\Entity\Mod;
 use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
@@ -18,11 +16,9 @@ use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleFetcher;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData;
@@ -32,8 +28,6 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 use ReflectionException;
 
 /**
@@ -52,12 +46,6 @@ class SettingHelperTest extends TestCase
      * @var ApiClientFactory&MockObject
      */
     protected $apiClientFactory;
-
-    /**
-     * The mocked current user.
-     * @var User&MockObject
-     */
-    protected $currentUser;
 
     /**
      * The mocked icons style fetcher.
@@ -79,7 +67,6 @@ class SettingHelperTest extends TestCase
         parent::setUp();
 
         $this->apiClientFactory = $this->createMock(ApiClientFactory::class);
-        $this->currentUser = $this->createMock(User::class);
         $this->iconsStyleFetcher = $this->createMock(IconsStyleFetcher::class);
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
     }
@@ -93,120 +80,13 @@ class SettingHelperTest extends TestCase
     {
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
 
         $this->assertSame($this->apiClientFactory, $this->extractProperty($helper, 'apiClientFactory'));
-        $this->assertSame($this->currentUser, $this->extractProperty($helper, 'currentUser'));
         $this->assertSame($this->iconsStyleFetcher, $this->extractProperty($helper, 'iconsStyleFetcher'));
         $this->assertSame($this->mapperManager, $this->extractProperty($helper, 'mapperManager'));
-    }
-
-    /**
-     * Tests the findInCurrentUser method.
-     * @throws PortalApiServerException
-     * @covers ::findInCurrentUser
-     */
-    public function testFindInCurrentUser(): void
-    {
-        /* @var UuidInterface&MockObject $settingId */
-        $settingId = $this->createMock(UuidInterface::class);
-
-        /* @var UuidInterface&MockObject $uuid1 */
-        $uuid1 = $this->createMock(UuidInterface::class);
-        $uuid1->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(1);
-
-        /* @var UuidInterface&MockObject $uuid2 */
-        $uuid2 = $this->createMock(UuidInterface::class);
-        $uuid2->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(0);
-
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        $setting1->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid1);
-
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        $setting2->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid2);
-
-        $this->currentUser->expects($this->once())
-                          ->method('getSettings')
-                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
-
-        $helper = new SettingHelper(
-            $this->apiClientFactory,
-            $this->currentUser,
-            $this->iconsStyleFetcher,
-            $this->mapperManager
-        );
-        $result = $helper->findInCurrentUser($settingId);
-
-        $this->assertSame($setting2, $result);
-    }
-
-    /**
-     * Tests the findInCurrentUser method.
-     * @throws PortalApiServerException
-     * @covers ::findInCurrentUser
-     */
-    public function testFindInCurrentUserWithoutMatch(): void
-    {
-        /* @var UuidInterface&MockObject $settingId */
-        $settingId = $this->createMock(UuidInterface::class);
-        $settingId->expects($this->once())
-                  ->method('toString')
-                  ->willReturn('abc');
-
-        /* @var UuidInterface&MockObject $uuid1 */
-        $uuid1 = $this->createMock(UuidInterface::class);
-        $uuid1->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(1);
-
-        /* @var UuidInterface&MockObject $uuid2 */
-        $uuid2 = $this->createMock(UuidInterface::class);
-        $uuid2->expects($this->once())
-              ->method('compareTo')
-              ->with($this->identicalTo($settingId))
-              ->willReturn(-1);
-
-        /* @var Setting&MockObject $setting1 */
-        $setting1 = $this->createMock(Setting::class);
-        $setting1->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid1);
-
-        /* @var Setting&MockObject $setting2 */
-        $setting2 = $this->createMock(Setting::class);
-        $setting2->expects($this->once())
-                 ->method('getId')
-                 ->willReturn($uuid2);
-
-        $this->currentUser->expects($this->once())
-                          ->method('getSettings')
-                          ->willReturn(new ArrayCollection([$setting1, $setting2]));
-
-        $this->expectException(UnknownEntityException::class);
-
-        $helper = new SettingHelper(
-            $this->apiClientFactory,
-            $this->currentUser,
-            $this->iconsStyleFetcher,
-            $this->mapperManager
-        );
-        $helper->findInCurrentUser($settingId);
     }
 
     /**
@@ -216,7 +96,6 @@ class SettingHelperTest extends TestCase
      */
     public function testCreateSettingMeta(): void
     {
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
 
         $this->mapperManager->expects($this->once())
@@ -225,7 +104,6 @@ class SettingHelperTest extends TestCase
 
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
@@ -239,7 +117,6 @@ class SettingHelperTest extends TestCase
      */
     public function testCreateSettingMetaWithException(): void
     {
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
 
         $this->mapperManager->expects($this->once())
@@ -251,7 +128,6 @@ class SettingHelperTest extends TestCase
 
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
@@ -265,19 +141,12 @@ class SettingHelperTest extends TestCase
      */
     public function testCreateSettingDetails(): void
     {
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
-        /* @var Mod&MockObject $mod1 */
         $mod1 = $this->createMock(Mod::class);
-        /* @var Mod&MockObject $mod2 */
         $mod2 = $this->createMock(Mod::class);
-        /* @var ModData&MockObject $modData1 */
         $modData1 = $this->createMock(ModData::class);
-        /* @var ModData&MockObject $modData2 */
         $modData2 = $this->createMock(ModData::class);
-        /* @var NamesByTypes&MockObject $modNames */
         $modNames = $this->createMock(NamesByTypes::class);
-        /* @var IconsStyleData&MockObject $iconsStyleData */
         $iconsStyleData = $this->createMock(IconsStyleData::class);
 
         $expectedModListRequest = new ModListRequest();
@@ -285,13 +154,11 @@ class SettingHelperTest extends TestCase
         $expectedResult->setMods([$modData1, $modData2])
                        ->setModIconsStyle($iconsStyleData);
 
-        /* @var ModListResponse&MockObject $modListResponse */
         $modListResponse = $this->createMock(ModListResponse::class);
         $modListResponse->expects($this->once())
                         ->method('getMods')
                         ->willReturn([$mod1, $mod2]);
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('sendRequest')
@@ -317,12 +184,10 @@ class SettingHelperTest extends TestCase
                             ->method('map')
                             ->with($this->identicalTo($setting), $this->isInstanceOf(SettingDetailsData::class));
 
-        /* @var SettingHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SettingHelper::class)
                        ->onlyMethods(['extractModNames', 'mapMod'])
                        ->setConstructorArgs([
                            $this->apiClientFactory,
-                           $this->currentUser,
                            $this->iconsStyleFetcher,
                            $this->mapperManager,
                        ])
@@ -354,12 +219,10 @@ class SettingHelperTest extends TestCase
      */
     public function testCreateSettingDetailsWithApiException(): void
     {
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
 
         $expectedModListRequest = new ModListRequest();
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('sendRequest')
@@ -383,12 +246,10 @@ class SettingHelperTest extends TestCase
 
         $this->expectException(FailedApiRequestException::class);
 
-        /* @var SettingHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SettingHelper::class)
                        ->onlyMethods(['extractModNames', 'mapMod'])
                        ->setConstructorArgs([
                            $this->apiClientFactory,
-                           $this->currentUser,
                            $this->iconsStyleFetcher,
                            $this->mapperManager,
                        ])
@@ -408,14 +269,11 @@ class SettingHelperTest extends TestCase
      */
     public function testCreateSettingDetailsWithMapperException(): void
     {
-        /* @var Setting&MockObject $setting */
         $setting = $this->createMock(Setting::class);
-        /* @var NamesByTypes&MockObject $modNames */
         $modNames = $this->createMock(NamesByTypes::class);
 
         $expectedModListRequest = new ModListRequest();
 
-        /* @var ApiClientInterface&MockObject $apiClient */
         $apiClient = $this->createMock(ApiClientInterface::class);
         $apiClient->expects($this->once())
                   ->method('sendRequest')
@@ -441,12 +299,10 @@ class SettingHelperTest extends TestCase
 
         $this->expectException(MappingException::class);
 
-        /* @var SettingHelper&MockObject $helper */
         $helper = $this->getMockBuilder(SettingHelper::class)
                        ->onlyMethods(['extractModNames', 'mapMod'])
                        ->setConstructorArgs([
                            $this->apiClientFactory,
-                           $this->currentUser,
                            $this->iconsStyleFetcher,
                            $this->mapperManager,
                        ])
@@ -459,6 +315,52 @@ class SettingHelperTest extends TestCase
                ->method('mapMod');
 
         $helper->createSettingDetails($setting);
+    }
+
+
+    /**
+     * Tests the createSettingDetailsWithoutMods method.
+     * @throws PortalApiServerException
+     * @covers ::createSettingDetailsWithoutMods
+     */
+    public function testCreateSettingDetailsWithoutMods(): void
+    {
+        $setting = $this->createMock(Setting::class);
+
+        $this->mapperManager->expects($this->once())
+                            ->method('map')
+                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingDetailsData::class));
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $helper->createSettingDetailsWithoutMods($setting);
+    }
+
+    /**
+     * Tests the createSettingDetailsWithoutMods method.
+     * @throws PortalApiServerException
+     * @covers ::createSettingDetailsWithoutMods
+     */
+    public function testCreateSettingMetaWithoutModsWithException(): void
+    {
+        $setting = $this->createMock(Setting::class);
+
+        $this->mapperManager->expects($this->once())
+                            ->method('map')
+                            ->with($this->identicalTo($setting), $this->isInstanceOf(SettingDetailsData::class))
+                            ->willThrowException($this->createMock(MapperException::class));
+
+        $this->expectException(MappingException::class);
+
+        $helper = new SettingHelper(
+            $this->apiClientFactory,
+            $this->iconsStyleFetcher,
+            $this->mapperManager
+        );
+        $helper->createSettingDetailsWithoutMods($setting);
     }
 
     /**
@@ -481,7 +383,6 @@ class SettingHelperTest extends TestCase
 
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
@@ -497,7 +398,6 @@ class SettingHelperTest extends TestCase
      */
     public function testMapMod(): void
     {
-        /* @var Mod&MockObject $mod */
         $mod = $this->createMock(Mod::class);
 
         $this->mapperManager->expects($this->once())
@@ -506,7 +406,6 @@ class SettingHelperTest extends TestCase
 
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
@@ -520,7 +419,6 @@ class SettingHelperTest extends TestCase
      */
     public function testMapModWithException(): void
     {
-        /* @var Mod&MockObject $mod */
         $mod = $this->createMock(Mod::class);
 
         $this->mapperManager->expects($this->once())
@@ -532,86 +430,9 @@ class SettingHelperTest extends TestCase
 
         $helper = new SettingHelper(
             $this->apiClientFactory,
-            $this->currentUser,
             $this->iconsStyleFetcher,
             $this->mapperManager
         );
         $this->invokeMethod($helper, 'mapMod', $mod);
-    }
-
-    /**
-     * Tests the calculateHash method.
-     * @covers ::calculateHash
-     */
-    public function testCalculateHash(): void
-    {
-        $settingId = Uuid::fromString('03c44592-9276-43e4-a5ff-38b20cce8d7f');
-        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
-        $exportTime = new DateTime('2038-01-19 03:14:07');
-
-        $expectedResult = md5((string) json_encode([
-            '03c44592-9276-43e4-a5ff-38b20cce8d7f',
-            '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76',
-            '2038-01-19T03:14:07+00:00',
-            'abc',
-            'def',
-        ]));
-
-        $combination = new Combination();
-        $combination->setId($combinationId)
-                    ->setExportTime($exportTime);
-
-        $setting = new Setting();
-        $setting->setId($settingId)
-                ->setCombination($combination)
-                ->setLocale('abc')
-                ->setRecipeMode('def');
-
-        $helper = new SettingHelper(
-            $this->apiClientFactory,
-            $this->currentUser,
-            $this->iconsStyleFetcher,
-            $this->mapperManager
-        );
-        $result = $helper->calculateHash($setting);
-
-        $this->assertSame($expectedResult, $result);
-    }
-
-    /**
-     * Tests the calculateHash method.
-     * @covers ::calculateHash
-     */
-    public function testCalculateHashWithoutExportTime(): void
-    {
-        $settingId = Uuid::fromString('03c44592-9276-43e4-a5ff-38b20cce8d7f');
-        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
-
-        $expectedResult = md5((string) json_encode([
-            '03c44592-9276-43e4-a5ff-38b20cce8d7f',
-            '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76',
-            '',
-            'abc',
-            'def',
-        ]));
-
-        $combination = new Combination();
-        $combination->setId($combinationId);
-
-        $setting = new Setting();
-        $setting->setId($settingId)
-                ->setCombination($combination)
-                ->setLocale('abc')
-                ->setRecipeMode('def');
-
-        $helper = new SettingHelper(
-            $this->apiClientFactory,
-            $this->currentUser,
-            $this->iconsStyleFetcher,
-            $this->mapperManager
-        );
-        $result = $helper->calculateHash($setting);
-
-        $this->assertSame($expectedResult, $result);
     }
 }

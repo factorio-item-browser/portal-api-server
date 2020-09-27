@@ -13,6 +13,11 @@ namespace FactorioItemBrowser\PortalApi\Server\Constant;
 interface RouteName
 {
     /**
+     * The route for initializing the session.
+     */
+    public const INIT = 'init';
+
+    /**
      * The route for fetching recipes having a certain ingredient.
      */
     public const ITEM_INGREDIENTS = 'item.ingredients';
@@ -41,11 +46,6 @@ interface RouteName
      * The route for fetching search results.
      */
     public const SEARCH = 'search';
-
-    /**
-     * The route for initializing the session.
-     */
-    public const SESSION_INIT = 'session.init';
 
     /**
      * The route for creating a new setting.

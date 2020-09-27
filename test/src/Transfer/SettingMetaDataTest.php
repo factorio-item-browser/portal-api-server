@@ -17,17 +17,17 @@ use PHPUnit\Framework\TestCase;
 class SettingMetaDataTest extends TestCase
 {
     /**
-     * Tests the setting and getting the id.
-     * @covers ::getId
-     * @covers ::setId
+     * Tests the setting and getting the combination id.
+     * @covers ::getCombinationId
+     * @covers ::setCombinationId
      */
-    public function testSetAndGetId(): void
+    public function testSetAndGetCombinationId(): void
     {
         $id = 'abc';
         $transfer = new SettingMetaData();
 
-        $this->assertSame($transfer, $transfer->setId($id));
-        $this->assertSame($id, $transfer->getId());
+        $this->assertSame($transfer, $transfer->setCombinationId($id));
+        $this->assertSame($id, $transfer->getCombinationId());
     }
 
     /**
@@ -56,5 +56,18 @@ class SettingMetaDataTest extends TestCase
 
         $this->assertSame($transfer, $transfer->setStatus($status));
         $this->assertSame($status, $transfer->getStatus());
+    }
+
+    /**
+     * Tests the setting and getting the is temporary.
+     * @covers ::getIsTemporary
+     * @covers ::setIsTemporary
+     */
+    public function testSetAndGetIsTemporary(): void
+    {
+        $transfer = new SettingMetaData();
+
+        $this->assertSame($transfer, $transfer->setIsTemporary(true));
+        $this->assertTrue($transfer->getIsTemporary());
     }
 }

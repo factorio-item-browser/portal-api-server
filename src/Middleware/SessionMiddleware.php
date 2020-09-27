@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
 use DateTime;
-use Dflydev\FigCookies\FigRequestCookies;
-use Dflydev\FigCookies\FigResponseCookies;
-use Dflydev\FigCookies\Modifier\SameSite;
-use Dflydev\FigCookies\SetCookie;
 use Exception;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\MissingCombinationIdException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSessionException;
+use FactorioItemBrowser\PortalApi\Server\Helper\CookieHelper;
+use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
 use Laminas\ServiceManager\ServiceManager;
 use Mezzio\Router\Route;
@@ -34,11 +33,10 @@ use Ramsey\Uuid\UuidInterface;
 class SessionMiddleware implements MiddlewareInterface
 {
     /**
-     * The routes whitelisted to be valid without actual session.
+     * The cookie helper.
+     * @var CookieHelper
      */
-    protected const WHITELISTED_ROUTES = [
-        RouteName::SESSION_INIT,
-    ];
+    protected $cookieHelper;
 
     /**
      * The service manager.
@@ -47,58 +45,34 @@ class SessionMiddleware implements MiddlewareInterface
     protected $serviceManager;
 
     /**
+     * The setting repository.
+     * @var SettingRepository
+     */
+    protected $settingRepository;
+
+    /**
      * The user repository.
      * @var UserRepository
      */
     protected $userRepository;
 
     /**
-     * The name to use for the cookie.
-     * @var string
-     */
-    protected $cookieName;
-
-    /**
-     * The domain to use for the cookie.
-     * @var string
-     */
-    protected $cookieDomain;
-
-    /**
-     * The path to use for the cookie.
-     * @var string
-     */
-    protected $cookiePath;
-
-    /**
-     * The lifetime to use for the cookie.
-     * @var string
-     */
-    protected $cookieLifeTime;
-
-    /**
      * Initializes the middleware.
+     * @param CookieHelper $cookieHelper
      * @param ServiceManager $serviceManager
+     * @param SettingRepository $settingRepository
      * @param UserRepository $userRepository
-     * @param string $sessionCookieName
-     * @param string $sessionCookieDomain
-     * @param string $sessionCookiePath
-     * @param string $sessionCookieLifeTime
      */
     public function __construct(
+        CookieHelper $cookieHelper,
         ServiceManager $serviceManager,
-        UserRepository $userRepository,
-        string $sessionCookieName,
-        string $sessionCookieDomain,
-        string $sessionCookiePath,
-        string $sessionCookieLifeTime
+        SettingRepository $settingRepository,
+        UserRepository $userRepository
     ) {
+        $this->cookieHelper = $cookieHelper;
         $this->serviceManager = $serviceManager;
+        $this->settingRepository = $settingRepository;
         $this->userRepository = $userRepository;
-        $this->cookieName = $sessionCookieName;
-        $this->cookieDomain = $sessionCookieDomain;
-        $this->cookiePath = $sessionCookiePath;
-        $this->cookieLifeTime = $sessionCookieLifeTime;
     }
 
     /**
@@ -110,112 +84,113 @@ class SessionMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $user = $this->readUserFromRequest($request);
-        $this->injectUserToServiceManager($user);
+        $user = $this->getCurrentUser($request);
+        $setting = $this->getCurrentSetting($request, $user);
+        $setting->setLastUsageTime(new DateTime());
+
+        $this->serviceManager->setService(User::class . ' $currentUser', $user);
+        $this->serviceManager->setService(Setting::class . ' $currentSetting', $setting);
 
         $response = $handler->handle($request);
 
         $this->userRepository->persist($user);
-        return $this->injectCookieIntoResponse($response, $this->createCookie($user));
+        $response = $this->cookieHelper->injectUser($response, $user);
+        return $response;
     }
 
     /**
-     * Reads the user from the request.
+     * Returns whether the current route is the init route.
+     * @param ServerRequestInterface $request
+     * @return bool
+     */
+    protected function isInitRoute(ServerRequestInterface $request): bool
+    {
+        /** @var RouteResult $routeResult */
+        $routeResult = $request->getAttribute(RouteResult::class);
+        $route = $routeResult->getMatchedRoute();
+        return $route instanceof Route && $route->getName() === RouteName::INIT;
+    }
+
+    /**
+     * Returns the current user for the request.
      * @param ServerRequestInterface $request
      * @return User
      * @throws Exception
      */
-    protected function readUserFromRequest(ServerRequestInterface $request): User
+    protected function getCurrentUser(ServerRequestInterface $request): User
     {
         $user = null;
-        $userId = $this->readUserIdFromCookie($request);
+        $userId = $this->cookieHelper->readUserId($request);
         if ($userId !== null) {
             $user = $this->userRepository->getUser($userId);
         }
 
-        if ($user === null) {
-            if (!$this->isRouteWhitelisted($request)) {
-                throw new MissingSessionException();
-            }
-            $user = $this->userRepository->createUser();
+        if ($user === null && !$this->isInitRoute($request)) {
+            throw new MissingSessionException();
         }
 
-        return $user;
+        return $user === null ? $this->userRepository->createUser() : $user;
     }
 
     /**
-     * Reads the user id from the cookie.
+     * Returns the current setting for the request.
      * @param ServerRequestInterface $request
-     * @return UuidInterface|null
-     */
-    protected function readUserIdFromCookie(ServerRequestInterface $request): ?UuidInterface
-    {
-        $result = null;
-        try {
-            $cookieValue = FigRequestCookies::get($request, $this->cookieName)->getValue();
-            if ($cookieValue !== null) {
-                $result = Uuid::fromString($cookieValue);
-            }
-        } catch (Exception $e) {
-            // Invalid UUID, so do not use it.
-        }
-        return $result;
-    }
-
-    /**
-     * Returns whether the route is whitelisted to create new users.
-     * @param ServerRequestInterface $request
-     * @return bool
-     */
-    protected function isRouteWhitelisted(ServerRequestInterface $request): bool
-    {
-        $result = false;
-
-        /** @var RouteResult $routeResult */
-        $routeResult = $request->getAttribute(RouteResult::class);
-        $route = $routeResult->getMatchedRoute();
-        if ($route instanceof Route) {
-            $result = in_array($route->getName(), self::WHITELISTED_ROUTES, true);
-        }
-        return $result;
-    }
-
-    /**
-     * Injects the user and its current setting into the service manager to be used by other classes.
      * @param User $user
-     */
-    protected function injectUserToServiceManager(User $user): void
-    {
-        $this->serviceManager->setService(User::class . ' $currentUser', $user);
-        if ($user->getCurrentSetting() !== null) {
-            $this->serviceManager->setService(Setting::class . ' $currentSetting', $user->getCurrentSetting());
-        }
-    }
-
-    /**
-     * Creates the cookie for the user to place into the response.
-     * @param User $user
-     * @return SetCookie
+     * @return Setting
      * @throws Exception
      */
-    protected function createCookie(User $user): SetCookie
+    protected function getCurrentSetting(ServerRequestInterface $request, User $user): Setting
     {
-        return SetCookie::create($this->cookieName, $user->getId()->toString())
-            ->withDomain($this->cookieDomain)
-            ->withPath($this->cookiePath)
-            ->withExpires(new DateTime($this->cookieLifeTime))
-            ->withSecure(true)
-            ->withSameSite(SameSite::strict());
+        $combinationId = $this->readIdFromHeader($request, 'Combination-Id');
+        if ($combinationId === null) {
+            return $this->getFallbackSetting($request, $user);
+        }
+
+        foreach ($user->getSettings() as $setting) {
+            if ($combinationId->equals($setting->getCombination()->getId())) {
+                return $setting;
+            }
+        }
+
+        $setting = $this->settingRepository->createTemporarySetting($user, $combinationId);
+        $user->getSettings()->add($setting);
+
+        return $setting;
     }
 
     /**
-     * Injects the cookie into the response.
-     * @param ResponseInterface $response
-     * @param SetCookie $cookie
-     * @return ResponseInterface
+     * Reads an id from the header.
+     * @param ServerRequestInterface $request
+     * @param string $name
+     * @return UuidInterface|null
      */
-    protected function injectCookieIntoResponse(ResponseInterface $response, SetCookie $cookie): ResponseInterface
+    protected function readIdFromHeader(ServerRequestInterface $request, string $name): ?UuidInterface
     {
-        return FigResponseCookies::set($response, $cookie);
+        try {
+            return Uuid::fromString($request->getHeaderLine($name));
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the fallback setting to use.
+     * @param ServerRequestInterface $request
+     * @param User $user
+     * @return Setting
+     * @throws Exception
+     */
+    protected function getFallbackSetting(ServerRequestInterface $request, User $user): Setting
+    {
+        if (!$this->isInitRoute($request)) {
+            throw new MissingCombinationIdException();
+        }
+
+        $setting = $user->getLastUsedSetting();
+        if ($setting === null) {
+            $setting = $this->settingRepository->createDefaultSetting($user);
+            $user->getSettings()->add($setting);
+        }
+        return $setting;
     }
 }

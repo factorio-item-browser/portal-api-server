@@ -24,9 +24,5 @@
         </field>
 
         <one-to-many field="settings" target-entity="Setting" mapped-by="user" />
-
-        <one-to-one field="currentSetting" target-entity="Setting">
-            <join-column name="currentSettingId" />
-        </one-to-one>
     </entity>
 </doctrine-mapping>

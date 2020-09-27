@@ -6,18 +6,18 @@ namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
 use DateTime;
 use Exception;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
 
 /**
- * The serializer test of the SessionInitData class.
+ * The serializer test of the InitData class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-class SessionInitDataTest extends SerializerTestCase
+class InitDataTest extends SerializerTestCase
 {
     /**
      * Returns the object to test on.
@@ -41,13 +41,20 @@ class SessionInitDataTest extends SerializerTestCase
                        ->setLastViewTime(new DateTime('2038-01-19 03:14:07.123'));
 
         $setting = new SettingMetaData();
-        $setting->setId('stu')
+        $setting->setCombinationId('stu')
                 ->setName('vwx')
-                ->setStatus('yza');
+                ->setStatus('yza')
+                ->setIsTemporary(true);
 
-        $object = new SessionInitData();
+        $lastUsedSetting = new SettingMetaData();
+        $lastUsedSetting->setCombinationId('klm')
+                        ->setName('nop')
+                        ->setStatus('qrs')
+                        ->setIsTemporary(false);
+
+        $object = new InitData();
         $object->setSetting($setting)
-               ->setSettingHash('bcd')
+               ->setLastUsedSetting($lastUsedSetting)
                ->setLocale('efg')
                ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
                ->setScriptVersion('hij');
@@ -62,11 +69,17 @@ class SessionInitDataTest extends SerializerTestCase
     {
         return [
             'setting' => [
-                'id' => 'stu',
+                'combinationId' => 'stu',
                 'name' => 'vwx',
                 'status' => 'yza',
+                'isTemporary' => true,
             ],
-            'settingHash' => 'bcd',
+            'lastUsedSetting' => [
+                'combinationId' => 'klm',
+                'name' => 'nop',
+                'status' => 'qrs',
+                'isTemporary' => false,
+            ],
             'locale' => 'efg',
             'sidebarEntities' => [
                 [

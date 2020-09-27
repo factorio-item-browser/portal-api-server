@@ -22,9 +22,10 @@ class SettingMetaDataTest extends SerializerTestCase
     protected function getObject(): object
     {
         $object = new SettingMetaData();
-        $object->setId('abc')
+        $object->setCombinationId('abc')
                ->setName('def')
-               ->setStatus('ghi');
+               ->setStatus('ghi')
+               ->setIsTemporary(true);
 
         return $object;
     }
@@ -36,9 +37,10 @@ class SettingMetaDataTest extends SerializerTestCase
     protected function getData(): array
     {
         return [
-            'id' => 'abc',
+            'combinationId' => 'abc',
             'name' => 'def',
             'status' => 'ghi',
+            'isTemporary' => true,
         ];
     }
 

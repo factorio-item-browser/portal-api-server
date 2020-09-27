@@ -1,11 +1,11 @@
-FactorioItemBrowser\PortalApi\Server\Transfer\SessionInitData:
+FactorioItemBrowser\PortalApi\Server\Transfer\InitData:
   access_type: public_method
   exclusion_policy: all
   properties:
     setting:
       type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
-    settingHash:
-      type: string
+    lastUsedSetting:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
     locale:
       type: string
     sidebarEntities:

@@ -49,25 +49,20 @@ class CorsHeaderMiddlewareTest extends TestCase
             'HTTP_ORIGIN' => $origin,
         ];
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getServerParams')
                 ->willReturn($serverParams);
 
-        /* @var ResponseInterface&MockObject $response */
         $response = $this->createMock(ResponseInterface::class);
-        /* @var ResponseInterface&MockObject $responseWithHeaders */
         $responseWithHeaders = $this->createMock(ResponseInterface::class);
 
-        /* @var RequestHandlerInterface&MockObject $handler */
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
                 ->method('handle')
                 ->with($this->identicalTo($request))
                 ->willReturn($response);
 
-        /* @var CorsHeaderMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(CorsHeaderMiddleware::class)
                            ->onlyMethods(['isOriginAllowed', 'AddHeaders'])
                            ->setConstructorArgs([['foo', 'bar']])
@@ -97,23 +92,19 @@ class CorsHeaderMiddlewareTest extends TestCase
             'HTTP_ORIGIN' => $origin,
         ];
 
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getServerParams')
                 ->willReturn($serverParams);
 
-        /* @var ResponseInterface&MockObject $response */
         $response = $this->createMock(ResponseInterface::class);
 
-        /* @var RequestHandlerInterface&MockObject $handler */
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
                 ->method('handle')
                 ->with($this->identicalTo($request))
                 ->willReturn($response);
 
-        /* @var CorsHeaderMiddleware&MockObject $middleware */
         $middleware = $this->getMockBuilder(CorsHeaderMiddleware::class)
                            ->onlyMethods(['isOriginAllowed', 'AddHeaders'])
                            ->setConstructorArgs([['foo', 'bar']])
@@ -177,10 +168,8 @@ class CorsHeaderMiddlewareTest extends TestCase
         $origin = 'abc';
         $allow = 'def';
 
-        /* @var ResponseInterface&MockObject $response5 */
         $response5 = $this->createMock(ResponseInterface::class);
 
-        /* @var ResponseInterface&MockObject $response4 */
         $response4 = $this->createMock(ResponseInterface::class);
         $response4->expects($this->once())
                   ->method('hasHeader')
@@ -195,25 +184,25 @@ class CorsHeaderMiddlewareTest extends TestCase
                   ->with($this->identicalTo('Access-Control-Allow-Methods'), $this->identicalTo($allow))
                   ->willReturn($response5);
 
-        /* @var ResponseInterface&MockObject $response3 */
         $response3 = $this->createMock(ResponseInterface::class);
         $response3->expects($this->once())
                   ->method('withHeader')
                   ->with($this->identicalTo('Access-Control-Allow-Origin'), $this->identicalTo($origin))
                   ->willReturn($response4);
 
-        /* @var ResponseInterface&MockObject $response2 */
         $response2 = $this->createMock(ResponseInterface::class);
         $response2->expects($this->once())
                   ->method('withHeader')
                   ->with($this->identicalTo('Access-Control-Allow-Credentials'), $this->identicalTo('true'))
                   ->willReturn($response3);
 
-        /* @var ResponseInterface&MockObject $response1 */
         $response1 = $this->createMock(ResponseInterface::class);
         $response1->expects($this->once())
                   ->method('withHeader')
-                  ->with($this->identicalTo('Access-Control-Allow-Headers'), $this->identicalTo('Content-Type'))
+                  ->with(
+                      $this->identicalTo('Access-Control-Allow-Headers'),
+                      $this->identicalTo('Combination-Id,Content-Type')
+                  )
                   ->willReturn($response2);
 
         $middleware = new CorsHeaderMiddleware(['foo', 'bar']);

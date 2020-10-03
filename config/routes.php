@@ -20,6 +20,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->post('/init', Handler\InitHandler::class, RouteName::INIT);
     $app->get('/{type:item|fluid}/{name}/ingredients', Handler\Item\IngredientsHandler::class, RouteName::ITEM_INGREDIENTS);
     $app->get('/{type:item|fluid}/{name}/products', Handler\Item\ProductsHandler::class, RouteName::ITEM_PRODUCTS);
+    $app->get('/items', Handler\ItemsHandler::class, RouteName::ITEMS);
     $app->get('/random', Handler\RandomHandler::class, RouteName::RANDOM);
     $app->get('/recipe/{name}', Handler\Recipe\DetailsHandler::class, RouteName::RECIPE_DETAILS);
     $app->get('/recipe/{name}/machines', Handler\Recipe\MachinesHandler::class, RouteName::RECIPE_MACHINES);

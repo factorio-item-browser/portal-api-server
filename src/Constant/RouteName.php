@@ -28,6 +28,11 @@ interface RouteName
     public const ITEM_PRODUCTS = 'item.products';
 
     /**
+     * The route for fetching a list of all items.
+     */
+    public const ITEMS = 'items';
+
+    /**
      * The route for fetching random items.
      */
     public const RANDOM = 'random';

@@ -17,6 +17,7 @@ return [
     ConfigKey::MAIN => [
         ConfigKey::MAPPERS => [
             Mapper\GenericEntityMapper::class,
+            Mapper\ItemListResponseMapper::class,
             Mapper\ItemRecipesMapper::class,
             Mapper\MachineMapper::class,
             Mapper\ModMapper::class,

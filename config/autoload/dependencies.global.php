@@ -35,6 +35,7 @@ return [
             Handler\InitHandler::class => AutoWireFactory::class,
             Handler\Item\IngredientsHandler::class => AutoWireFactory::class,
             Handler\Item\ProductsHandler::class => AutoWireFactory::class,
+            Handler\ItemsHandler::class => AutoWireFactory::class,
             Handler\NotFoundHandler::class => AutoWireFactory::class,
             Handler\RandomHandler::class => AutoWireFactory::class,
             Handler\Recipe\DetailsHandler::class => AutoWireFactory::class,
@@ -59,6 +60,7 @@ return [
             Helper\SidebarEntitiesHelper::class => AutoWireFactory::class,
 
             Mapper\GenericEntityMapper::class => AutoWireFactory::class,
+            Mapper\ItemListResponseMapper::class => AutoWireFactory::class,
             Mapper\ItemRecipesMapper::class => AutoWireFactory::class,
             Mapper\MachineMapper::class => AutoWireFactory::class,
             Mapper\ModMapper::class => AutoWireFactory::class,

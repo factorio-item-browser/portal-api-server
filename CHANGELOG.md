@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 - 2020-10-06
+
+### Added
+
+- Endpoint `/items` for retrieving a paginated list of all items.
+
 ## 1.2.0 - 2020-09-27
 
 ### Added

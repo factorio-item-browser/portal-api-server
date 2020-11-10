@@ -157,7 +157,7 @@ class CombinationRepositoryTest extends TestCase
         $repository = new CombinationRepository($this->entityManager);
         $repository->getDefaultCombination();
     }
-    
+
     /**
      * Tests the getCombination method.
      * @covers ::getCombination
@@ -210,7 +210,7 @@ class CombinationRepositoryTest extends TestCase
 
         $this->assertSame($combination, $result);
     }
-    
+
     /**
      * Tests the getCombination method.
      * @covers ::getCombination

@@ -336,11 +336,11 @@ class UserRepositoryTest extends TestCase
             hex2bin('693d481c9b6e41189dc07e5d6cd29776'),
             hex2bin('f463945804904ce492ee71197aae0551'),
         ];
-        
+
         $query1 = $this->createMock(AbstractQuery::class);
         $query1->expects($this->once())
                ->method('execute');
-        
+
         $queryBuilder1 = $this->createMock(QueryBuilder::class);
         $queryBuilder1->expects($this->once())
                       ->method('delete')
@@ -357,11 +357,11 @@ class UserRepositoryTest extends TestCase
         $queryBuilder1->expects($this->once())
                       ->method('getQuery')
                       ->willReturn($query1);
-        
+
         $query2 = $this->createMock(AbstractQuery::class);
         $query2->expects($this->once())
                ->method('execute');
-        
+
         $queryBuilder2 = $this->createMock(QueryBuilder::class);
         $queryBuilder2->expects($this->once())
                       ->method('delete')

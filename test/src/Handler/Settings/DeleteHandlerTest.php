@@ -145,7 +145,7 @@ class DeleteHandlerTest extends TestCase
         $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
         $handler->handle($request);
     }
-    
+
     /**
      * Tests the handle method.
      * @throws PortalApiServerException

@@ -174,7 +174,7 @@ class SettingRepositoryTest extends TestCase
                                     ->method('getCombination')
                                     ->with($this->identicalTo($combinationId))
                                     ->willReturn($combination);
-        
+
         $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
         $result = $repository->createTemporarySetting($user, $combinationId);
 

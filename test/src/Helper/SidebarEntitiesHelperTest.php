@@ -137,7 +137,7 @@ class SidebarEntitiesHelperTest extends TestCase
             $this->createMock(SidebarEntity::class),
             $this->createMock(SidebarEntity::class),
         ];
-        
+
         /* @var SidebarEntity&MockObject $oldEntity1 */
         $oldEntity1 = $this->createMock(SidebarEntity::class);
         $oldEntity1->expects($this->once())

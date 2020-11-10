@@ -33,7 +33,7 @@ use ReflectionException;
 class IconsHandlerTest extends TestCase
 {
     use ReflectionTrait;
-    
+
     /**
      * The mocked current setting.
      * @var Setting&MockObject
@@ -45,7 +45,7 @@ class IconsHandlerTest extends TestCase
      * @var IconsStyleFetcher&MockObject
      */
     protected $iconsStyleFetcher;
-    
+
     /**
      * The mocked serializer.
      * @var SerializerInterface&MockObject
@@ -63,7 +63,7 @@ class IconsHandlerTest extends TestCase
         $this->iconsStyleFetcher = $this->createMock(IconsStyleFetcher::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
     }
-    
+
     /**
      * Tests the constructing.
      * @throws ReflectionException
@@ -72,12 +72,12 @@ class IconsHandlerTest extends TestCase
     public function testConstruct(): void
     {
         $handler = new IconsHandler($this->currentSetting, $this->iconsStyleFetcher, $this->serializer);
-        
+
         $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
         $this->assertSame($this->iconsStyleFetcher, $this->extractProperty($handler, 'iconsStyleFetcher'));
         $this->assertSame($this->serializer, $this->extractProperty($handler, 'serializer'));
     }
-    
+
     /**
      * Tests the handle method.
      * @throws PortalApiServerException
@@ -111,7 +111,7 @@ class IconsHandlerTest extends TestCase
 
         /* @var TransferResponse $result */
         $result = $handler->handle($request);
-        
+
         $this->assertInstanceOf(TransferResponse::class, $result);
         $this->assertSame($iconsStyleData, $result->getTransfer());
     }
@@ -147,7 +147,7 @@ class IconsHandlerTest extends TestCase
 
         $handler->handle($request);
     }
-    
+
     /**
      * Tests the parseRequestBody method.
      * @throws ReflectionException
@@ -156,7 +156,7 @@ class IconsHandlerTest extends TestCase
     public function testParseRequestBody(): void
     {
         $requestBody = 'abc';
-        
+
         /* @var NamesByTypes&MockObject $deserializedRequestBody */
         $deserializedRequestBody = $this->createMock(NamesByTypes::class);
 
@@ -165,13 +165,13 @@ class IconsHandlerTest extends TestCase
         $body->expects($this->once())
              ->method('getContents')
              ->willReturn($requestBody);
-        
+
         /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getBody')
                 ->willReturn($body);
-        
+
         $this->serializer->expects($this->once())
                          ->method('deserialize')
                          ->with(

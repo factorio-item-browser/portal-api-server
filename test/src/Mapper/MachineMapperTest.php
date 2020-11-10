@@ -45,7 +45,7 @@ class MachineMapperTest extends TestCase
 
         $this->assertSame($expectedResult, $result);
     }
-    
+
     /**
      * Tests the map method.
      * @covers ::map
@@ -61,7 +61,7 @@ class MachineMapperTest extends TestCase
                ->setNumberOfModuleSlots(56)
                ->setEnergyUsage(4.2)
                ->setEnergyUsageUnit('ghi');
-        
+
         $expectedDestination = new MachineData();
         $expectedDestination->setName('abc')
                             ->setLabel('def')
@@ -71,12 +71,12 @@ class MachineMapperTest extends TestCase
                             ->setNumberOfModules(56)
                             ->setEnergyUsage(4.2)
                             ->setEnergyUsageUnit('ghi');
-        
+
         $destination = new MachineData();
-        
+
         $mapper = new MachineMapper();
         $mapper->map($source, $destination);
-        
+
         $this->assertEquals($expectedDestination, $destination);
     }
 }

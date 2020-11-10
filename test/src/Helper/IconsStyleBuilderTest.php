@@ -37,7 +37,7 @@ class IconsStyleBuilderTest extends TestCase
         $this->assertInstanceOf(Escaper::class, $this->extractProperty($builder, 'escaper'));
         $this->assertInstanceOf(NamesByTypes::class, $this->extractProperty($builder, 'processedEntities'));
     }
-    
+
     /**
      * Tests the processIcon method.
      * @throws ReflectionException
@@ -95,9 +95,9 @@ class IconsStyleBuilderTest extends TestCase
 
         $this->injectProperty($builder, 'processedEntities', $processedEntities);
         $this->injectProperty($builder, 'rules', $rules);
-        
+
         $result = $builder->processIcon($icon);
-        
+
         $this->assertSame($builder, $result);
         $this->assertSame($expectedRules, $this->extractProperty($builder, 'rules'));
     }

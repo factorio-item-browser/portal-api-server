@@ -16,43 +16,38 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class RecipeMachinesDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $machine1 = new MachineData();
-        $machine1->setName('abc')
-                 ->setLabel('def')
-                 ->setCraftingSpeed(13.37)
-                 ->setNumberOfItems(12)
-                 ->setNumberOfFluids(34)
-                 ->setNumberOfModules(56)
-                 ->setEnergyUsage(4.2)
-                 ->setEnergyUsageUnit('ghi');
+        $machine1->name = 'abc';
+        $machine1->label = 'def';
+        $machine1->craftingSpeed = 13.37;
+        $machine1->numberOfItems = 12;
+        $machine1->numberOfFluids = 34;
+        $machine1->numberOfModules = 56;
+        $machine1->energyUsage = 4.2;
+        $machine1->energyUsageUnit = 'ghi';
 
         $machine2 = new MachineData();
-        $machine2->setName('jkl')
-                 ->setLabel('mno')
-                 ->setCraftingSpeed(73.31)
-                 ->setNumberOfItems(23)
-                 ->setNumberOfFluids(45)
-                 ->setNumberOfModules(67)
-                 ->setEnergyUsage(2.1)
-                 ->setEnergyUsageUnit('pqr');
+        $machine2->name = 'jkl';
+        $machine2->label = 'mno';
+        $machine2->craftingSpeed = 73.31;
+        $machine2->numberOfItems = 23;
+        $machine2->numberOfFluids = 45;
+        $machine2->numberOfModules = 67;
+        $machine2->energyUsage = 2.1;
+        $machine2->energyUsageUnit = 'pqr';
 
         $object = new RecipeMachinesData();
-        $object->setResults([$machine1, $machine2])
-               ->setNumberOfResults(42);
+        $object->results = [$machine1, $machine2];
+        $object->numberOfResults = 42;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'results' => [
@@ -81,9 +76,6 @@ class RecipeMachinesDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

@@ -89,7 +89,7 @@ class CombinationHelper
                 $combination->setStatus(CombinationStatus::PENDING);
             }
         } else {
-            $combination->setStatus(CombinationStatus::UNKNOWN);
+            $combination->setStatus(CombinationStatus::PENDING);
         }
 
         $combination->setLastCheckTime(new DateTime());

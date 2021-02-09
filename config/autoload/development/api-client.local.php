@@ -17,7 +17,7 @@ return [
     ConfigKey::PROJECT => [
         ConfigKey::API_CLIENT => [
             ConfigKey::OPTIONS => [
-                ConfigKey::OPTION_API_URL => 'http://fib-as-php',
+                ConfigKey::OPTION_API_URL => 'http://api.fib.dev/',
                 ConfigKey::OPTION_ACCESS_KEY => 'debug',
                 ConfigKey::OPTION_TIMEOUT => 60,
             ],

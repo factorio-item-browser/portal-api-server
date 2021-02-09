@@ -12,63 +12,12 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
  */
 class SettingsListData
 {
-    /**
-     * The list of available settings.
-     * @var array|SettingMetaData[]
-     */
-    protected $settings = [];
+    /** @var array<SettingMetaData> */
+    public array $settings = [];
+    public SettingDetailsData $currentSetting;
 
-    /**
-     * The current setting.
-     * @var SettingDetailsData
-     */
-    protected $currentSetting;
-
-    /**
-     * Initializes the transfer object.
-     */
     public function __construct()
     {
         $this->currentSetting = new SettingDetailsData();
-    }
-
-    /**
-     * Sets the list of available settings.
-     * @param array|SettingMetaData[] $settings
-     * @return $this
-     */
-    public function setSettings(array $settings): self
-    {
-        $this->settings = $settings;
-        return $this;
-    }
-
-    /**
-     * Returns the list of available settings.
-     * @return array|SettingMetaData[]
-     */
-    public function getSettings(): array
-    {
-        return $this->settings;
-    }
-
-    /**
-     * Sets the current setting.
-     * @param SettingDetailsData $currentSetting
-     * @return $this
-     */
-    public function setCurrentSetting(SettingDetailsData $currentSetting): self
-    {
-        $this->currentSetting = $currentSetting;
-        return $this;
-    }
-
-    /**
-     * Returns the current setting.
-     * @return SettingDetailsData
-     */
-    public function getCurrentSetting(): SettingDetailsData
-    {
-        return $this->currentSetting;
     }
 }

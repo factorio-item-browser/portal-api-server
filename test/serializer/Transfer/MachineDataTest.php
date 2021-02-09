@@ -15,29 +15,24 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class MachineDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new MachineData();
-        $object->setName('abc')
-               ->setLabel('def')
-               ->setCraftingSpeed(13.37)
-               ->setNumberOfItems(12)
-               ->setNumberOfFluids(34)
-               ->setNumberOfModules(56)
-               ->setEnergyUsage(4.2)
-               ->setEnergyUsageUnit('ghi');
+        $object->name = 'abc';
+        $object->label = 'def';
+        $object->craftingSpeed = 13.37;
+        $object->numberOfItems = 12;
+        $object->numberOfFluids = 34;
+        $object->numberOfModules = 56;
+        $object->energyUsage = 4.2;
+        $object->energyUsageUnit = 'ghi';
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'name' => 'abc',
@@ -51,9 +46,6 @@ class MachineDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

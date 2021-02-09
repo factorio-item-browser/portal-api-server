@@ -17,42 +17,36 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class SettingsListDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $setting1 = new SettingMetaData();
-        $setting1->setCombinationId('abc')
-                 ->setName('def')
-                 ->setStatus('yza');
+        $setting1->combinationId = 'abc';
+        $setting1->name = 'def';
+        $setting1->status = 'yza';
 
         $setting2 = new SettingMetaData();
-        $setting2->setCombinationId('ghi')
-                 ->setName('jkl')
-                 ->setStatus('bcd')
-                 ->setIsTemporary(true);
+        $setting2->combinationId = 'ghi';
+        $setting2->name = 'jkl';
+        $setting2->status = 'bcd';
+        $setting2->isTemporary = true;
 
         $currentSetting = new SettingDetailsData();
-        $currentSetting->setCombinationId('mno')
-                       ->setName('pqr')
-                       ->setStatus('efg')
-                       ->setLocale('stu')
-                       ->setRecipeMode('vwx');
+        $currentSetting->combinationId = 'mno';
+        $currentSetting->name = 'pqr';
+        $currentSetting->status = 'efg';
+        $currentSetting->locale = 'stu';
+        $currentSetting->recipeMode = 'vwx';
 
         $object = new SettingsListData();
-        $object->setSettings([$setting1, $setting2])
-               ->setCurrentSetting($currentSetting);
-
+        $object->settings = [$setting1, $setting2];
+        $object->currentSetting = $currentSetting;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'settings' => [
@@ -85,9 +79,6 @@ class SettingsListDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

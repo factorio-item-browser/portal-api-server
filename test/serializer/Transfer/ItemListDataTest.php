@@ -16,31 +16,26 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class ItemListDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $result1 = new ItemMetaData();
-        $result1->setType('abc')
-                ->setName('def');
+        $result1->type = 'abc';
+        $result1->name = 'def';
 
         $result2 = new ItemMetaData();
-        $result2->setType('ghi')
-                ->setName('jkl');
+        $result2->type = 'ghi';
+        $result2->name = 'jkl';
 
         $object = new ItemListData();
-        $object->setResults([$result1, $result2])
-               ->setNumberOfResults(42);
+        $object->results = [$result1, $result2];
+        $object->numberOfResults = 42;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'results' => [
@@ -57,9 +52,6 @@ class ItemListDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

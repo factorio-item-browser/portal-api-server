@@ -15,26 +15,20 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class SettingMetaDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new SettingMetaData();
-        $object->setCombinationId('abc')
-               ->setName('def')
-               ->setStatus('ghi')
-               ->setIsTemporary(true);
-
+        $object->combinationId = 'abc';
+        $object->name = 'def';
+        $object->status = 'ghi';
+        $object->isTemporary = true;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'combinationId' => 'abc',
@@ -44,9 +38,6 @@ class SettingMetaDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

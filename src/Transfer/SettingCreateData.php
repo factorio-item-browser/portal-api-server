@@ -12,29 +12,6 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
  */
 class SettingCreateData extends SettingOptionsData
 {
-    /**
-     * The mod names to use in the setting.
-     * @var array<string>|string[]
-     */
-    protected $modNames = [];
-
-    /**
-     * Sets the mod names to use in the setting.
-     * @param array<string>|string[] $modNames
-     * @return $this
-     */
-    public function setModNames(array $modNames): self
-    {
-        $this->modNames = $modNames;
-        return $this;
-    }
-
-    /**
-     * Returns the mod names to use in the setting.
-     * @return array<string>|string[]
-     */
-    public function getModNames(): array
-    {
-        return $this->modNames;
-    }
+    /** @var array<string> */
+    public array $modNames = [];
 }

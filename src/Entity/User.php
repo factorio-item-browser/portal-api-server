@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Entity;
 
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -40,6 +41,7 @@ class User
      */
     public function __construct()
     {
+        $this->lastVisitTime = new DateTime();
         $this->settings = new ArrayCollection();
     }
 

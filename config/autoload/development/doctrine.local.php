@@ -20,11 +20,11 @@ return [
             'orm_default' => [
                 'driverClass' => PDOMySqlDriver::class,
                 'params' => [
-                    'host'     => 'fib-pa-mysql',
+                    'host'     => 'fib-mysql',
                     'port'     => '3306',
-                    'user'     => 'docker',
-                    'password' => 'docker',
-                    'dbname'   => 'docker',
+                    'user'     => 'portal-api',
+                    'password' => 'portal-api',
+                    'dbname'   => 'portal-api',
                     'driverOptions' => [
                         PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
                     ],

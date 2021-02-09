@@ -16,36 +16,31 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class SearchResultsDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $result1 = new EntityData();
-        $result1->setType('def')
-                ->setName('ghi')
-                ->setLabel('jkl')
-                ->setNumberOfRecipes(12);
+        $result1->type = 'def';
+        $result1->name = 'ghi';
+        $result1->label = 'jkl';
+        $result1->numberOfRecipes = 12;
 
         $result2 = new EntityData();
-        $result2->setType('mno')
-                ->setName('pqr')
-                ->setLabel('stu')
-                ->setNumberOfRecipes(34);
+        $result2->type = 'mno';
+        $result2->name = 'pqr';
+        $result2->label = 'stu';
+        $result2->numberOfRecipes = 34;
 
         $object = new SearchResultsData();
-        $object->setQuery('abc')
-               ->setResults([$result1, $result2])
-               ->setNumberOfResults(42);
+        $object->query = 'abc';
+        $object->results = [$result1, $result2];
+        $object->numberOfResults = 42;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'query' => 'abc',
@@ -69,9 +64,6 @@ class SearchResultsDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

@@ -6,7 +6,6 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,80 +13,14 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Transfer\InitData
+ * @covers \FactorioItemBrowser\PortalApi\Server\Transfer\InitData
  */
 class InitDataTest extends TestCase
 {
-    /**
-     * Tests the setting and getting the setting.
-     * @covers ::getSetting
-     * @covers ::setSetting
-     */
-    public function testSetAndGetSetting(): void
+    public function testConstruct(): void
     {
-        $setting = $this->createMock(SettingMetaData::class);
-        $transfer = new InitData();
+        $instance = new InitData();
 
-        $this->assertSame($transfer, $transfer->setSetting($setting));
-        $this->assertSame($setting, $transfer->getSetting());
-    }
-
-    /**
-     * Tests the setting and getting the last used setting.
-     * @covers ::getLastUsedSetting
-     * @covers ::setLastUsedSetting
-     */
-    public function testSetAndGetLastUsedSetting(): void
-    {
-        $lastUsedSetting = $this->createMock(SettingMetaData::class);
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setLastUsedSetting($lastUsedSetting));
-        $this->assertSame($lastUsedSetting, $transfer->getLastUsedSetting());
-    }
-
-    /**
-     * Tests the setting and getting the locale.
-     * @covers ::getLocale
-     * @covers ::setLocale
-     */
-    public function testSetAndGetLocale(): void
-    {
-        $locale = 'abc';
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setLocale($locale));
-        $this->assertSame($locale, $transfer->getLocale());
-    }
-
-    /**
-     * Tests the setting and getting the sidebar entities.
-     * @covers ::getSidebarEntities
-     * @covers ::setSidebarEntities
-     */
-    public function testSetAndGetSidebarEntities(): void
-    {
-        $sidebarEntities = [
-            $this->createMock(SidebarEntityData::class),
-            $this->createMock(SidebarEntityData::class),
-        ];
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setSidebarEntities($sidebarEntities));
-        $this->assertSame($sidebarEntities, $transfer->getSidebarEntities());
-    }
-
-    /**
-     * Tests the setting and getting the script version.
-     * @covers ::getScriptVersion
-     * @covers ::setScriptVersion
-     */
-    public function testSetAndGetScriptVersion(): void
-    {
-        $scriptVersion = 'abc';
-        $transfer = new InitData();
-
-        $this->assertSame($transfer, $transfer->setScriptVersion($scriptVersion));
-        $this->assertSame($scriptVersion, $transfer->getScriptVersion());
+        $this->assertEquals(new SettingMetaData(), $instance->setting);
     }
 }

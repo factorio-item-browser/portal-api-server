@@ -15,26 +15,21 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class ModDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new ModData();
-        $object->setName('abc')
-               ->setLabel('def')
-               ->setAuthor('ghi')
-               ->setVersion('jkl');
+        $object->name = 'abc';
+        $object->label = 'def';
+        $object->author = 'ghi';
+        $object->version = 'jkl';
 
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'name' => 'abc',
@@ -44,9 +39,6 @@ class ModDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

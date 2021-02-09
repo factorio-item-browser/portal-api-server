@@ -23,43 +23,42 @@ class RecipeDataTest extends SerializerTestCase
     protected function getObject(): object
     {
         $ingredient1 = new RecipeItemData();
-        $ingredient1->setType('abc')
-                    ->setName('def')
-                    ->setLabel('ghi')
-                    ->setAmount(1.2);
+        $ingredient1->type = 'abc';
+        $ingredient1->name = 'def';
+        $ingredient1->label = 'ghi';
+        $ingredient1->amount = 1.2;
 
         $ingredient2 = new RecipeItemData();
-        $ingredient2->setType('jkl')
-                    ->setName('mno')
-                    ->setLabel('pqr')
-                    ->setAmount(3.4);
+        $ingredient2->type = 'jkl';
+        $ingredient2->name = 'mno';
+        $ingredient2->label = 'pqr';
+        $ingredient2->amount = 3.4;
 
         $product1 = new RecipeItemData();
-        $product1->setType('stu')
-                 ->setName('vwx')
-                 ->setLabel('yza')
-                 ->setAmount(5.6);
+        $product1->type = 'stu';
+        $product1->name = 'vwx';
+        $product1->label = 'yza';
+        $product1->amount = 5.6;
 
         $product2 = new RecipeItemData();
-        $product2->setType('bcd')
-                 ->setName('efg')
-                 ->setLabel('hij')
-                 ->setAmount(7.8);
+        $product2->type = 'bcd';
+        $product2->name = 'efg';
+        $product2->label = 'hij';
+        $product2->amount = 7.8;
 
         $object = new RecipeData();
-        $object->setCraftingTime(13.37)
-               ->setIngredients([$ingredient1, $ingredient2])
-               ->setProducts([$product1, $product2])
-               ->setIsExpensive(true);
+        $object->craftingTime = 13.37;
+        $object->ingredients = [$ingredient1, $ingredient2];
+        $object->products = [$product1, $product2];
+        $object->isExpensive = true;
 
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'craftingTime' => 13.37,
@@ -95,9 +94,6 @@ class RecipeDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

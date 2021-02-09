@@ -9,6 +9,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Mapper\SettingMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use stdClass;
@@ -18,12 +19,23 @@ use stdClass;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\SettingMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\SettingMapper
  */
 class SettingMapperTest extends TestCase
 {
     /**
-     * Provides the data for the supports test.
+     * @param array<string> $mockedMethods
+     * @return SettingMapper&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): SettingMapper
+    {
+        return $this->getMockBuilder(SettingMapper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
+    }
+
+    /**
      * @return array<mixed>
      */
     public function provideSupports(): array
@@ -37,25 +49,19 @@ class SettingMapperTest extends TestCase
     }
 
     /**
-     * Tests the supports method.
      * @param object $source
      * @param object $destination
      * @param bool $expectedResult
-     * @covers ::supports
      * @dataProvider provideSupports
      */
     public function testSupports(object $source, object $destination, bool $expectedResult): void
     {
-        $mapper = new SettingMapper();
-        $result = $mapper->supports($source, $destination);
+        $instance = $this->createInstance();
+        $result = $instance->supports($source, $destination);
 
         $this->assertSame($expectedResult, $result);
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMap(): void
     {
         $combinationId = 'bc845964-3422-45ad-b8c1-819af3763667';
@@ -69,22 +75,18 @@ class SettingMapperTest extends TestCase
                ->setCombination($combination);
 
         $expectedDestination = new SettingMetaData();
-        $expectedDestination->setCombinationId($combinationId)
-                            ->setName('abc')
-                            ->setStatus('def');
+        $expectedDestination->combinationId = $combinationId;
+        $expectedDestination->name = 'abc';
+        $expectedDestination->status = 'def';
 
         $destination = new SettingMetaData();
 
-        $mapper = new SettingMapper();
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMapWithDetails(): void
     {
         $combinationId = 'bc845964-3422-45ad-b8c1-819af3763667';
@@ -100,16 +102,16 @@ class SettingMapperTest extends TestCase
                ->setRecipeMode('jkl');
 
         $expectedDestination = new SettingDetailsData();
-        $expectedDestination->setCombinationId($combinationId)
-                            ->setName('abc')
-                            ->setStatus('def')
-                            ->setLocale('ghi')
-                            ->setRecipeMode('jkl');
+        $expectedDestination->combinationId = $combinationId;
+        $expectedDestination->name = 'abc';
+        $expectedDestination->status = 'def';
+        $expectedDestination->locale = 'ghi';
+        $expectedDestination->recipeMode = 'jkl';
 
         $destination = new SettingDetailsData();
 
-        $mapper = new SettingMapper();
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }

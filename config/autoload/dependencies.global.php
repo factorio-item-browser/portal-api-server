@@ -71,6 +71,7 @@ return [
             Mapper\RecipeToEntityMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
             Mapper\SettingMapper::class => AutoWireFactory::class,
+            Mapper\SidebarEntityDataMapper::class => AutoWireFactory::class,
             Mapper\SidebarEntityMapper::class => AutoWireFactory::class,
 
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,

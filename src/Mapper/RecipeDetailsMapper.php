@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\Mapper\StaticMapperInterface;
 use BluePsyduck\MapperManager\MapperManagerAwareInterface;
-use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\Entity\Recipe;
-use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
+use BluePsyduck\MapperManager\MapperManagerAwareTrait;
+use FactorioItemBrowser\Api\Client\Transfer\Recipe;
+use FactorioItemBrowser\Api\Client\Transfer\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeDetailsData;
@@ -19,88 +18,50 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeDetailsData;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @implements StaticMapperInterface<RecipeWithExpensiveVersion, RecipeDetailsData>
  */
 class RecipeDetailsMapper implements StaticMapperInterface, MapperManagerAwareInterface
 {
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
+    use MapperManagerAwareTrait;
 
-    /**
-     * The recipe selector.
-     * @var RecipeSelector
-     */
-    protected $recipeSelector;
+    private RecipeSelector $recipeSelector;
 
-    /**
-     * Initializes the mapper.
-     * @param RecipeSelector $recipeSelector
-     */
     public function __construct(RecipeSelector $recipeSelector)
     {
         $this->recipeSelector = $recipeSelector;
     }
 
-    /**
-     * Sets the mapper manager.
-     * @param MapperManagerInterface $mapperManager
-     */
-    public function setMapperManager(MapperManagerInterface $mapperManager): void
-    {
-        $this->mapperManager = $mapperManager;
-    }
-
-    /**
-     * Returns the source class supported by this mapper.
-     * @return string
-     */
     public function getSupportedSourceClass(): string
     {
         return RecipeWithExpensiveVersion::class;
     }
 
-    /**
-     * Returns the destination class supported by this mapper.
-     * @return string
-     */
     public function getSupportedDestinationClass(): string
     {
         return RecipeDetailsData::class;
     }
 
     /**
-     * Maps the source object to the destination one.
      * @param RecipeWithExpensiveVersion $source
      * @param RecipeDetailsData $destination
-     * @throws MapperException
      */
-    public function map($source, $destination): void
+    public function map(object $source, object $destination): void
     {
-        @list($recipe, $expensiveRecipe) = $this->recipeSelector->select($source);
+        [$recipe, $expensiveRecipe] = $this->recipeSelector->select($source);
 
-        $destination->setName($source->getName())
-                    ->setLabel($source->getLabel())
-                    ->setDescription($source->getDescription())
-                    ->setRecipe($this->mapRecipe($recipe))
-                    ->setExpensiveRecipe($this->mapRecipe($expensiveRecipe));
+        $destination->name = $source->name;
+        $destination->label = $source->label;
+        $destination->description = $source->description;
+        $destination->recipe = $this->mapRecipe($recipe);
+        $destination->expensiveRecipe = $this->mapRecipe($expensiveRecipe);
     }
 
-    /**
-     * Maps the recipe.
-     * @param Recipe|null $recipe
-     * @return RecipeData|null
-     * @throws MapperException
-     */
-    protected function mapRecipe(?Recipe $recipe): ?RecipeData
+    private function mapRecipe(?Recipe $recipe): ?RecipeData
     {
         if ($recipe === null) {
             return null;
         }
-
-        $recipeData = new RecipeData();
-        $this->mapperManager->map($recipe, $recipeData);
-        return $recipeData;
+        return $this->mapperManager->map($recipe, new RecipeData());
     }
 }

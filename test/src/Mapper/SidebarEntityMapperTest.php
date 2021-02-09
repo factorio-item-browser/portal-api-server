@@ -8,79 +8,60 @@ use DateTimeImmutable;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use stdClass;
 
 /**
  * The PHPUnit test of the SidebarEntityMapper class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\SidebarEntityMapper
  */
 class SidebarEntityMapperTest extends TestCase
 {
     /**
-     * Provides the data for the supports test.
-     * @return array<mixed>
+     * @param array<string> $mockedMethods
+     * @return SidebarEntityMapper&MockObject
      */
-    public function provideSupports(): array
+    private function createInstance(array $mockedMethods = []): SidebarEntityMapper
     {
-        return [
-            [new SidebarEntity(), new SidebarEntity(), true],
-            [new SidebarEntity(), new SidebarEntityData(), true],
-            [new SidebarEntityData(), new SidebarEntity(), true],
-            [new SidebarEntityData(), new SidebarEntityData(), true],
-
-            [new SidebarEntity(), new stdClass(), false],
-            [new SidebarEntityData(), new stdClass(), false],
-            [new stdClass(), new SidebarEntity(), false],
-            [new stdClass(), new SidebarEntityData(), false],
-        ];
+        return $this->getMockBuilder(SidebarEntityMapper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
     }
 
-    /**
-     * Tests the supports method.
-     * @param object $source
-     * @param object $destination
-     * @param bool $expectedResult
-     * @covers ::supports
-     * @dataProvider provideSupports
-     */
-    public function testSupports(object $source, object $destination, bool $expectedResult): void
+    public function testSupports(): void
     {
-        $mapper = new SidebarEntityMapper();
-        $result = $mapper->supports($source, $destination);
+        $instance = $this->createInstance();
 
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(SidebarEntity::class, $instance->getSupportedSourceClass());
+        $this->assertSame(SidebarEntityData::class, $instance->getSupportedDestinationClass());
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMap(): void
     {
         $lastViewTime = new DateTimeImmutable('2038-01-19 03:14:07');
 
-        $source = new SidebarEntityData();
+        $source = new SidebarEntity();
         $source->setType('abc')
                ->setName('def')
                ->setLabel('ghi')
                ->setPinnedPosition(42)
                ->setLastViewTime($lastViewTime);
 
-        $expectedDestination = new SidebarEntity();
-        $expectedDestination->setType('abc')
-                            ->setName('def')
-                            ->setLabel('ghi')
-                            ->setPinnedPosition(42)
-                            ->setLastViewTime($lastViewTime);
+        $expectedDestination = new SidebarEntityData();
+        $expectedDestination->type = 'abc';
+        $expectedDestination->name = 'def';
+        $expectedDestination->label = 'ghi';
+        $expectedDestination->pinnedPosition = 42;
+        $expectedDestination->lastViewTime = $lastViewTime;
 
-        $destination = new SidebarEntity();
+        $destination = new SidebarEntityData();
 
-        $mapper = new SidebarEntityMapper();
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }

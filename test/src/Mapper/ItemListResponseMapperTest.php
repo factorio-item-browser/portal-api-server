@@ -4,112 +4,72 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntity;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
+use FactorioItemBrowser\Api\Client\Transfer\GenericEntityWithRecipes;
 use FactorioItemBrowser\Api\Client\Response\Item\ItemListResponse;
 use FactorioItemBrowser\PortalApi\Server\Mapper\ItemListResponseMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ItemListData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ItemMetaData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the ItemListResponseMapper class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\ItemListResponseMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\ItemListResponseMapper
  */
 class ItemListResponseMapperTest extends TestCase
 {
-    use ReflectionTrait;
-
     /**
-     * Tests the getSupportedSourceClass method.
-     * @covers ::getSupportedSourceClass
+     * @param array<string> $mockedMethods
+     * @return ItemListResponseMapper&MockObject
      */
-    public function testGetSupportedSourceClass(): void
+    private function createInstance(array $mockedMethods = []): ItemListResponseMapper
     {
-        $expectedResult = ItemListResponse::class;
-
-        $mapper = new ItemListResponseMapper();
-        $result = $mapper->getSupportedSourceClass();
-
-        $this->assertSame($expectedResult, $result);
+        return $this->getMockBuilder(ItemListResponseMapper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
     }
 
-    /**
-     * Tests the getSupportedDestinationClass method.
-     * @covers ::getSupportedDestinationClass
-     */
-    public function testGetSupportedDestinationClass(): void
+    public function testSupports(): void
     {
-        $expectedResult = ItemListData::class;
+        $instance = $this->createInstance();
 
-        $mapper = new ItemListResponseMapper();
-        $result = $mapper->getSupportedDestinationClass();
-
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(ItemListResponse::class, $instance->getSupportedSourceClass());
+        $this->assertSame(ItemListData::class, $instance->getSupportedDestinationClass());
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMap(): void
     {
-        $item1 = $this->createMock(GenericEntityWithRecipes::class);
-        $item2 = $this->createMock(GenericEntityWithRecipes::class);
-        $itemData1 = $this->createMock(ItemMetaData::class);
-        $itemData2 = $this->createMock(ItemMetaData::class);
+        $item1 = new GenericEntityWithRecipes();
+        $item1->type = 'abc';
+        $item1->name = 'def';
+        $item2 = new GenericEntityWithRecipes();
+        $item2->type = 'ghi';
+        $item2->name = 'jkl';
 
-        $response = new ItemListResponse();
-        $response->setItems([$item1, $item2])
-                 ->setTotalNumberOfResults(42);
+        $itemData1 = new ItemMetaData();
+        $itemData1->type = 'abc';
+        $itemData1->name = 'def';
+        $itemData2 = new ItemMetaData();
+        $itemData2->type = 'ghi';
+        $itemData2->name = 'jkl';
 
-        $expectedResult = new ItemListData();
-        $expectedResult->setResults([$itemData1, $itemData2])
-                       ->setNumberOfResults(42);
+        $source = new ItemListResponse();
+        $source->items = [$item1, $item2];
+        $source->totalNumberOfResults = 42;
 
-        $mapper = $this->getMockBuilder(ItemListResponseMapper::class)
-                       ->onlyMethods(['mapItem'])
-                       ->getMock();
-        $mapper->expects($this->exactly(2))
-               ->method('mapItem')
-               ->withConsecutive(
-                   [$this->identicalTo($item1)],
-                   [$this->identicalTo($item2)],
-               )
-               ->willReturnOnConsecutiveCalls(
-                   $itemData1,
-                   $itemData2,
-               );
+        $expectedDestination = new ItemListData();
+        $expectedDestination->results = [$itemData1, $itemData2];
+        $expectedDestination->numberOfResults = 42;
 
-        $result = new ItemListData();
-        $mapper->map($response, $result);
+        $destination = new ItemListData();
 
-        $this->assertEquals($expectedResult, $result);
-    }
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
-    /**
-     * Tests the mapItem method.
-     * @throws ReflectionException
-     * @covers ::mapItem
-     */
-    public function testMapItem(): void
-    {
-        $item = new GenericEntity();
-        $item->setType('abc')
-             ->setName('def');
-
-        $expectedResult = new ItemMetaData();
-        $expectedResult->setType('abc')
-                       ->setName('def');
-
-        $mapper = new ItemListResponseMapper();
-        $result = $this->invokeMethod($mapper, 'mapItem', $item);
-
-        $this->assertEquals($expectedResult, $result);
+        $this->assertEquals($expectedDestination, $destination);
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
 use BluePsyduck\MapperManager\Mapper\StaticMapperInterface;
-use FactorioItemBrowser\Api\Client\Entity\Mod;
+use FactorioItemBrowser\Api\Client\Transfer\Mod;
 use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
 
 /**
@@ -13,37 +13,30 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\ModData;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @implements StaticMapperInterface<Mod, ModData>
  */
 class ModMapper implements StaticMapperInterface
 {
-    /**
-     * Returns the source class supported by this mapper.
-     * @return string
-     */
     public function getSupportedSourceClass(): string
     {
         return Mod::class;
     }
 
-    /**
-     * Returns the destination class supported by this mapper.
-     * @return string
-     */
     public function getSupportedDestinationClass(): string
     {
         return ModData::class;
     }
 
     /**
-     * Maps the source object to the destination one.
      * @param Mod $source
      * @param ModData $destination
      */
-    public function map($source, $destination): void
+    public function map(object $source, object $destination): void
     {
-        $destination->setName($source->getName())
-                    ->setLabel($source->getLabel())
-                    ->setAuthor($source->getAuthor())
-                    ->setVersion($source->getVersion());
+        $destination->name = $source->name;
+        $destination->label = $source->label;
+        $destination->author = $source->author;
+        $destination->version = $source->version;
     }
 }

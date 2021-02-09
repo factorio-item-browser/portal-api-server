@@ -28,6 +28,7 @@ return [
             Mapper\RecipeToEntityMapper::class,
             Mapper\SearchQueryResponseMapper::class,
             Mapper\SettingMapper::class,
+            Mapper\SidebarEntityDataMapper::class,
             Mapper\SidebarEntityMapper::class,
         ],
     ],

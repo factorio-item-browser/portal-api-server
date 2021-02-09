@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
-use FactorioItemBrowser\Api\Client\Entity\Machine;
+use FactorioItemBrowser\Api\Client\Transfer\Machine;
 use FactorioItemBrowser\PortalApi\Server\Mapper\MachineMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\MachineData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,68 +15,56 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\MachineMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\MachineMapper
  */
 class MachineMapperTest extends TestCase
 {
     /**
-     * Tests the getSupportedSourceClass method.
-     * @covers ::getSupportedSourceClass
+     * @param array<string> $mockedMethods
+     * @return MachineMapper&MockObject
      */
-    public function testGetSupportedSourceClass(): void
+    private function createInstance(array $mockedMethods = []): MachineMapper
     {
-        $expectedResult = Machine::class;
-
-        $mapper = new MachineMapper();
-        $result = $mapper->getSupportedSourceClass();
-
-        $this->assertSame($expectedResult, $result);
+        return $this->getMockBuilder(MachineMapper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
     }
 
-    /**
-     * Tests the getSupportedDestinationClass method.
-     * @covers ::getSupportedDestinationClass
-     */
-    public function testGetSupportedDestinationClass(): void
+    public function testSupports(): void
     {
-        $expectedResult = MachineData::class;
+        $instance = $this->createInstance();
 
-        $mapper = new MachineMapper();
-        $result = $mapper->getSupportedDestinationClass();
-
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(Machine::class, $instance->getSupportedSourceClass());
+        $this->assertSame(MachineData::class, $instance->getSupportedDestinationClass());
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMap(): void
     {
         $source = new Machine();
-        $source->setName('abc')
-               ->setLabel('def')
-               ->setCraftingSpeed(13.37)
-               ->setNumberOfItemSlots(12)
-               ->setNumberOfFluidInputSlots(34)
-               ->setNumberOfModuleSlots(56)
-               ->setEnergyUsage(4.2)
-               ->setEnergyUsageUnit('ghi');
+        $source->name = 'abc';
+        $source->label = 'def';
+        $source->craftingSpeed = 13.37;
+        $source->numberOfItemSlots = 12;
+        $source->numberOfFluidInputSlots = 34;
+        $source->numberOfModuleSlots = 56;
+        $source->energyUsage = 4.2;
+        $source->energyUsageUnit = 'ghi';
 
         $expectedDestination = new MachineData();
-        $expectedDestination->setName('abc')
-                            ->setLabel('def')
-                            ->setCraftingSpeed(13.37)
-                            ->setNumberOfItems(12)
-                            ->setNumberOfFluids(34)
-                            ->setNumberOfModules(56)
-                            ->setEnergyUsage(4.2)
-                            ->setEnergyUsageUnit('ghi');
+        $expectedDestination->name = 'abc';
+        $expectedDestination->label = 'def';
+        $expectedDestination->craftingSpeed = 13.37;
+        $expectedDestination->numberOfItems = 12;
+        $expectedDestination->numberOfFluids = 34;
+        $expectedDestination->numberOfModules = 56;
+        $expectedDestination->energyUsage = 4.2;
+        $expectedDestination->energyUsageUnit = 'ghi';
 
         $destination = new MachineData();
 
-        $mapper = new MachineMapper();
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }

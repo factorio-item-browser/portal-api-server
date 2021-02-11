@@ -4,82 +4,71 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
-use FactorioItemBrowser\Api\Client\Entity\Recipe;
-use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
+use FactorioItemBrowser\Api\Client\Transfer\Recipe;
+use FactorioItemBrowser\Api\Client\Transfer\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the RecipeSelector class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector
+ * @covers \FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector
  */
 class RecipeSelectorTest extends TestCase
 {
-    use ReflectionTrait;
+    /** @var Setting&MockObject */
+    private Setting $currentSetting;
 
-    /**
-     * The mocked current setting.
-     * @var Setting&MockObject
-     */
-    protected $currentSetting;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->currentSetting = $this->createMock(Setting::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return RecipeSelector&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): RecipeSelector
     {
-        $selector = new RecipeSelector($this->currentSetting);
-
-        $this->assertSame($this->currentSetting, $this->extractProperty($selector, 'currentSetting'));
+        return $this->getMockBuilder(RecipeSelector::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->currentSetting,
+                    ])
+                    ->getMock();
     }
 
-
     /**
-     * Provides the data for the select test.
      * @return array<mixed>
      */
     public function provideSelect(): array
     {
         $normalRecipe1 = new Recipe();
-        $normalRecipe1->setName('abc')
-                      ->setMode(RecipeMode::NORMAL);
+        $normalRecipe1->name = 'abc';
+        $normalRecipe1->mode = RecipeMode::NORMAL;
 
         $normalRecipe2 = new RecipeWithExpensiveVersion();
-        $normalRecipe2->setName('def')
-                      ->setMode(RecipeMode::NORMAL);
+        $normalRecipe2->name = 'def';
+        $normalRecipe2->mode = RecipeMode::NORMAL;
 
         $expensiveRecipe = new Recipe();
-        $expensiveRecipe->setName('ghi')
-                        ->setMode(RecipeMode::EXPENSIVE);
+        $expensiveRecipe->name = 'ghi';
+        $expensiveRecipe->mode = RecipeMode::EXPENSIVE;
 
         $normalRecipe3 = new RecipeWithExpensiveVersion();
-        $normalRecipe3->setName('jkl')
-                      ->setMode(RecipeMode::NORMAL)
-                      ->setExpensiveVersion($expensiveRecipe);
+        $normalRecipe3->name = 'jkl';
+        $normalRecipe3->mode = RecipeMode::NORMAL;
+        $normalRecipe3->expensiveVersion = $expensiveRecipe;
 
         $modifiedExpensiveRecipe = new Recipe();
-        $modifiedExpensiveRecipe->setName('ghi')
-                                ->setMode(RecipeMode::NORMAL);
+        $modifiedExpensiveRecipe->name = 'ghi';
+        $modifiedExpensiveRecipe->mode = RecipeMode::NORMAL;
 
         return [
             [$normalRecipe1, RecipeMode::NORMAL, [$normalRecipe1]],
@@ -97,11 +86,9 @@ class RecipeSelectorTest extends TestCase
     }
 
     /**
-     * Tests the select method.
      * @param Recipe $recipe
      * @param string $recipeMode
      * @param array<Recipe> $expectedResult
-     * @covers ::select
      * @dataProvider provideSelect
      */
     public function testSelect(Recipe $recipe, string $recipeMode, array $expectedResult): void
@@ -110,40 +97,26 @@ class RecipeSelectorTest extends TestCase
                              ->method('getRecipeMode')
                              ->willReturn($recipeMode);
 
-        $selector = new RecipeSelector($this->currentSetting);
-        $result = $selector->select($recipe);
+        $instance = $this->createInstance();
+        $result = $instance->select($recipe);
 
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * Tests the selectArray method.
-     * @covers ::selectArray
-     */
     public function testSelectArray(): void
     {
-        /* @var Recipe&MockObject $recipe1 */
         $recipe1 = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $recipe2 */
         $recipe2 = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $selectedRecipe1a */
         $selectedRecipe1a = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $selectedRecipe1b */
         $selectedRecipe1b = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $selectedRecipe2a */
         $selectedRecipe2a = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $selectedRecipe2b */
         $selectedRecipe2b = $this->createMock(Recipe::class);
 
         $recipes = [$recipe1, $recipe2];
         $expectedResult = [$selectedRecipe1a, $selectedRecipe1b, $selectedRecipe2a, $selectedRecipe2b];
 
-        /* @var RecipeSelector&MockObject $selector */
-        $selector = $this->getMockBuilder(RecipeSelector::class)
-                         ->onlyMethods(['select'])
-                         ->setConstructorArgs([$this->currentSetting])
-                         ->getMock();
-        $selector->expects($this->exactly(2))
+        $instance = $this->createInstance(['select']);
+        $instance->expects($this->exactly(2))
                  ->method('select')
                  ->withConsecutive(
                      [$this->identicalTo($recipe1)],
@@ -153,8 +126,8 @@ class RecipeSelectorTest extends TestCase
                      [$selectedRecipe1a, $selectedRecipe1b],
                      [$selectedRecipe2a, $selectedRecipe2b]
                  );
+        $result = $instance->selectArray($recipes);
 
-        $result = $selector->selectArray($recipes);
         $this->assertSame($expectedResult, $result);
     }
 }

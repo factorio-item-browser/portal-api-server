@@ -22,23 +22,9 @@ use Ramsey\Uuid\Uuid;
  */
 class DetailsHandler implements RequestHandlerInterface
 {
-    /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
+    private User $currentUser;
+    private SettingHelper $settingHelper;
 
-    /**
-     * The setting helper.
-     * @var SettingHelper
-     */
-    protected $settingHelper;
-
-    /**
-     * Initializes the handler.
-     * @param User $currentUser
-     * @param SettingHelper $settingHelper
-     */
     public function __construct(User $currentUser, SettingHelper $settingHelper)
     {
         $this->currentUser = $currentUser;
@@ -46,7 +32,6 @@ class DetailsHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException

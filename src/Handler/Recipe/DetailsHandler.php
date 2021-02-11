@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Recipe;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
+use FactorioItemBrowser\Api\Client\Exception\NotFoundException;
+use FactorioItemBrowser\Api\Client\Transfer\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\Api\Client\Request\Recipe\RecipeDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Recipe\RecipeDetailsResponse;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
@@ -30,31 +29,16 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class DetailsHandler implements RequestHandlerInterface
 {
-    /**
-     * The api client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    private ClientInterface $apiClient;
+    private MapperManagerInterface $mapperManager;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     */
-    public function __construct(ApiClientInterface $apiClient, MapperManagerInterface $mapperManager)
+    public function __construct(ClientInterface $apiClient, MapperManagerInterface $mapperManager)
     {
         $this->apiClient = $apiClient;
         $this->mapperManager = $mapperManager;
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -68,49 +52,33 @@ class DetailsHandler implements RequestHandlerInterface
             throw new UnknownEntityException(EntityType::RECIPE, $name);
         }
 
-        $recipeDetailsData = $this->createRecipeDetailsData($recipe);
-        return new TransferResponse($recipeDetailsData);
+        $response = $this->mapperManager->map($recipe, new RecipeDetailsData());
+        return new TransferResponse($response);
     }
 
     /**
-     * Fetches the data to the specified recipe name.
      * @param string $name
      * @return RecipeWithExpensiveVersion|null
      * @throws PortalApiServerException
      */
-    protected function fetchData(string $name): ?RecipeWithExpensiveVersion
+    private function fetchData(string $name): ?RecipeWithExpensiveVersion
     {
         $request = new RecipeDetailsRequest();
-        $request->setNames([$name]);
+        $request->names = [$name];
 
         try {
             /** @var RecipeDetailsResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-            foreach ($response->getRecipes() as $recipe) {
-                if ($recipe->getName() === $name) {
+            $response = $this->apiClient->sendRequest($request)->wait();
+            foreach ($response->recipes as $recipe) {
+                if ($recipe->name === $name) {
                     return $recipe;
                 }
             }
             return null;
-        } catch (ApiClientException $e) {
+        } catch (NotFoundException $e) {
+            return null;
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
-    }
-
-    /**
-     * Creates the recipe details data from the recipe.
-     * @param RecipeWithExpensiveVersion $recipe
-     * @return RecipeDetailsData
-     * @throws PortalApiServerException
-     */
-    protected function createRecipeDetailsData(RecipeWithExpensiveVersion $recipe): RecipeDetailsData
-    {
-        $recipeDetailsData = new RecipeDetailsData();
-        try {
-            $this->mapperManager->map($recipe, $recipeDetailsData);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $recipeDetailsData;
     }
 }

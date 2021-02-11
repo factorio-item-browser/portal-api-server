@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Tooltip;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
+use FactorioItemBrowser\Api\Client\Transfer\GenericEntityWithRecipes;
 use FactorioItemBrowser\Api\Client\Exception\NotFoundException;
 use FactorioItemBrowser\Api\Client\Request\Item\ItemProductRequest;
 use FactorioItemBrowser\Api\Client\Response\Item\ItemProductResponse;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
@@ -30,32 +28,12 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class ItemHandler implements RequestHandlerInterface
 {
-    /**
-     * The API client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    private ClientInterface $apiClient;
+    private MapperManagerInterface $mapperManager;
+    private int $numberOfRecipesPerResult;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * The number of recipes to return per result.
-     * @var int
-     */
-    protected $numberOfRecipesPerResult;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     * @param int $numberOfRecipesPerResult
-     */
     public function __construct(
-        ApiClientInterface $apiClient,
+        ClientInterface $apiClient,
         MapperManagerInterface $mapperManager,
         int $numberOfRecipesPerResult
     ) {
@@ -65,7 +43,6 @@ class ItemHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -76,8 +53,9 @@ class ItemHandler implements RequestHandlerInterface
         $name = $request->getAttribute('name', '');
 
         $item = $this->fetchData($type, $name);
-        $entityData = $this->createEntityData($item);
-        return new TransferResponse($entityData);
+
+        $response = $this->mapperManager->map($item, new EntityData());
+        return new TransferResponse($response);
     }
 
     /**
@@ -90,36 +68,19 @@ class ItemHandler implements RequestHandlerInterface
     protected function fetchData(string $type, string $name): GenericEntityWithRecipes
     {
         $request = new ItemProductRequest();
-        $request->setType($type)
-                ->setName($name)
-                ->setIndexOfFirstResult(0)
-                ->setNumberOfResults($this->numberOfRecipesPerResult);
+        $request->type = $type;
+        $request->name = $name;
+        $request->indexOfFirstResult = 0;
+        $request->numberOfResults = $this->numberOfRecipesPerResult;
 
         try {
             /** @var ItemProductResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-            return $response->getItem();
+            $response = $this->apiClient->sendRequest($request)->wait();
+            return $response->item;
         } catch (NotFoundException $e) {
             throw new UnknownEntityException($type, $name);
-        } catch (ApiClientException $e) {
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
-    }
-
-    /**
-     * Creates the entity data transfer from the entity.
-     * @param GenericEntityWithRecipes $item
-     * @return EntityData
-     * @throws PortalApiServerException
-     */
-    protected function createEntityData(GenericEntityWithRecipes $item): EntityData
-    {
-        $entityData = new EntityData();
-        try {
-            $this->mapperManager->map($item, $entityData);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $entityData;
     }
 }

@@ -24,30 +24,10 @@ use Ramsey\Uuid\Uuid;
  */
 class DeleteHandler implements RequestHandlerInterface
 {
-    /**
-     * The current setting.
-     * @var Setting
-     */
-    protected $currentSetting;
+    private Setting $currentSetting;
+    private User $currentUser;
+    private SettingRepository $settingRepository;
 
-    /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
-
-    /**
-     * The setting repository.
-     * @var SettingRepository
-     */
-    protected $settingRepository;
-
-    /**
-     * Initializes the handler.
-     * @param Setting $currentSetting
-     * @param User $currentUser
-     * @param SettingRepository $settingRepository
-     */
     public function __construct(
         Setting $currentSetting,
         User $currentUser,
@@ -59,7 +39,6 @@ class DeleteHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException

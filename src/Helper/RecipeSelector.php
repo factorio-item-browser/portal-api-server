@@ -17,16 +17,8 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
  */
 class RecipeSelector
 {
-    /**
-     * The current user setting.
-     * @var Setting
-     */
-    protected $currentSetting;
+    private Setting $currentSetting;
 
-    /**
-     * Initializes the recipe selector.
-     * @param Setting $currentSetting
-     */
     public function __construct(Setting $currentSetting)
     {
         $this->currentSetting = $currentSetting;

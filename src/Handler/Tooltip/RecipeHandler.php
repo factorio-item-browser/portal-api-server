@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Tooltip;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\Recipe;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
+use FactorioItemBrowser\Api\Client\Transfer\Recipe;
 use FactorioItemBrowser\Api\Client\Request\Recipe\RecipeDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Recipe\RecipeDetailsResponse;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
@@ -30,25 +28,11 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class RecipeHandler implements RequestHandlerInterface
 {
-    /**
-     * The API client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    private ClientInterface $apiClient;
+    private MapperManagerInterface $mapperManager;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     */
     public function __construct(
-        ApiClientInterface $apiClient,
+        ClientInterface $apiClient,
         MapperManagerInterface $mapperManager
     ) {
         $this->apiClient = $apiClient;
@@ -56,7 +40,6 @@ class RecipeHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -66,12 +49,11 @@ class RecipeHandler implements RequestHandlerInterface
         $name = $request->getAttribute('name', '');
 
         $recipe = $this->fetchData($name);
-        $entityData = $this->createEntityData($recipe);
-        return new TransferResponse($entityData);
+        $response = $this->mapperManager->map($recipe, new EntityData());
+        return new TransferResponse($response);
     }
 
     /**
-     * Fetches the data for the tooltip.
      * @param string $name
      * @return Recipe
      * @throws PortalApiServerException
@@ -79,37 +61,20 @@ class RecipeHandler implements RequestHandlerInterface
     protected function fetchData(string $name): Recipe
     {
         $request = new RecipeDetailsRequest();
-        $request->setNames([$name]);
+        $request->names = [$name];
 
         try {
             /** @var RecipeDetailsResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-            foreach ($response->getRecipes() as $recipe) {
-                if ($recipe->getName() === $name) {
+            $response = $this->apiClient->sendRequest($request)->wait();
+            foreach ($response->recipes as $recipe) {
+                if ($recipe->name === $name) {
                     return $recipe;
                 }
             }
 
             throw new UnknownEntityException(EntityType::RECIPE, $name);
-        } catch (ApiClientException $e) {
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
-    }
-
-    /**
-     * Creates the entity data transfer from the recipe.
-     * @param Recipe $recipe
-     * @return EntityData
-     * @throws PortalApiServerException
-     */
-    protected function createEntityData(Recipe $recipe): EntityData
-    {
-        $entityData = new EntityData();
-        try {
-            $this->mapperManager->map($recipe, $entityData);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $entityData;
     }
 }

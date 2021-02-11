@@ -14,13 +14,9 @@ namespace FactorioItemBrowser\PortalApi\Server;
 use FactorioItemBrowser\Api\Client\Constant\ConfigKey;
 
 return [
-    ConfigKey::PROJECT => [
-        ConfigKey::API_CLIENT => [
-            ConfigKey::OPTIONS => [
-                ConfigKey::OPTION_API_URL => 'http://api.fib.dev/',
-                ConfigKey::OPTION_ACCESS_KEY => 'debug',
-                ConfigKey::OPTION_TIMEOUT => 60,
-            ],
-        ],
+    ConfigKey::MAIN => [
+        ConfigKey::BASE_URI => 'http://api.fib.dev/',
+        ConfigKey::API_KEY => 'factorio-item-browser',
+        ConfigKey::TIMEOUT => 60,
     ],
 ];

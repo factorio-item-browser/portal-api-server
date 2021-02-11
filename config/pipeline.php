@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The file providing the pipeline.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+
+declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
@@ -35,6 +35,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
 
     $app->pipe(Middleware\SessionMiddleware::class);
     $app->pipe(Middleware\ApiClientMiddleware::class);
+    $app->pipe(Middleware\RequestDeserializerMiddleware::class);
     $app->pipe(Middleware\ResponseSerializerMiddleware::class);
 
     $app->pipe(DispatchMiddleware::class);

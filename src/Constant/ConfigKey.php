@@ -38,6 +38,11 @@ interface ConfigKey
     public const NUMBER_OF_RECIPES_PER_RESULT = 'number-of-recipes-per-result';
 
     /**
+     * The key holding the map of the routes to their corresponding requests.
+     */
+    public const REQUEST_CLASSES_BY_ROUTES = 'request-classes-by-routes';
+
+    /**
      * The key holding the current version of the scripts.
      */
     public const SCRIPT_VERSION = 'script-version';

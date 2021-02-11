@@ -1,13 +1,14 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The configuration of the project dependencies.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+// phpcs:ignoreFile
+
+declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
@@ -28,8 +29,6 @@ return [
             ErrorResponseGenerator::class => Response\ErrorResponseGenerator::class,
         ],
         'factories' => [
-            Api\ApiClientFactory::class => AutoWireFactory::class,
-
             Command\CleanSessionsCommand::class => AutoWireFactory::class,
 
             Handler\InitHandler::class => AutoWireFactory::class,
@@ -77,6 +76,7 @@ return [
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,
             Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,
             Middleware\MetaMiddleware::class => AutoWireFactory::class,
+            Middleware\RequestDeserializerMiddleware::class => AutoWireFactory::class,
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
             Middleware\SessionMiddleware::class => AutoWireFactory::class,
 
@@ -96,6 +96,7 @@ return [
             SerializerInterface::class . ' $portalApiServerSerializer' => Serializer\SerializerFactory::class,
 
             'array $allowedOrigins' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::ALLOWED_ORIGINS),
+            'array $requestClassesByRoutes' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::REQUEST_CLASSES_BY_ROUTES),
 
             'bool $isDebug' => readConfig('debug'),
             'bool $useSecureCookie' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_SECURE),

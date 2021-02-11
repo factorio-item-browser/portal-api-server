@@ -22,30 +22,10 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class ListHandler implements RequestHandlerInterface
 {
-    /**
-     * The current setting.
-     * @var Setting
-     */
-    protected $currentSetting;
+    private Setting $currentSetting;
+    private User $currentUser;
+    private SettingHelper $settingHelper;
 
-    /**
-     * The current user.
-     * @var User
-     */
-    protected $currentUser;
-
-    /**
-     * The setting helper.
-     * @var SettingHelper
-     */
-    protected $settingHelper;
-
-    /**
-     * Initializes the handler.
-     * @param Setting $currentSetting
-     * @param User $currentUser
-     * @param SettingHelper $settingHelper
-     */
     public function __construct(Setting $currentSetting, User $currentUser, SettingHelper $settingHelper)
     {
         $this->currentSetting = $currentSetting;
@@ -54,7 +34,6 @@ class ListHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -65,14 +44,14 @@ class ListHandler implements RequestHandlerInterface
         $currentSetting = $this->settingHelper->createSettingDetails($this->currentSetting);
 
         $settingList = new SettingsListData();
-        $settingList->setSettings($settings)
-                    ->setCurrentSetting($currentSetting);
+        $settingList->settings = $settings;
+        $settingList->currentSetting = $currentSetting;
         return new TransferResponse($settingList);
     }
 
     /**
      * Returns the settings of the current user, ignoring the temporary ones.
-     * @return array|Setting[]
+     * @return array<Setting>
      */
     protected function getFilteredSettings(): array
     {

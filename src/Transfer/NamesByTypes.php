@@ -20,4 +20,9 @@ class NamesByTypes
         $this->values[$type][] = $name;
         return $this;
     }
+
+    public function has(string $type, string $name): bool
+    {
+        return in_array($name, $this->values[$type] ?? [], true);
+    }
 }

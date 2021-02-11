@@ -16,41 +16,48 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Middleware\MetaMiddleware
+ * @covers \FactorioItemBrowser\PortalApi\Server\Middleware\MetaMiddleware
  */
 class MetaMiddlewareTest extends TestCase
 {
+    private string $version = '1.2.3';
+
     /**
-     * Tests the process method.
-     * @covers ::__construct
-     * @covers ::process
+     * @param array<string> $mockedMethods
+     * @return MetaMiddleware&MockObject
      */
+    private function createInstance(array $mockedMethods = []): MetaMiddleware
+    {
+        return $this->getMockBuilder(MetaMiddleware::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->version,
+                    ])
+                    ->getMock();
+    }
+
     public function testProcess(): void
     {
-        $version = '1.2.3';
-
-        /* @var ServerRequestInterface&MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
 
-        /* @var ResponseInterface&MockObject $response */
         $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->exactly(2))
                  ->method('withHeader')
                  ->withConsecutive(
-                     [$this->identicalTo('X-Version'), $this->identicalTo($version)],
-                     [$this->identicalTo('X-Runtime'), $this->isType('string')]
+                     [$this->identicalTo('Version'), $this->identicalTo('1.2.3')],
+                     [$this->identicalTo('Runtime'), $this->isType('string')]
                  )
                  ->willReturnSelf();
 
-        /* @var RequestHandlerInterface&MockObject $handler */
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
                 ->method('handle')
                 ->with($this->identicalTo($request))
                 ->willReturn($response);
 
-        $middleware = new MetaMiddleware($version);
-        $result = $middleware->process($request, $handler);
+        $instance = $this->createInstance();
+        $result = $instance->process($request, $handler);
 
         $this->assertSame($response, $result);
     }

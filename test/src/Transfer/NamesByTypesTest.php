@@ -35,6 +35,8 @@ class NamesByTypesTest extends TestCase
         $instance = new NamesByTypes();
         $instance->values = $values;
 
+        $this->assertTrue($instance->has('abc', 'ghi'));
+        $this->assertFalse($instance->has('abc', 'mno'));
         $this->assertSame($instance, $instance->add('jkl', 'pqr'));
         $this->assertSame($expectedValues1, $instance->values);
 

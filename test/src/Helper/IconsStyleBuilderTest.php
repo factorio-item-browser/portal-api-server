@@ -4,186 +4,69 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
-use FactorioItemBrowser\Api\Client\Entity\Entity;
-use FactorioItemBrowser\Api\Client\Entity\Icon;
+use FactorioItemBrowser\Api\Client\Transfer\Entity;
+use FactorioItemBrowser\Api\Client\Transfer\Icon;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleBuilder;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
-use Laminas\Escaper\Escaper;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the IconsStyleBuilder class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleBuilder
+ * @covers \FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleBuilder
  */
 class IconsStyleBuilderTest extends TestCase
 {
-    use ReflectionTrait;
-
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return IconsStyleBuilder&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): IconsStyleBuilder
     {
-        $builder = new IconsStyleBuilder();
-
-        $this->assertInstanceOf(Escaper::class, $this->extractProperty($builder, 'escaper'));
-        $this->assertInstanceOf(NamesByTypes::class, $this->extractProperty($builder, 'processedEntities'));
+        return $this->getMockBuilder(IconsStyleBuilder::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
     }
 
-    /**
-     * Tests the processIcon method.
-     * @throws ReflectionException
-     * @covers ::processIcon
-     */
     public function testProcessIcon(): void
     {
         $entity1 = new Entity();
-        $entity1->setType('abc')
-                ->setName('def');
-
+        $entity1->type = 'abc';
+        $entity1->name = 'def';
         $entity2 = new Entity();
-        $entity2->setType('ghi')
-                ->setName('jkl');
+        $entity2->type = 'ghi';
+        $entity2->name = 'jkl';
+        $entity3 = new Entity();
+        $entity3->type = 'abc';
+        $entity3->name = 'mno pqr';
 
-        $icon = new Icon();
-        $icon->setEntities([$entity1, $entity2])
-             ->setContent('mno');
+        $icon1 = new Icon();
+        $icon1->entities = [$entity1, $entity2];
+        $icon1->content = 'stu';
+        $icon2 = new Icon();
+        $icon2->entities = [$entity3];
+        $icon2->content = 'vwx';
 
-        $selector1 = 'pqr';
-        $selector2 = 'stu';
-        $expectedSelectors = ['pqr', 'stu'];
+        $expectedProcessedEntities = new NamesByTypes();
+        $expectedProcessedEntities->values = [
+            'abc' => ['def', 'mno pqr'],
+            'ghi' => ['jkl'],
+        ];
 
-        $rule = 'vwx';
-        $rules = ['foo'];
-        $expectedRules = ['foo', 'vwx'];
+        $expectedStyle = <<<EOT
+        .icon-abc\\2D def, .icon-ghi\\2D jkl { background-image: url(data:image/png;base64,c3R1); }
+        .icon-abc\\2D mno\\5F pqr { background-image: url(data:image/png;base64,dnd4); }
+        EOT;
 
-        /* @var NamesByTypes&MockObject $processedEntities */
-        $processedEntities = $this->createMock(NamesByTypes::class);
-        $processedEntities->expects($this->exactly(2))
-                          ->method('addValue')
-                          ->withConsecutive(
-                              [$this->identicalTo('abc'), $this->identicalTo('def')],
-                              [$this->identicalTo('ghi'), $this->identicalTo('jkl')],
-                          );
+        $instance = $this->createInstance();
+        $instance->processIcon($icon1);
+        $instance->processIcon($icon2);
 
-        /* @var IconsStyleBuilder&MockObject $builder */
-        $builder = $this->getMockBuilder(IconsStyleBuilder::class)
-                        ->onlyMethods(['buildSelector', 'buildRule'])
-                        ->getMock();
-        $builder->expects($this->exactly(2))
-                ->method('buildSelector')
-                ->withConsecutive(
-                    [$this->identicalTo('abc'), $this->identicalTo('def')],
-                    [$this->identicalTo('ghi'), $this->identicalTo('jkl')]
-                )
-                ->willReturnOnConsecutiveCalls(
-                    $selector1,
-                    $selector2
-                );
-        $builder->expects($this->once())
-                ->method('buildRule')
-                ->with($this->identicalTo($expectedSelectors), 'mno')
-                ->willReturn($rule);
-
-        $this->injectProperty($builder, 'processedEntities', $processedEntities);
-        $this->injectProperty($builder, 'rules', $rules);
-
-        $result = $builder->processIcon($icon);
-
-        $this->assertSame($builder, $result);
-        $this->assertSame($expectedRules, $this->extractProperty($builder, 'rules'));
-    }
-
-    /**
-     * Tests the buildSelector method.
-     * @throws ReflectionException
-     * @covers ::buildSelector
-     */
-    public function testBuildSelector(): void
-    {
-        $type = 'abc def';
-        $name = 'ghi jkl';
-        $expectedSelector = 'abc_def-ghi_jkl';
-        $escapedSelector = 'mno';
-        $expectedResult = '.icon-mno';
-
-        /* @var Escaper&MockObject $escaper */
-        $escaper = $this->createMock(Escaper::class);
-        $escaper->expects($this->once())
-                ->method('escapeCss')
-                ->with($this->identicalTo($expectedSelector))
-                ->willReturn($escapedSelector);
-
-        $builder = new IconsStyleBuilder();
-        $this->injectProperty($builder, 'escaper', $escaper);
-
-        $result = $this->invokeMethod($builder, 'buildSelector', $type, $name);
-
-        $this->assertSame($expectedResult, $result);
-    }
-
-    /**
-     * Tests the buildRule method.
-     * @throws ReflectionException
-     * @covers ::buildRule
-     */
-    public function testBuildRule(): void
-    {
-        $selectors = ['.abc', '.def'];
-        $content = 'ghi';
-        $expectedResult = '.abc, .def { background-image: url(data:image/png;base64,Z2hp); }';
-
-        $builder = new IconsStyleBuilder();
-        $result = $this->invokeMethod($builder, 'buildRule', $selectors, $content);
-
-        $this->assertSame($expectedResult, $result);
-    }
-
-    /**
-     * Tests the getProcessedEntities method.
-     * @throws ReflectionException
-     * @covers ::getProcessedEntities
-     */
-    public function testGetProcessedEntities(): void
-    {
-        $processedEntities = new NamesByTypes();
-        $processedEntities->setValues([
-            'abc' => ['def', 'ghi'],
-            'jkl' => ['mno'],
-        ]);
-
-        $builder = new IconsStyleBuilder();
-        $this->injectProperty($builder, 'processedEntities', $processedEntities);
-
-        $result = $builder->getProcessedEntities();
-
-        $this->assertEquals($processedEntities, $result);
-        $this->assertNotSame($processedEntities, $result);
-    }
-
-    /**
-     * Tests the getStyle method.
-     * @throws ReflectionException
-     * @covers ::getStyle
-     */
-    public function testGetStyle(): void
-    {
-        $rules = ['abc', 'def'];
-        $expectedResult = "abc\ndef";
-
-        $builder = new IconsStyleBuilder();
-        $this->injectProperty($builder, 'rules', $rules);
-
-        $result = $builder->getStyle();
-
-        $this->assertSame($expectedResult, $result);
+        $this->assertEquals($expectedProcessedEntities, $instance->getProcessedEntities());
+        $this->assertSame($expectedStyle, $instance->getStyle());
     }
 }

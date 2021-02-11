@@ -13,14 +13,9 @@ namespace FactorioItemBrowser\PortalApi\Server\Constant;
 interface ConfigKey
 {
     /**
-     * The key holding the name of the project.
+     * The key main key of the config.
      */
-    public const PROJECT = 'factorio-item-browser';
-
-    /**
-     * The key holding the name of the API server itself.
-     */
-    public const PORTAL_API_SERVER = 'portal-api-server';
+    public const MAIN = 'portal-api-server';
 
     /**
      * The origins allowed to access the Portal API server.
@@ -46,6 +41,11 @@ interface ConfigKey
      * The key holding the current version of the scripts.
      */
     public const SCRIPT_VERSION = 'script-version';
+
+    /**
+     * The key holding the configuration of the serializer.
+     */
+    public const SERIALIZER = 'serializer';
 
     /**
      * The key holding the name of the session cookie.

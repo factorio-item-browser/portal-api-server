@@ -20,6 +20,9 @@ return [
     ConfigKey::MAIN => [
         ConfigKey::NUMBER_OF_RECIPES_PER_RESULT => 3,
         ConfigKey::REQUEST_CLASSES_BY_ROUTES => [
+            RouteName::SETTINGS_CREATE => Transfer\SettingCreateData::class,
+            RouteName::SETTINGS_SAVE => Transfer\SettingOptionsData::class,
+            RouteName::SETTINGS_STATUS_MODS => 'array<string>',
             RouteName::SIDEBAR_ENTITIES => sprintf('array<%s>', Transfer\SidebarEntityData::class),
             RouteName::STYLE_ICONS => Transfer\NamesByTypes::class,
         ],

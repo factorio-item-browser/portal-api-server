@@ -187,6 +187,9 @@ class RequestDeserializerMiddlewareTest extends TestCase
         $this->assertSame($response, $result);
     }
 
+    /**
+     * @throws PortalApiServerException
+     */
     public function testProcessWithSerializerException(): void
     {
         $matchedRouteName = 'abc';
@@ -253,5 +256,48 @@ class RequestDeserializerMiddlewareTest extends TestCase
 
         $instance = $this->createInstance();
         $instance->process($request, $handler);
+    }
+
+    /**
+     * @throws PortalApiServerException
+     */
+    public function testProcessWithoutParsedBody(): void
+    {
+        $matchedRouteName = 'abc';
+        $response = $this->createMock(ResponseInterface::class);
+
+        $routeResult = $this->createMock(RouteResult::class);
+        $routeResult->expects($this->any())
+                    ->method('getMatchedRouteName')
+                    ->willReturn($matchedRouteName);
+
+        $request2 = $this->createMock(ServerRequestInterface::class);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->expects($this->any())
+                ->method('getAttribute')
+                ->willReturnMap([
+                    [RouteResult::class, null, $routeResult],
+                ]);
+        $request->expects($this->never())
+                ->method('getBody');
+        $request->expects($this->once())
+                ->method('withParsedBody')
+                ->with($this->isNull())
+                ->willReturn($request2);
+
+        $this->serializer->expects($this->never())
+                         ->method('deserialize');
+
+        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler->expects($this->once())
+                ->method('handle')
+                ->with($this->identicalTo($request2))
+                ->willReturn($response);
+
+        $instance = $this->createInstance();
+        $result = $instance->process($request, $handler);
+
+        $this->assertSame($response, $result);
     }
 }

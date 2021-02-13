@@ -23,6 +23,7 @@
     "doctrine/cache": "^1.10",
     "doctrine/orm": "^2.6",
     "factorio-item-browser/api-client": "dev-feature/refactor-api",
+    "factorio-item-browser/combination-api-client": "dev-master",
     "laminas/laminas-config-aggregator": "^1.0",
     "laminas/laminas-diactoros": "^2.2",
     "laminas/laminas-escaper": "^2.6",

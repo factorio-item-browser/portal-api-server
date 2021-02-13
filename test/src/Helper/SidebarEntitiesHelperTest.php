@@ -8,6 +8,7 @@ use BluePsyduck\MapperManager\MapperManagerInterface;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Request\Generic\GenericDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Generic\GenericDetailsResponse;
 use FactorioItemBrowser\Api\Client\Transfer\Entity;
@@ -15,6 +16,7 @@ use FactorioItemBrowser\Api\Client\Transfer\GenericEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
+use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use GuzzleHttp\Promise\FulfilledPromise;
@@ -189,5 +191,59 @@ class SidebarEntitiesHelperTest extends TestCase
 
         $this->assertSame('ihg', $entity1->getLabel());
         $this->assertSame('azy', $entity3->getLabel());
+    }
+
+    public function testRefreshLabelsWithApiException(): void
+    {
+        $entity1 = new SidebarEntity();
+        $entity1->setType('abc')
+                ->setName('def')
+                ->setLabel('ghi');
+        $entity2 = new SidebarEntity();
+        $entity2->setType('jkl')
+                ->setName('mno')
+                ->setLabel('pqr');
+        $entity3 = new SidebarEntity();
+        $entity3->setType('stu')
+                ->setName('vwx')
+                ->setLabel('yza');
+
+        $requestEntity1 = new Entity();
+        $requestEntity1->type = 'abc';
+        $requestEntity1->name = 'def';
+        $requestEntity2 = new Entity();
+        $requestEntity2->type = 'jkl';
+        $requestEntity2->name = 'mno';
+        $requestEntity3 = new Entity();
+        $requestEntity3->type = 'stu';
+        $requestEntity3->name = 'vwx';
+
+        $combination = new Combination();
+        $combination->setId(Uuid::fromString('78de8fa6-424b-479e-99c2-bb719eff1e0d'));
+
+        $setting = new Setting();
+        $setting->setCombination($combination)
+                ->setLocale('foo');
+        $setting->getSidebarEntities()->add($entity1);
+        $setting->getSidebarEntities()->add($entity2);
+        $setting->getSidebarEntities()->add($entity3);
+
+        $expectedApiRequest = new GenericDetailsRequest();
+        $expectedApiRequest->combinationId = '78de8fa6-424b-479e-99c2-bb719eff1e0d';
+        $expectedApiRequest->locale = 'foo';
+        $expectedApiRequest->entities = [$requestEntity1, $requestEntity2, $requestEntity3];
+
+        $this->apiClient->expects($this->once())
+                        ->method('sendRequest')
+                        ->with($this->equalTo($expectedApiRequest))
+                        ->willThrowException($this->createMock(ClientException::class));
+
+        $this->entityManager->expects($this->never())
+                            ->method('remove');
+
+        $this->expectException(FailedApiRequestException::class);
+
+        $instance = $this->createInstance();
+        $instance->refreshLabels($setting);
     }
 }

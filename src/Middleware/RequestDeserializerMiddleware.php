@@ -46,6 +46,7 @@ class RequestDeserializerMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $parsedBody = null;
         /** @var RouteResult $routeResult */
         $routeResult = $request->getAttribute(RouteResult::class);
         $requestClass = $this->requestClassesByRoutes[$routeResult->getMatchedRouteName()] ?? '';
@@ -57,13 +58,13 @@ class RequestDeserializerMiddleware implements MiddlewareInterface
                     $requestBody = '{}';
                 }
 
-                $clientRequest = $this->serializer->deserialize($requestBody, $requestClass, 'json');
-                $request = $request->withParsedBody($clientRequest);
+                $parsedBody = $this->serializer->deserialize($requestBody, $requestClass, 'json');
             } catch (Exception $e) {
                 throw new InvalidRequestBodyException($e->getMessage(), $e);
             }
         }
 
+        $request = $request->withParsedBody($parsedBody);
         return $handler->handle($request);
     }
 }

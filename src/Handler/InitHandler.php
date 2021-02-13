@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler;
 
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use DateTime;
-use Exception;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
-use FactorioItemBrowser\Api\Client\Request\Combination\CombinationStatusRequest;
-use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusResponse;
-use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
+use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
+use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
@@ -32,124 +29,71 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class InitHandler implements RequestHandlerInterface
 {
-    /**
-     * The api client factory.
-     * @var ApiClientFactory
-     */
-    protected $apiClientFactory;
+    private CombinationHelper $combinationHelper;
+    private Setting $currentSetting;
+    private MapperManagerInterface $mapperManager;
+    private SettingHelper $settingHelper;
+    private SidebarEntitiesHelper $sidebarEntitiesHelper;
+    private string $scriptVersion;
 
-    /**
-     * The combination helper.
-     * @var CombinationHelper
-     */
-    protected $combinationHelper;
-
-    /**
-     * The current user setting.
-     * @var Setting
-     */
-    protected $currentSetting;
-
-    /**
-     * The setting helper.
-     * @var SettingHelper
-     */
-    protected $settingHelper;
-
-    /**
-     * The sidebar entities helper.
-     * @var SidebarEntitiesHelper
-     */
-    protected $sidebarEntitiesHelper;
-
-    /**
-     * The current version of the scripts.
-     * @var string
-     */
-    protected $scriptVersion;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientFactory $apiClientFactory
-     * @param CombinationHelper $combinationHelper
-     * @param Setting $currentSetting
-     * @param SettingHelper $settingHelper
-     * @param SidebarEntitiesHelper $sidebarEntitiesHelper
-     * @param string $scriptVersion
-     */
     public function __construct(
-        ApiClientFactory $apiClientFactory,
         CombinationHelper $combinationHelper,
         Setting $currentSetting,
+        MapperManagerInterface $mapperManager,
         SettingHelper $settingHelper,
         SidebarEntitiesHelper $sidebarEntitiesHelper,
         string $scriptVersion
     ) {
-        $this->apiClientFactory = $apiClientFactory;
         $this->combinationHelper = $combinationHelper;
         $this->currentSetting = $currentSetting;
+        $this->mapperManager = $mapperManager;
         $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
         $this->scriptVersion = $scriptVersion;
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
-     * @throws Exception
+     * @throws PortalApiServerException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $this->updateCombinationStatus();
-        $this->updateSetting();
+        $this->updateCombinationStatus($this->currentSetting->getCombination());
+        $this->updateSetting($this->currentSetting);
 
-        $data = new InitData();
-        $data->setSetting($this->settingHelper->createSettingMeta($this->currentSetting))
-             ->setLocale($this->currentSetting->getLocale())
-             ->setSidebarEntities($this->getCurrentSidebarEntities())
-             ->setScriptVersion($this->scriptVersion);
+        $response = new InitData();
+        $response->setting = $this->settingHelper->createSettingMeta($this->currentSetting);
+        $response->locale = $this->currentSetting->getLocale();
+        $response->sidebarEntities = array_map(
+            [$this, 'mapSidebarEntity'],
+            $this->currentSetting->getSidebarEntities()->toArray(),
+        );
+        $response->scriptVersion = $this->scriptVersion;
 
         if ($this->currentSetting->getIsTemporary()) {
             $lastUsedSetting = $this->currentSetting->getUser()->getLastUsedSetting();
             if ($lastUsedSetting !== null) {
-                $data->setLastUsedSetting($this->settingHelper->createSettingMeta($lastUsedSetting));
+                $response->lastUsedSetting = $this->settingHelper->createSettingMeta($lastUsedSetting);
             }
         }
 
-        return new TransferResponse($data);
+        return new TransferResponse($response);
     }
 
     /**
-     * Updates the status of the currently loaded combination.
-     * @throws Exception
+     * @param Combination $combination
+     * @throws PortalApiServerException
      */
-    protected function updateCombinationStatus(): void
+    private function updateCombinationStatus(Combination $combination): void
     {
-        if ($this->isCombinationStatusUpdateNeeded()) {
-            try {
-                $apiClient = $this->apiClientFactory->createWithoutFallback($this->currentSetting);
-                $request = new CombinationStatusRequest();
-
-                /** @var CombinationStatusResponse $response */
-                $response = $apiClient->fetchResponse($request);
-                $this->combinationHelper->hydrateStatusResponseToCombination(
-                    $response,
-                    $this->currentSetting->getCombination()
-                );
-            } catch (ApiClientException $e) {
-                throw new FailedApiRequestException($e);
-            }
+        if ($this->isStatusUpdateNeeded($combination)) {
+            $this->combinationHelper->updateStatus($combination);
         }
     }
 
-    /**
-     * Returns whether an update for the combination status is needed.
-     * @return bool
-     */
-    protected function isCombinationStatusUpdateNeeded(): bool
+    private function isStatusUpdateNeeded(Combination $combination): bool
     {
-        $combination = $this->currentSetting->getCombination();
         $timeCut = new DateTime('-1 days');
         return $combination->getStatus() !== CombinationStatus::AVAILABLE
             || $combination->getLastCheckTime() === null
@@ -157,30 +101,20 @@ class InitHandler implements RequestHandlerInterface
     }
 
     /**
-     * Updates the setting, if needed.
-     * @throws Exception
+     * @param Setting $setting
+     * @throws PortalApiServerException
      */
-    protected function updateSetting(): void
+    private function updateSetting(Setting $setting): void
     {
-        $isAvailable = $this->currentSetting->getCombination()->getStatus() === CombinationStatus::AVAILABLE;
-        if ($isAvailable !== $this->currentSetting->getHasData()) {
-            $this->currentSetting->setHasData($isAvailable)
-                                 ->setApiAuthorizationToken('');
-
-            $apiClient = $this->apiClientFactory->create($this->currentSetting);
-            $apiClient->clearAuthorizationToken();
-
-            $this->sidebarEntitiesHelper->refreshLabels($this->currentSetting);
+        $isAvailable = $setting->getCombination()->getStatus() === CombinationStatus::AVAILABLE;
+        if ($isAvailable !== $setting->getHasData()) {
+            $setting->setHasData($isAvailable);
+            $this->sidebarEntitiesHelper->refreshLabels($setting);
         }
     }
 
-    /**
-     * Returns the current sidebar entities.
-     * @return array<SidebarEntityData>
-     * @throws PortalApiServerException
-     */
-    protected function getCurrentSidebarEntities(): array
+    private function mapSidebarEntity(SidebarEntity $sidebarEntity): SidebarEntityData
     {
-        return $this->sidebarEntitiesHelper->mapEntities($this->currentSetting->getSidebarEntities()->toArray());
+        return $this->mapperManager->map($sidebarEntity, new SidebarEntityData());
     }
 }

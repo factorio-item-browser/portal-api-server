@@ -13,6 +13,7 @@ use FactorioItemBrowser\Api\Client\Request\Generic\GenericDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Generic\GenericDetailsResponse;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
+use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 
 /**
  * The helper for managing the sidebar entities.
@@ -88,14 +89,18 @@ class SidebarEntitiesHelper
     /**
      * Refreshes labels of all sidebar entities.
      * @param Setting $setting
-     * @throws ClientException
+     * @throws FailedApiRequestException
      */
     public function refreshLabels(Setting $setting): void
     {
         $request = $this->createRequest($setting);
-        /** @var GenericDetailsResponse $response */
-        $response = $this->apiClient->sendRequest($request)->wait();
-        $this->processDetailsResponse($response, $setting);
+        try {
+            /** @var GenericDetailsResponse $response */
+            $response = $this->apiClient->sendRequest($request)->wait();
+            $this->processDetailsResponse($response, $setting);
+        } catch (ClientException $e) {
+            throw new FailedApiRequestException($e);
+        }
     }
 
     private function createRequest(Setting $setting): GenericDetailsRequest

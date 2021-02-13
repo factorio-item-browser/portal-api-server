@@ -33,6 +33,9 @@ class TransferResponse extends Response
         $this->transfer = $transfer;
     }
 
+    /**
+     * @return mixed
+     */
     public function getTransfer()
     {
         return $this->transfer;

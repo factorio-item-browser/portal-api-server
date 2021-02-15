@@ -9,6 +9,7 @@ use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Request\Generic\GenericIconRequest;
 use FactorioItemBrowser\Api\Client\Response\Generic\GenericIconResponse;
 use FactorioItemBrowser\Api\Client\Transfer\Entity;
+use FactorioItemBrowser\Common\Constant\Defaults;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
@@ -40,7 +41,12 @@ class IconsStyleFetcher
     public function request(Setting $setting, NamesByTypes $namesByTypes): PromiseInterface
     {
         $request = new GenericIconRequest();
-        $request->combinationId = $setting->getCombination()->getId()->toString();
+        if ($setting->getHasData()) {
+            $request->combinationId = $setting->getCombination()->getId()->toString();
+        } else {
+            $request->combinationId = Defaults::COMBINATION_ID;
+        }
+
         foreach ($namesByTypes->values as $type => $names) {
             foreach ($names as $name) {
                 $entity = new Entity();

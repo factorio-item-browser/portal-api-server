@@ -64,7 +64,8 @@ class IconsStyleFetcherTest extends TestCase
         $combination = new Combination();
         $combination->setId(Uuid::fromString('78de8fa6-424b-479e-99c2-bb719eff1e0d'));
         $setting = new Setting();
-        $setting->setCombination($combination);
+        $setting->setCombination($combination)
+                ->setHasData(true);
 
         $entity1 = new Entity();
         $entity1->type = 'abc';
@@ -88,6 +89,42 @@ class IconsStyleFetcherTest extends TestCase
 
         $this->assertSame($promise, $result);
     }
+
+    public function testRequestWithoutData(): void
+    {
+        $namesByTypes = new NamesByTypes();
+        $namesByTypes->add('abc', 'def')
+                     ->add('ghi', 'jkl');
+
+        $combination = new Combination();
+        $combination->setId(Uuid::fromString('78de8fa6-424b-479e-99c2-bb719eff1e0d'));
+        $setting = new Setting();
+        $setting->setCombination($combination)
+                ->setHasData(false);
+
+        $entity1 = new Entity();
+        $entity1->type = 'abc';
+        $entity1->name = 'def';
+        $entity2 = new Entity();
+        $entity2->type = 'ghi';
+        $entity2->name = 'jkl';
+        $expectedApiRequest = new GenericIconRequest();
+        $expectedApiRequest->combinationId = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+        $expectedApiRequest->entities = [$entity1, $entity2];
+
+        $promise = $this->createMock(PromiseInterface::class);
+
+        $this->apiClient->expects($this->once())
+                        ->method('sendRequest')
+                        ->with($this->equalTo($expectedApiRequest))
+                        ->willReturn($promise);
+
+        $instance = $this->createInstance();
+        $result = $instance->request($setting, $namesByTypes);
+
+        $this->assertSame($promise, $result);
+    }
+
 
     public function testProcess(): void
     {

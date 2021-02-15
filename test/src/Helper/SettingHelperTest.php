@@ -84,22 +84,41 @@ class SettingHelperTest extends TestCase
     }
 
     /**
-     * @throws PortalApiServerException
+     * @return array<mixed>
      */
-    public function testHandleCreateSettingDetails(): void
+    public function provideHandleCreateSettingDetails(): array
     {
+        return [
+            ['78de8fa6-424b-479e-99c2-bb719eff1e0d', true, '78de8fa6-424b-479e-99c2-bb719eff1e0d'],
+            ['78de8fa6-424b-479e-99c2-bb719eff1e0d', false, '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'],
+        ];
+    }
+
+    /**
+     * @param string $combinationId
+     * @param bool $hasData
+     * @param string $expectedCombinationId
+     * @throws PortalApiServerException
+     * @dataProvider provideHandleCreateSettingDetails
+     */
+    public function testHandleCreateSettingDetails(
+        string $combinationId,
+        bool $hasData,
+        string $expectedCombinationId
+    ): void {
         $combination = new Combination();
-        $combination->setId(Uuid::fromString('78de8fa6-424b-479e-99c2-bb719eff1e0d'))
+        $combination->setId(Uuid::fromString($combinationId))
                     ->setModNames(['abc', 'def']);
 
         $setting = new Setting();
         $setting->setCombination($combination)
-                ->setLocale('foo');
+                ->setLocale('foo')
+                ->setHasData($hasData);
 
         $modNames = new NamesByTypes();
         $modNames->values = ['mod' => ['abc', 'def']];
         $expectedApiRequest = new ModListRequest();
-        $expectedApiRequest->combinationId = '78de8fa6-424b-479e-99c2-bb719eff1e0d';
+        $expectedApiRequest->combinationId = $expectedCombinationId;
         $expectedApiRequest->locale = 'foo';
 
         $mod1 = $this->createMock(Mod::class);
@@ -167,7 +186,8 @@ class SettingHelperTest extends TestCase
 
         $setting = new Setting();
         $setting->setCombination($combination)
-                ->setLocale('foo');
+                ->setLocale('foo')
+                ->setHasData(true);
 
         $modNames = new NamesByTypes();
         $modNames->values = ['mod' => ['abc', 'def']];

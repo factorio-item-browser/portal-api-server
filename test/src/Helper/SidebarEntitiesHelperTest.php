@@ -17,7 +17,6 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use GuzzleHttp\Promise\FulfilledPromise;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -123,9 +122,24 @@ class SidebarEntitiesHelperTest extends TestCase
     }
 
     /**
-     * @throws PortalApiServerException
+     * @return array<mixed>
      */
-    public function testRefreshLabels(): void
+    public function provideRefreshLabels(): array
+    {
+        return [
+            ['78de8fa6-424b-479e-99c2-bb719eff1e0d', true, '78de8fa6-424b-479e-99c2-bb719eff1e0d'],
+            ['78de8fa6-424b-479e-99c2-bb719eff1e0d', false, '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'],
+        ];
+    }
+
+    /**
+     * @param string $combinationId
+     * @param bool $hasData
+     * @param string $expectedCombinationId
+     * @throws FailedApiRequestException
+     * @dataProvider provideRefreshLabels
+     */
+    public function testRefreshLabels(string $combinationId, bool $hasData, string $expectedCombinationId): void
     {
         $entity1 = new SidebarEntity();
         $entity1->setType('abc')
@@ -160,17 +174,18 @@ class SidebarEntitiesHelperTest extends TestCase
         $responseEntity2->label = 'azy';
 
         $combination = new Combination();
-        $combination->setId(Uuid::fromString('78de8fa6-424b-479e-99c2-bb719eff1e0d'));
+        $combination->setId(Uuid::fromString($combinationId));
 
         $setting = new Setting();
         $setting->setCombination($combination)
-                ->setLocale('foo');
+                ->setLocale('foo')
+                ->setHasData($hasData);
         $setting->getSidebarEntities()->add($entity1);
         $setting->getSidebarEntities()->add($entity2);
         $setting->getSidebarEntities()->add($entity3);
 
         $expectedApiRequest = new GenericDetailsRequest();
-        $expectedApiRequest->combinationId = '78de8fa6-424b-479e-99c2-bb719eff1e0d';
+        $expectedApiRequest->combinationId = $expectedCombinationId;
         $expectedApiRequest->locale = 'foo';
         $expectedApiRequest->entities = [$requestEntity1, $requestEntity2, $requestEntity3];
 
@@ -223,7 +238,8 @@ class SidebarEntitiesHelperTest extends TestCase
 
         $setting = new Setting();
         $setting->setCombination($combination)
-                ->setLocale('foo');
+                ->setLocale('foo')
+                ->setHasData(true);
         $setting->getSidebarEntities()->add($entity1);
         $setting->getSidebarEntities()->add($entity2);
         $setting->getSidebarEntities()->add($entity3);

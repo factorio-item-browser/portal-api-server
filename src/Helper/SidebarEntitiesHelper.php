@@ -11,6 +11,7 @@ use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Transfer\Entity;
 use FactorioItemBrowser\Api\Client\Request\Generic\GenericDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Generic\GenericDetailsResponse;
+use FactorioItemBrowser\Common\Constant\Defaults;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
@@ -106,7 +107,11 @@ class SidebarEntitiesHelper
     private function createRequest(Setting $setting): GenericDetailsRequest
     {
         $request = new GenericDetailsRequest();
-        $request->combinationId = $setting->getCombination()->getId()->toString();
+        if ($setting->getHasData()) {
+            $request->combinationId = $setting->getCombination()->getId()->toString();
+        } else {
+            $request->combinationId = Defaults::COMBINATION_ID;
+        }
         $request->locale = $setting->getLocale();
         foreach ($setting->getSidebarEntities() as $sidebarEntity) {
             /* @var SidebarEntity $sidebarEntity */

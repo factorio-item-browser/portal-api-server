@@ -10,6 +10,7 @@ use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Request\Mod\ModListRequest;
 use FactorioItemBrowser\Api\Client\Response\Mod\ModListResponse;
 use FactorioItemBrowser\Api\Client\Transfer\Mod;
+use FactorioItemBrowser\Common\Constant\Defaults;
 use FactorioItemBrowser\Common\Constant\EntityType;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
@@ -65,7 +66,11 @@ class SettingHelper
         }
 
         $modListRequest = new ModListRequest();
-        $modListRequest->combinationId = $setting->getCombination()->getId()->toString();
+        if ($setting->getHasData()) {
+            $modListRequest->combinationId = $setting->getCombination()->getId()->toString();
+        } else {
+            $modListRequest->combinationId = Defaults::COMBINATION_ID;
+        }
         $modListRequest->locale = $setting->getLocale();
         $settingData = $this->mapperManager->map($setting, new SettingDetailsData());
         try {

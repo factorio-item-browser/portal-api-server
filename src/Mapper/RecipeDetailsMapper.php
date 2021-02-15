@@ -48,13 +48,13 @@ class RecipeDetailsMapper implements StaticMapperInterface, MapperManagerAwareIn
      */
     public function map(object $source, object $destination): void
     {
-        [$recipe, $expensiveRecipe] = $this->recipeSelector->select($source);
+        $recipes = $this->recipeSelector->select($source);
 
         $destination->name = $source->name;
         $destination->label = $source->label;
         $destination->description = $source->description;
-        $destination->recipe = $this->mapRecipe($recipe);
-        $destination->expensiveRecipe = $this->mapRecipe($expensiveRecipe);
+        $destination->recipe = $this->mapRecipe($recipes[0] ?? null);
+        $destination->expensiveRecipe = $this->mapRecipe($recipes[1] ?? null);
     }
 
     private function mapRecipe(?Recipe $recipe): ?RecipeData

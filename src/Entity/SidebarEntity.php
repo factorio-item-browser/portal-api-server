@@ -18,37 +18,37 @@ class SidebarEntity
      * The setting the sidebar entity belongs to.
      * @var Setting
      */
-    protected $setting;
+    private Setting $setting;
 
     /**
      * The type of the sidebar entity.
      * @var string
      */
-    protected $type = '';
+    private string $type = '';
 
     /**
      * The name of the sidebar entity.
      * @var string
      */
-    protected $name = '';
+    private string $name = '';
 
     /**
      * The translated label of the sidebar entity.
      * @var string
      */
-    protected $label = '';
+    private string $label = '';
 
     /**
      * The pinned position of the entity in the sidebar. 0 if not pinned.
      * @var int
      */
-    protected $pinnedPosition = 0;
+    private int $pinnedPosition = 0;
 
     /**
      * The time when the entity was last viewed.
      * @var DateTimeInterface
      */
-    protected $lastViewTime;
+    private DateTimeInterface $lastViewTime;
 
     /**
      * Sets the setting the sidebar entity belongs to.

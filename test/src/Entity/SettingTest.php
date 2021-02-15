@@ -125,20 +125,6 @@ class SettingTest extends TestCase
     }
 
     /**
-     * Tests the setting and getting the api authorization token.
-     * @covers ::getApiAuthorizationToken
-     * @covers ::setApiAuthorizationToken
-     */
-    public function testSetAndGetApiAuthorizationToken(): void
-    {
-        $apiAuthorizationToken = 'abc';
-        $entity = new Setting();
-
-        $this->assertSame($entity, $entity->setApiAuthorizationToken($apiAuthorizationToken));
-        $this->assertSame($apiAuthorizationToken, $entity->getApiAuthorizationToken());
-    }
-
-    /**
      * Tests the setting and getting the last usage time.
      * @covers ::getLastUsageTime
      * @covers ::setLastUsageTime

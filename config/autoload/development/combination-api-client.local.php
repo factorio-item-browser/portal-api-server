@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
+use BluePsyduck\JmsSerializerFactory\Constant\ConfigKey as JmsConfigKey;
 use FactorioItemBrowser\CombinationApi\Client\Constant\ConfigKey;
 
 return [
@@ -18,5 +19,8 @@ return [
         ConfigKey::BASE_URI => 'http://combination-api.fib.dev',
         ConfigKey::API_KEY => 'factorio-item-browser',
         ConfigKey::TIMEOUT => 60,
+        ConfigKey::SERIALIZER => [
+            JmsConfigKey::CACHE_DIR => 'data/cache/combination-api-client'
+        ],
     ],
 ];

@@ -23,11 +23,6 @@ interface ConfigKey
     public const ALLOWED_ORIGINS = 'allowed-origins';
 
     /**
-     * The key holding the cache directory to use.
-     */
-    public const CACHE_DIR = 'cache-dir';
-
-    /**
      * The key holding the number of recipes to return per result.
      */
     public const NUMBER_OF_RECIPES_PER_RESULT = 'number-of-recipes-per-result';

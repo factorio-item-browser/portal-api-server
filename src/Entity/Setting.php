@@ -22,75 +22,66 @@ class Setting
      * The ID of the setting.
      * @var UuidInterface
      */
-    protected $id;
+    private UuidInterface $id;
 
     /**
      * The user owning the setting.
      * @var User
      */
-    protected $user;
+    private User $user;
 
     /**
      * The combination used for this setting.
      * @var Combination
      */
-    protected $combination;
+    private Combination $combination;
 
     /**
      * The name of the setting.
      * @var string
      */
-    protected $name = '';
+    private string $name = '';
 
     /**
      * The locale used by this setting.
      * @var string
      */
-    protected $locale = '';
+    private string $locale = '';
 
     /**
      * The recipe mode used for this setting.
      * @var string
      */
-    protected $recipeMode = '';
+    private string $recipeMode = '';
 
     /**
      * The time when the setting was last used.
      * @var DateTimeInterface
      */
-    protected $lastUsageTime;
-
-    /**
-     * The API authorization token used for this setting.
-     * @var string
-     */
-    protected $apiAuthorizationToken = '';
+    private DateTimeInterface $lastUsageTime;
 
     /**
      * Whether the setting has its data actually available.
      * @var bool
      */
-    protected $hasData = false;
+    private bool $hasData = false;
 
     /**
      * Whether the setting is only temporary.
      * @var bool
      */
-    protected $isTemporary = false;
+    private bool $isTemporary = false;
 
     /**
      * The sidebar entities of the setting.
      * @var Collection<int,SidebarEntity>
      */
-    protected $sidebarEntities;
+    private Collection $sidebarEntities;
 
-    /**
-     * Initializes the entity.
-     */
     public function __construct()
     {
-        $this->sidebarEntities = new ArrayCollection();
         $this->lastUsageTime = new DateTime();
+        $this->sidebarEntities = new ArrayCollection();
     }
 
     /**
@@ -231,26 +222,6 @@ class Setting
     public function getLastUsageTime(): DateTimeInterface
     {
         return $this->lastUsageTime;
-    }
-
-    /**
-     * Sets the API authorization token used for this setting.
-     * @param string $apiAuthorizationToken
-     * @return $this
-     */
-    public function setApiAuthorizationToken(string $apiAuthorizationToken): self
-    {
-        $this->apiAuthorizationToken = $apiAuthorizationToken;
-        return $this;
-    }
-
-    /**
-     * Returns the API authorization token used for this setting.
-     * @return string
-     */
-    public function getApiAuthorizationToken(): string
-    {
-        return $this->apiAuthorizationToken;
     }
 
     /**

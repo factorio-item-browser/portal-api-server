@@ -6,14 +6,15 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Item;
 
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use BluePsyduck\TestHelper\ReflectionTrait;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Exception\NotFoundException;
 use FactorioItemBrowser\Api\Client\Request\Item\ItemProductRequest;
 use FactorioItemBrowser\Api\Client\Response\Item\ItemProductResponse;
+use FactorioItemBrowser\Api\Client\Transfer\GenericEntityWithRecipes;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Handler\Item\ProductsHandler;
+use GuzzleHttp\Promise\FulfilledPromise;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
@@ -23,128 +24,114 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Handler\Item\ProductsHandler
+ * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Item\ProductsHandler
  */
 class ProductsHandlerTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked api client.
-     * @var ApiClientInterface&MockObject
-     */
-    protected $apiClient;
+    /** @var ClientInterface&MockObject */
+    private ClientInterface $apiClient;
+    /** @var MapperManagerInterface&MockObject */
+    private MapperManagerInterface $mapperManager;
 
-    /**
-     * The mocked mapper manager.
-     * @var MapperManagerInterface&MockObject
-     */
-    protected $mapperManager;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
-        $this->apiClient = $this->createMock(ApiClientInterface::class);
+        $this->apiClient = $this->createMock(ClientInterface::class);
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
     }
 
     /**
-     * Tests the fetchData method.
+     * @param array<string> $mockedMethods
+     * @return ProductsHandler&MockObject
+     */
+    private function createInstance(array $mockedMethods = []): ProductsHandler
+    {
+        return $this->getMockBuilder(ProductsHandler::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->apiClient,
+                        $this->mapperManager,
+                    ])
+                    ->getMock();
+    }
+
+    /**
      * @throws ReflectionException
-     * @covers ::fetchData
      */
     public function testFetchData(): void
     {
-        $type = 'abc';
-        $name = 'def';
-        $indexOfFirstResult = 42;
-        $numberOfResults = 21;
+        $expectedApiRequest = new ItemProductRequest();
+        $expectedApiRequest->type = 'abc';
+        $expectedApiRequest->name = 'def';
+        $expectedApiRequest->indexOfFirstResult = 42;
+        $expectedApiRequest->numberOfResults = 21;
 
-        $expectedRequest = new ItemProductRequest();
-        $expectedRequest->setType('abc')
-                        ->setName('def')
-                        ->setIndexOfFirstResult(42)
-                        ->setNumberOfResults(21);
-
-        /* @var GenericEntityWithRecipes&MockObject $item */
         $item = $this->createMock(GenericEntityWithRecipes::class);
-
-        /* @var ItemProductResponse&MockObject $response */
-        $response = $this->createMock(ItemProductResponse::class);
-        $response->expects($this->once())
-                 ->method('getItem')
-                 ->willReturn($item);
+        $apiResponse = new ItemProductResponse();
+        $apiResponse->item = $item;
 
         $this->apiClient->expects($this->once())
-                        ->method('fetchResponse')
-                        ->with($this->equalTo($expectedRequest))
-                        ->willReturn($response);
+                        ->method('sendRequest')
+                        ->with($this->equalTo($expectedApiRequest))
+                        ->willReturn(new FulfilledPromise($apiResponse));
 
-        $handler = new ProductsHandler($this->apiClient, $this->mapperManager);
-        $result = $this->invokeMethod($handler, 'fetchData', $type, $name, $indexOfFirstResult, $numberOfResults);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchData', 'abc', 'def', 42, 21);
 
         $this->assertSame($item, $result);
     }
 
     /**
-     * Tests the fetchData method.
      * @throws ReflectionException
-     * @covers ::fetchData
      */
-    public function testFetchDataWithNotFoundException(): void
+    public function testFetchDataWithoutItem(): void
     {
-        $type = 'abc';
-        $name = 'def';
-        $indexOfFirstResult = 42;
-        $numberOfResults = 21;
+        $expectedApiRequest = new ItemProductRequest();
+        $expectedApiRequest->type = 'abc';
+        $expectedApiRequest->name = 'def';
+        $expectedApiRequest->indexOfFirstResult = 42;
+        $expectedApiRequest->numberOfResults = 21;
 
-        $expectedRequest = new ItemProductRequest();
-        $expectedRequest->setType('abc')
-                        ->setName('def')
-                        ->setIndexOfFirstResult(42)
-                        ->setNumberOfResults(21);
+        $item = $this->createMock(GenericEntityWithRecipes::class);
+        $apiResponse = new ItemProductResponse();
+        $apiResponse->item = $item;
 
         $this->apiClient->expects($this->once())
-                        ->method('fetchResponse')
-                        ->with($this->equalTo($expectedRequest))
+                        ->method('sendRequest')
+                        ->with($this->equalTo($expectedApiRequest))
                         ->willThrowException($this->createMock(NotFoundException::class));
 
-        $handler = new ProductsHandler($this->apiClient, $this->mapperManager);
-        $result = $this->invokeMethod($handler, 'fetchData', $type, $name, $indexOfFirstResult, $numberOfResults);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'fetchData', 'abc', 'def', 42, 21);
 
         $this->assertNull($result);
     }
 
     /**
-     * Tests the fetchData method.
      * @throws ReflectionException
-     * @covers ::fetchData
      */
-    public function testFetchDataWithException(): void
+    public function testFetchDataWithApiException(): void
     {
-        $type = 'abc';
-        $name = 'def';
-        $indexOfFirstResult = 42;
-        $numberOfResults = 21;
+        $expectedApiRequest = new ItemProductRequest();
+        $expectedApiRequest->type = 'abc';
+        $expectedApiRequest->name = 'def';
+        $expectedApiRequest->indexOfFirstResult = 42;
+        $expectedApiRequest->numberOfResults = 21;
 
-        $expectedRequest = new ItemProductRequest();
-        $expectedRequest->setType('abc')
-                        ->setName('def')
-                        ->setIndexOfFirstResult(42)
-                        ->setNumberOfResults(21);
+        $item = $this->createMock(GenericEntityWithRecipes::class);
+        $apiResponse = new ItemProductResponse();
+        $apiResponse->item = $item;
 
         $this->apiClient->expects($this->once())
-                        ->method('fetchResponse')
-                        ->with($this->equalTo($expectedRequest))
-                        ->willThrowException($this->createMock(ApiClientException::class));
+                        ->method('sendRequest')
+                        ->with($this->equalTo($expectedApiRequest))
+                        ->willThrowException($this->createMock(ClientException::class));
 
         $this->expectException(FailedApiRequestException::class);
 
-        $handler = new ProductsHandler($this->apiClient, $this->mapperManager);
-        $this->invokeMethod($handler, 'fetchData', $type, $name, $indexOfFirstResult, $numberOfResults);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'fetchData', 'abc', 'def', 42, 21);
     }
 }

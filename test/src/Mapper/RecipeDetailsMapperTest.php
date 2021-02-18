@@ -4,127 +4,79 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use BluePsyduck\TestHelper\ReflectionTrait;
-use FactorioItemBrowser\Api\Client\Entity\Recipe;
-use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
+use FactorioItemBrowser\Api\Client\Transfer\Recipe;
+use FactorioItemBrowser\Api\Client\Transfer\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Helper\RecipeSelector;
 use FactorioItemBrowser\PortalApi\Server\Mapper\RecipeDetailsMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeDetailsData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the RecipeDetailsMapper class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\RecipeDetailsMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\RecipeDetailsMapper
  */
 class RecipeDetailsMapperTest extends TestCase
 {
-    use ReflectionTrait;
+    /** @var MapperManagerInterface&MockObject */
+    private MapperManagerInterface $mapperManager;
+    /** @var RecipeSelector&MockObject */
+    private RecipeSelector $recipeSelector;
 
-    /**
-     * The mocked mapper manager.
-     * @var MapperManagerInterface&MockObject
-     */
-    protected $mapperManager;
-
-    /**
-     * The mocked recipe selector.
-     * @var RecipeSelector&MockObject
-     */
-    protected $recipeSelector;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
         $this->recipeSelector = $this->createMock(RecipeSelector::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
-     * @covers ::setMapperManager
+     * @param array<string> $mockedMethods
+     * @return RecipeDetailsMapper&MockObject
      */
-    public function testConstructAndSetMapperManager(): void
+    private function createInstance(array $mockedMethods = []): RecipeDetailsMapper
     {
-        $mapper = new RecipeDetailsMapper($this->recipeSelector);
-        $mapper->setMapperManager($this->mapperManager);
-
-        $this->assertSame($this->recipeSelector, $this->extractProperty($mapper, 'recipeSelector'));
-        $this->assertSame($this->mapperManager, $this->extractProperty($mapper, 'mapperManager'));
+        $instance = $this->getMockBuilder(RecipeDetailsMapper::class)
+                         ->disableProxyingToOriginalMethods()
+                         ->onlyMethods($mockedMethods)
+                         ->setConstructorArgs([
+                             $this->recipeSelector,
+                         ])
+                         ->getMock();
+        $instance->setMapperManager($this->mapperManager);
+        return $instance;
     }
 
-    /**
-     * Tests the getSupportedSourceClass method.
-     * @covers ::getSupportedSourceClass
-     */
-    public function testGetSupportedSourceClass(): void
+    public function testSupports(): void
     {
-        $expectedResult = RecipeWithExpensiveVersion::class;
+        $instance = $this->createInstance();
 
-        $mapper = new RecipeDetailsMapper($this->recipeSelector);
-        $mapper->setMapperManager($this->mapperManager);
-
-        $result = $mapper->getSupportedSourceClass();
-
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(RecipeWithExpensiveVersion::class, $instance->getSupportedSourceClass());
+        $this->assertSame(RecipeDetailsData::class, $instance->getSupportedDestinationClass());
     }
 
-    /**
-     * Tests the getSupportedDestinationClass method.
-     * @covers ::getSupportedDestinationClass
-     */
-    public function testGetSupportedDestinationClass(): void
-    {
-        $expectedResult = RecipeDetailsData::class;
-
-        $mapper = new RecipeDetailsMapper($this->recipeSelector);
-        $mapper->setMapperManager($this->mapperManager);
-
-        $result = $mapper->getSupportedDestinationClass();
-
-        $this->assertSame($expectedResult, $result);
-    }
-
-    /**
-     * Tests the map method.
-     * @throws MapperException
-     * @covers ::map
-     */
     public function testMap(): void
     {
         $source = new RecipeWithExpensiveVersion();
-        $source->setName('abc')
-               ->setLabel('def')
-               ->setDescription('ghi');
+        $source->name = 'abc';
+        $source->label = 'def';
+        $source->description = 'ghi';
 
-        /* @var Recipe&MockObject $recipe */
         $recipe = $this->createMock(Recipe::class);
-        /* @var Recipe&MockObject $expensiveRecipe */
         $expensiveRecipe = $this->createMock(Recipe::class);
-        /* @var RecipeData&MockObject $recipeData */
         $recipeData = $this->createMock(RecipeData::class);
-        /* @var RecipeData&MockObject $expensiveRecipeData */
         $expensiveRecipeData = $this->createMock(RecipeData::class);
 
         $expectedDestination = new RecipeDetailsData();
-        $expectedDestination->setName('abc')
-                            ->setLabel('def')
-                            ->setDescription('ghi')
-                            ->setRecipe($recipeData)
-                            ->setExpensiveRecipe($expensiveRecipeData);
+        $expectedDestination->name = 'abc';
+        $expectedDestination->label = 'def';
+        $expectedDestination->description = 'ghi';
+        $expectedDestination->recipe = $recipeData;
+        $expectedDestination->expensiveRecipe = $expensiveRecipeData;
 
         $destination = new RecipeDetailsData();
 
@@ -133,51 +85,38 @@ class RecipeDetailsMapperTest extends TestCase
                              ->with($this->identicalTo($source))
                              ->willReturn([$recipe, $expensiveRecipe]);
 
-        /* @var RecipeDetailsMapper&MockObject $mapper */
-        $mapper = $this->getMockBuilder(RecipeDetailsMapper::class)
-                       ->onlyMethods(['mapRecipe'])
-                       ->setConstructorArgs([$this->recipeSelector])
-                       ->getMock();
-        $mapper->expects($this->exactly(2))
-               ->method('mapRecipe')
-               ->withConsecutive(
-                   [$this->identicalTo($recipe)],
-                   [$this->identicalTo($expensiveRecipe)]
-               )
-               ->willReturnOnConsecutiveCalls(
-                   $recipeData,
-                   $expensiveRecipeData
-               );
-        $mapper->setMapperManager($this->mapperManager);
+        $this->mapperManager->expects($this->exactly(2))
+                            ->method('map')
+                            ->withConsecutive(
+                                [$this->identicalTo($recipe), $this->isInstanceOf(RecipeData::class)],
+                                [$this->identicalTo($expensiveRecipe), $this->isInstanceOf(RecipeData::class)],
+                            )
+                            ->willReturnOnConsecutiveCalls(
+                                $recipeData,
+                                $expensiveRecipeData,
+                            );
 
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }
 
-    /**
-     * Tests the map method.
-     * @throws MapperException
-     * @covers ::map
-     */
     public function testMapWithSingleRecipe(): void
     {
         $source = new RecipeWithExpensiveVersion();
-        $source->setName('abc')
-               ->setLabel('def')
-               ->setDescription('ghi');
+        $source->name = 'abc';
+        $source->label = 'def';
+        $source->description = 'ghi';
 
-        /* @var Recipe&MockObject $recipe */
         $recipe = $this->createMock(Recipe::class);
-        /* @var RecipeData&MockObject $recipeData */
         $recipeData = $this->createMock(RecipeData::class);
 
         $expectedDestination = new RecipeDetailsData();
-        $expectedDestination->setName('abc')
-                            ->setLabel('def')
-                            ->setDescription('ghi')
-                            ->setRecipe($recipeData)
-                            ->setExpensiveRecipe(null);
+        $expectedDestination->name = 'abc';
+        $expectedDestination->label = 'def';
+        $expectedDestination->description = 'ghi';
+        $expectedDestination->recipe = $recipeData;
 
         $destination = new RecipeDetailsData();
 
@@ -186,65 +125,14 @@ class RecipeDetailsMapperTest extends TestCase
                              ->with($this->identicalTo($source))
                              ->willReturn([$recipe]);
 
-        /* @var RecipeDetailsMapper&MockObject $mapper */
-        $mapper = $this->getMockBuilder(RecipeDetailsMapper::class)
-                       ->onlyMethods(['mapRecipe'])
-                       ->setConstructorArgs([$this->recipeSelector])
-                       ->getMock();
-        $mapper->expects($this->exactly(2))
-               ->method('mapRecipe')
-               ->withConsecutive(
-                   [$this->identicalTo($recipe)],
-                   [$this->isNull()]
-               )
-               ->willReturnOnConsecutiveCalls(
-                   $recipeData,
-                   null
-               );
-        $mapper->setMapperManager($this->mapperManager);
-
-        $mapper->map($source, $destination);
-
-        $this->assertEquals($expectedDestination, $destination);
-    }
-
-    /**
-     * Tests the mapRecipe method.
-     * @throws ReflectionException
-     * @covers ::mapRecipe
-     */
-    public function testMapRecipe(): void
-    {
-        /* @var Recipe&MockObject $recipe */
-        $recipe = $this->createMock(Recipe::class);
-
         $this->mapperManager->expects($this->once())
                             ->method('map')
-                            ->with($this->identicalTo($recipe), $this->isInstanceOf(RecipeData::class));
+                            ->with($this->identicalTo($recipe), $this->isInstanceOf(RecipeData::class))
+                            ->willReturn($recipeData);
 
-        $mapper = new RecipeDetailsMapper($this->recipeSelector);
-        $mapper->setMapperManager($this->mapperManager);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
-        $result = $this->invokeMethod($mapper, 'mapRecipe', $recipe);
-
-        $this->assertInstanceOf(RecipeData::class, $result);
-    }
-
-    /**
-     * Tests the mapRecipe method.
-     * @throws ReflectionException
-     * @covers ::mapRecipe
-     */
-    public function testMapRecipeWithNull(): void
-    {
-        $this->mapperManager->expects($this->never())
-                            ->method('map');
-
-        $mapper = new RecipeDetailsMapper($this->recipeSelector);
-        $mapper->setMapperManager($this->mapperManager);
-
-        $result = $this->invokeMethod($mapper, 'mapRecipe', null);
-
-        $this->assertNull($result);
+        $this->assertEquals($expectedDestination, $destination);
     }
 }

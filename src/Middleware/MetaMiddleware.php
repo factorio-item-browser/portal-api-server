@@ -17,39 +17,20 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class MetaMiddleware implements MiddlewareInterface
 {
-    /**
-     * The version of the API currently in use.
-     * @var string
-     */
-    protected $version;
+    private string $version;
+    private float $startTime;
 
-    /**
-     * The start time of the execution.
-     * @var float
-     */
-    protected $startTime;
-
-    /**
-     * Initializes the meta middleware.
-     * @param string $version
-     */
     public function __construct(string $version)
     {
         $this->version = $version;
         $this->startTime = microtime(true);
     }
 
-    /**
-     * Process an incoming server request and return a response, optionally delegating response creation to a handler.
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
-     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
 
-        return $response->withHeader('X-Version', $this->version)
-                        ->withHeader('X-Runtime', (string) (round(microtime(true) - $this->startTime, 3)));
+        return $response->withHeader('Version', $this->version)
+                        ->withHeader('Runtime', (string) (round(microtime(true) - $this->startTime, 3)));
     }
 }

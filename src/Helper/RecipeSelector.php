@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
-use FactorioItemBrowser\Api\Client\Entity\Recipe;
-use FactorioItemBrowser\Api\Client\Entity\RecipeWithExpensiveVersion;
+use FactorioItemBrowser\Api\Client\Transfer\Recipe;
+use FactorioItemBrowser\Api\Client\Transfer\RecipeWithExpensiveVersion;
 use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 
@@ -17,16 +17,8 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
  */
 class RecipeSelector
 {
-    /**
-     * The current user setting.
-     * @var Setting
-     */
-    protected $currentSetting;
+    private Setting $currentSetting;
 
-    /**
-     * Initializes the recipe selector.
-     * @param Setting $currentSetting
-     */
     public function __construct(Setting $currentSetting)
     {
         $this->currentSetting = $currentSetting;
@@ -42,7 +34,7 @@ class RecipeSelector
         $normalRecipe = $recipe;
         $expensiveRecipe = null;
         if ($recipe instanceof RecipeWithExpensiveVersion) {
-            $expensiveRecipe = $recipe->getExpensiveVersion();
+            $expensiveRecipe = $recipe->expensiveVersion;
         }
 
         $preferredMode = $this->currentSetting->getRecipeMode();
@@ -51,7 +43,7 @@ class RecipeSelector
         }
         if ($preferredMode === RecipeMode::EXPENSIVE && $expensiveRecipe !== null) {
             $expensiveRecipe = clone $expensiveRecipe;
-            $expensiveRecipe->setMode(RecipeMode::NORMAL); // Consider the expensive recipe as a normal one.
+            $expensiveRecipe->mode = RecipeMode::NORMAL; // Consider the expensive recipe as a normal one.
             return [$expensiveRecipe];
         }
         return [$normalRecipe];

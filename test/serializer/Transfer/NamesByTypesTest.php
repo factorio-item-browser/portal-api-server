@@ -15,25 +15,20 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class NamesByTypesTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new NamesByTypes();
-        $object->setValues([
+        $object->values = [
             'abc' => ['def', 'ghi'],
             'jkl' => ['mno']
-        ]);
+        ];
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'abc' => ['def', 'ghi'],
@@ -41,9 +36,6 @@ class NamesByTypesTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

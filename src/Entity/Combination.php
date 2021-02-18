@@ -19,31 +19,31 @@ class Combination
      * The id of the combination.
      * @var UuidInterface
      */
-    protected $id;
+    private UuidInterface $id;
 
     /**
      * The mod names of the combination.
-     * @var array|string[]
+     * @var array<string>
      */
-    protected $modNames = [];
+    private array $modNames = [];
 
     /**
      * The status of the combination.
      * @var string
      */
-    protected $status = '';
+    private string $status = '';
 
     /**
      * The timestamp of export of the combination.
      * @var DateTimeInterface|null
      */
-    protected $exportTime;
+    private ?DateTimeInterface $exportTime = null;
 
     /**
      * The timestamp when the combination was last checked.
      * @var DateTimeInterface|null
      */
-    protected $lastCheckTime;
+    private ?DateTimeInterface $lastCheckTime = null;
 
     /**
      * Sets the id of the combination.
@@ -67,10 +67,10 @@ class Combination
 
     /**
      * Sets the mod names of the combination.
-     * @param array|string[] $modNames
+     * @param array<string> $modNames
      * @return $this
      */
-    public function setModNames($modNames)
+    public function setModNames(array $modNames): self
     {
         $this->modNames = $modNames;
         return $this;
@@ -78,9 +78,9 @@ class Combination
 
     /**
      * Returns the mod names of the combination.
-     * @return array|string[]
+     * @return array<string>
      */
-    public function getModNames()
+    public function getModNames(): array
     {
         return $this->modNames;
     }

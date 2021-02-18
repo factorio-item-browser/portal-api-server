@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\DeleteActiveSettingException;
@@ -17,67 +16,49 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Ramsey\Uuid\Uuid;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the DeleteHandler class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Handler\Settings\DeleteHandler
+ * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Settings\DeleteHandler
  */
 class DeleteHandlerTest extends TestCase
 {
-    use ReflectionTrait;
+    /** @var Setting&MockObject */
+    private Setting $currentSetting;
+    /** @var User&MockObject */
+    private User $currentUser;
+    /** @var SettingRepository&MockObject */
+    private SettingRepository $settingRepository;
 
-    /**
-     * The mocked current setting.
-     * @var Setting&MockObject
-     */
-    protected $currentSetting;
-
-    /**
-     * The mocked current user.
-     * @var User&MockObject
-     */
-    protected $currentUser;
-
-    /**
-     * The mocked setting repository.
-     * @var SettingRepository&MockObject
-     */
-    protected $settingRepository;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->currentSetting = $this->createMock(Setting::class);
         $this->currentUser = $this->createMock(User::class);
         $this->settingRepository = $this->createMock(SettingRepository::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return DeleteHandler&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): DeleteHandler
     {
-        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
-
-        $this->assertSame($this->currentSetting, $this->extractProperty($handler, 'currentSetting'));
-        $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
-        $this->assertSame($this->settingRepository, $this->extractProperty($handler, 'settingRepository'));
+        return $this->getMockBuilder(DeleteHandler::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->currentSetting,
+                        $this->currentUser,
+                        $this->settingRepository,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the handle method.
      * @throws PortalApiServerException
-     * @covers ::handle
      */
     public function testHandle(): void
     {
@@ -106,16 +87,14 @@ class DeleteHandlerTest extends TestCase
                                 ->method('deleteSetting')
                                 ->with($this->identicalTo($setting));
 
-        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
-        $result = $handler->handle($request);
+        $instance = $this->createInstance();
+        $result = $instance->handle($request);
 
         $this->assertInstanceOf(EmptyResponse::class, $result);
     }
 
     /**
-     * Tests the handle method.
      * @throws PortalApiServerException
-     * @covers ::handle
      */
     public function testHandleWithMissingSettingException(): void
     {
@@ -142,14 +121,12 @@ class DeleteHandlerTest extends TestCase
 
         $this->expectException(MissingSettingException::class);
 
-        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
-        $handler->handle($request);
+        $instance = $this->createInstance();
+        $instance->handle($request);
     }
 
     /**
-     * Tests the handle method.
      * @throws PortalApiServerException
-     * @covers ::handle
      */
     public function testHandleWithDeleteActiveSettingException(): void
     {
@@ -179,7 +156,7 @@ class DeleteHandlerTest extends TestCase
 
         $this->expectException(DeleteActiveSettingException::class);
 
-        $handler = new DeleteHandler($this->currentSetting, $this->currentUser, $this->settingRepository);
-        $handler->handle($request);
+        $instance = $this->createInstance();
+        $instance->handle($request);
     }
 }

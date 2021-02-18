@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
 use DateTime;
-use Exception;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
@@ -18,34 +17,27 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class SettingStatusDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     * @throws Exception
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $setting = new SettingDetailsData();
-        $setting->setCombinationId('def')
-                ->setName('ghi')
-                ->setStatus('jkl')
-                ->setIsTemporary(true)
-                ->setRecipeMode('mno')
-                ->setLocale('pqr');
+        $setting->combinationId = 'def';
+        $setting->name = 'ghi';
+        $setting->status = 'jkl';
+        $setting->isTemporary = true;
+        $setting->recipeMode = 'mno';
+        $setting->locale = 'pqr';
 
         $object = new SettingStatusData();
-        $object->setStatus('abc')
-               ->setExportTime(new DateTime('2038-01-19 03:14:07'))
-               ->setExistingSetting($setting);
-
+        $object->status = 'abc';
+        $object->exportTime = new DateTime('2038-01-19 03:14:07');
+        $object->existingSetting = $setting;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'status' => 'abc',
@@ -66,10 +58,6 @@ class SettingStatusDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     * @throws Exception
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

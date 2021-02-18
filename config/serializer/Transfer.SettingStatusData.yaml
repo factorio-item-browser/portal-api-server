@@ -1,5 +1,4 @@
 FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData:
-  access_type: public_method
   exclusion_policy: all
   properties:
     status:

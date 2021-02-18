@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Request\Search\SearchQueryRequest;
 use FactorioItemBrowser\Api\Client\Response\Search\SearchQueryResponse;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SearchResultsData;
@@ -27,32 +25,12 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class SearchHandler implements RequestHandlerInterface
 {
-    /**
-     * The api client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    private ClientInterface $apiClient;
+    private MapperManagerInterface $mapperManager;
+    private int $numberOfRecipesPerResult;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * The number of recipes to return per result.
-     * @var int
-     */
-    protected $numberOfRecipesPerResult;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     * @param int $numberOfRecipesPerResult
-     */
     public function __construct(
-        ApiClientInterface $apiClient,
+        ClientInterface $apiClient,
         MapperManagerInterface $mapperManager,
         int $numberOfRecipesPerResult
     ) {
@@ -62,7 +40,6 @@ class SearchHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -73,56 +50,36 @@ class SearchHandler implements RequestHandlerInterface
 
         $query = (string) ($queryParams['query'] ?? '');
         $indexOfFirstResult = (int) ($queryParams['indexOfFirstResult'] ?? 0);
-        $numberOfResults = (int) ($queryParams['numberOfResults'] ?? 0);
+        $numberOfResults = (int) ($queryParams['numberOfResults'] ?? 10);
 
         $searchQueryResponse = $this->fetchData($query, $indexOfFirstResult, $numberOfResults);
-        $searchResultsData = $this->createSearchResultsData($searchQueryResponse, $query);
-        return new TransferResponse($searchResultsData);
+
+        $response = $this->mapperManager->map($searchQueryResponse, new SearchResultsData());
+        $response->query = $query;
+        return new TransferResponse($response);
     }
 
     /**
-     * Fetches the data from the API.
      * @param string $query
      * @param int $indexOfFirstResult
      * @param int $numberOfResults
      * @return SearchQueryResponse
      * @throws PortalApiServerException
      */
-    protected function fetchData(string $query, int $indexOfFirstResult, int $numberOfResults): SearchQueryResponse
+    private function fetchData(string $query, int $indexOfFirstResult, int $numberOfResults): SearchQueryResponse
     {
         $request = new SearchQueryRequest();
-        $request->setQuery($query)
-                ->setIndexOfFirstResult($indexOfFirstResult)
-                ->setNumberOfResults($numberOfResults)
-                ->setNumberOfRecipesPerResult($this->numberOfRecipesPerResult);
+        $request->query = $query;
+        $request->indexOfFirstResult = $indexOfFirstResult;
+        $request->numberOfResults = $numberOfResults;
+        $request->numberOfRecipesPerResult = $this->numberOfRecipesPerResult;
 
         try {
             /** @var SearchQueryResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-        } catch (ApiClientException $e) {
+            $response = $this->apiClient->sendRequest($request)->wait();
+            return $response;
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
-        return $response;
-    }
-
-    /**
-     * Creates the results data from the search query response.
-     * @param SearchQueryResponse $searchQueryResponse
-     * @param string $query
-     * @return SearchResultsData
-     * @throws PortalApiServerException
-     */
-    protected function createSearchResultsData(
-        SearchQueryResponse $searchQueryResponse,
-        string $query
-    ): SearchResultsData {
-        $result = new SearchResultsData();
-        $result->setQuery($query);
-        try {
-            $this->mapperManager->map($searchQueryResponse, $result);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $result;
     }
 }

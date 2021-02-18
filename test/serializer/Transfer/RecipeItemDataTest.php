@@ -15,25 +15,20 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class RecipeItemDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new RecipeItemData();
-        $object->setType('abc')
-               ->setName('def')
-               ->setLabel('ghi')
-               ->setAmount(13.37);
+        $object->type = 'abc';
+        $object->name = 'def';
+        $object->label = 'ghi';
+        $object->amount = 13.37;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'type' => 'abc',
@@ -43,9 +38,6 @@ class RecipeItemDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

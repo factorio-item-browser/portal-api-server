@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
 use FactorioItemBrowser\Api\Client\Request\Item\ItemRandomRequest;
 use FactorioItemBrowser\Api\Client\Response\Item\ItemRandomResponse;
+use FactorioItemBrowser\Api\Client\Transfer\GenericEntityWithRecipes;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\EntityData;
@@ -28,32 +26,12 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class RandomHandler implements RequestHandlerInterface
 {
-    /**
-     * The api client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    private ClientInterface $apiClient;
+    private MapperManagerInterface $mapperManager;
+    private int $numberOfRecipesPerResult;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * The number of recipes to return per result.
-     * @var int
-     */
-    protected $numberOfRecipesPerResult;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     * @param int $numberOfRecipesPerResult
-     */
     public function __construct(
-        ApiClientInterface $apiClient,
+        ClientInterface $apiClient,
         MapperManagerInterface $mapperManager,
         int $numberOfRecipesPerResult
     ) {
@@ -63,7 +41,6 @@ class RandomHandler implements RequestHandlerInterface
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -74,45 +51,32 @@ class RandomHandler implements RequestHandlerInterface
         $numberOfResults = (int) ($queryParams['numberOfResults'] ?? 0);
 
         $items = $this->fetchData($numberOfResults);
-        $entityData = array_map([$this, 'createEntityData'], $items);
-        return new TransferResponse($entityData);
+        return new TransferResponse(array_map([$this, 'mapItem'], $items));
     }
 
     /**
      * Fetches the data from the API.
      * @param int $numberOfResults
-     * @return array|GenericEntityWithRecipes[]
+     * @return array<GenericEntityWithRecipes>
      * @throws PortalApiServerException
      */
-    protected function fetchData(int $numberOfResults): array
+    private function fetchData(int $numberOfResults): array
     {
         $request = new ItemRandomRequest();
-        $request->setNumberOfResults($numberOfResults)
-                ->setNumberOfRecipesPerResult($this->numberOfRecipesPerResult);
+        $request->numberOfResults = $numberOfResults;
+        $request->numberOfRecipesPerResult = $this->numberOfRecipesPerResult;
 
         try {
             /** @var ItemRandomResponse $response */
-            $response = $this->apiClient->fetchResponse($request);
-            return $response->getItems();
-        } catch (ApiClientException $e) {
+            $response = $this->apiClient->sendRequest($request)->wait();
+            return $response->items;
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
     }
 
-    /**
-     * Creates the entity data transfer from the entity.
-     * @param GenericEntityWithRecipes $item
-     * @return EntityData
-     * @throws PortalApiServerException
-     */
-    protected function createEntityData(GenericEntityWithRecipes $item): EntityData
+    private function mapItem(GenericEntityWithRecipes $item): EntityData
     {
-        $entityData = new EntityData();
-        try {
-            $this->mapperManager->map($item, $entityData);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $entityData;
+        return $this->mapperManager->map($item, new EntityData());
     }
 }

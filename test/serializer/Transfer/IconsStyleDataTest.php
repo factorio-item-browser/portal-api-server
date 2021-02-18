@@ -15,26 +15,21 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class IconsStyleDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new IconsStyleData();
-        $object->getProcessedEntities()->setValues([
+        $object->processedEntities->values = [
             'abc' => ['def', 'jkl'],
             'mno' => ['pqr'],
-        ]);
-        $object->setStyle('stu');
+        ];
+        $object->style = 'stu';
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'processedEntities' => [
@@ -45,9 +40,6 @@ class IconsStyleDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
-use BluePsyduck\MapperManager\Mapper\DynamicMapperInterface;
+use BluePsyduck\MapperManager\Mapper\StaticMapperInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 
@@ -13,32 +13,31 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @implements StaticMapperInterface<SidebarEntity, SidebarEntityData>
  */
-class SidebarEntityMapper implements DynamicMapperInterface
+class SidebarEntityMapper implements StaticMapperInterface
 {
-    /**
-     * Returns whether the mapper supports the combination of source and destination object.
-     * @param object $source
-     * @param object $destination
-     * @return bool
-     */
-    public function supports($source, $destination): bool
+    public function getSupportedSourceClass(): string
     {
-        return ($source instanceof SidebarEntity || $source instanceof SidebarEntityData)
-            && ($destination instanceof SidebarEntity || $destination instanceof SidebarEntityData);
+        return SidebarEntity::class;
+    }
+
+    public function getSupportedDestinationClass(): string
+    {
+        return SidebarEntityData::class;
     }
 
     /**
-     * Maps the source object to the destination one.
-     * @param SidebarEntity|SidebarEntityData $source
-     * @param SidebarEntity|SidebarEntityData $destination
+     * @param SidebarEntity $source
+     * @param SidebarEntityData $destination
      */
-    public function map($source, $destination): void
+    public function map(object $source, object $destination): void
     {
-        $destination->setType($source->getType())
-                    ->setName($source->getName())
-                    ->setLabel($source->getLabel())
-                    ->setPinnedPosition($source->getPinnedPosition())
-                    ->setLastViewTime($source->getLastViewTime());
+        $destination->type = $source->getType();
+        $destination->name = $source->getName();
+        $destination->label = $source->getLabel();
+        $destination->pinnedPosition = $source->getPinnedPosition();
+        $destination->lastViewTime = $source->getLastViewTime();
     }
 }

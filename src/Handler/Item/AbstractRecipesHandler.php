@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Handler\Item;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
-use FactorioItemBrowser\Api\Client\ApiClientInterface;
-use FactorioItemBrowser\Api\Client\Entity\GenericEntityWithRecipes;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Transfer\GenericEntityWithRecipes;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
@@ -25,31 +23,16 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 abstract class AbstractRecipesHandler implements RequestHandlerInterface
 {
-    /**
-     * The api client.
-     * @var ApiClientInterface
-     */
-    protected $apiClient;
+    protected ClientInterface $apiClient;
+    protected MapperManagerInterface $mapperManager;
 
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * Initializes the handler.
-     * @param ApiClientInterface $apiClient
-     * @param MapperManagerInterface $mapperManager
-     */
-    public function __construct(ApiClientInterface $apiClient, MapperManagerInterface $mapperManager)
+    public function __construct(ClientInterface $apiClient, MapperManagerInterface $mapperManager)
     {
         $this->apiClient = $apiClient;
         $this->mapperManager = $mapperManager;
     }
 
     /**
-     * Handles the request.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws PortalApiServerException
@@ -61,15 +44,15 @@ abstract class AbstractRecipesHandler implements RequestHandlerInterface
 
         $queryParams = $request->getQueryParams();
         $indexOfFirstResult = (int) ($queryParams['indexOfFirstResult'] ?? 0);
-        $numberOfResults = (int) ($queryParams['numberOfResults'] ?? 0);
+        $numberOfResults = (int) ($queryParams['numberOfResults'] ?? 10);
 
         $item = $this->fetchData($type, $name, $indexOfFirstResult, $numberOfResults);
         if ($item === null) {
             throw new UnknownEntityException($type, $name);
         }
 
-        $itemRecipesData = $this->createItemRecipesData($item);
-        return new TransferResponse($itemRecipesData);
+        $response = $this->mapperManager->map($item, new ItemRecipesData());
+        return new TransferResponse($response);
     }
 
     /**
@@ -79,6 +62,7 @@ abstract class AbstractRecipesHandler implements RequestHandlerInterface
      * @param int $indexOfFirstResult
      * @param int $numberOfResults
      * @return GenericEntityWithRecipes|null
+     * @throws PortalApiServerException
      */
     abstract protected function fetchData(
         string $type,
@@ -86,21 +70,4 @@ abstract class AbstractRecipesHandler implements RequestHandlerInterface
         int $indexOfFirstResult,
         int $numberOfResults
     ): ?GenericEntityWithRecipes;
-
-    /**
-     * Creates the item recipes data from the item.
-     * @param GenericEntityWithRecipes $item
-     * @return ItemRecipesData
-     * @throws PortalApiServerException
-     */
-    protected function createItemRecipesData(GenericEntityWithRecipes $item): ItemRecipesData
-    {
-        $itemRecipesData = new ItemRecipesData();
-        try {
-            $this->mapperManager->map($item, $itemRecipesData);
-        } catch (MapperException $e) {
-            throw new MappingException($e);
-        }
-        return $itemRecipesData;
-    }
 }

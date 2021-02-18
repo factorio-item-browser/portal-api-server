@@ -49,12 +49,6 @@
             </options>
         </field>
 
-        <field name="apiAuthorizationToken" type="text" length="65535">
-            <options>
-                <option name="comment">The API authorization token used for this setting.</option>
-            </options>
-        </field>
-
         <field name="hasData" type="boolean">
             <options>
                 <option name="comment">Whether the setting has its data actually available.</option>

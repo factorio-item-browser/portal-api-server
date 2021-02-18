@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 
-use FactorioItemBrowser\Api\Client\Entity\Item;
+use FactorioItemBrowser\Api\Client\Transfer\Item;
 use FactorioItemBrowser\PortalApi\Server\Mapper\RecipeItemMapper;
 use FactorioItemBrowser\PortalApi\Server\Transfer\RecipeItemData;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,60 +15,48 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Mapper\RecipeItemMapper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Mapper\RecipeItemMapper
  */
 class RecipeItemMapperTest extends TestCase
 {
     /**
-     * Tests the getSupportedSourceClass method.
-     * @covers ::getSupportedSourceClass
+     * @param array<string> $mockedMethods
+     * @return RecipeItemMapper&MockObject
      */
-    public function testGetSupportedSourceClass(): void
+    private function createInstance(array $mockedMethods = []): RecipeItemMapper
     {
-        $expectedResult = Item::class;
-
-        $mapper = new RecipeItemMapper();
-        $result = $mapper->getSupportedSourceClass();
-
-        $this->assertSame($expectedResult, $result);
+        return $this->getMockBuilder(RecipeItemMapper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->getMock();
     }
 
-    /**
-     * Tests the getSupportedDestinationClass method.
-     * @covers ::getSupportedDestinationClass
-     */
-    public function testGetSupportedDestinationClass(): void
+    public function testSupports(): void
     {
-        $expectedResult = RecipeItemData::class;
+        $instance = $this->createInstance();
 
-        $mapper = new RecipeItemMapper();
-        $result = $mapper->getSupportedDestinationClass();
-
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(Item::class, $instance->getSupportedSourceClass());
+        $this->assertSame(RecipeItemData::class, $instance->getSupportedDestinationClass());
     }
 
-    /**
-     * Tests the map method.
-     * @covers ::map
-     */
     public function testMap(): void
     {
         $source = new Item();
-        $source->setType('abc')
-               ->setName('def')
-               ->setLabel('ghi')
-               ->setAmount(13.37);
+        $source->type = 'abc';
+        $source->name = 'def';
+        $source->label = 'ghi';
+        $source->amount = 13.37;
 
         $expectedDestination = new RecipeItemData();
-        $expectedDestination->setType('abc')
-                            ->setName('def')
-                            ->setLabel('ghi')
-                            ->setAmount(13.37);
+        $expectedDestination->type = 'abc';
+        $expectedDestination->name = 'def';
+        $expectedDestination->label = 'ghi';
+        $expectedDestination->amount = 13.37;
 
         $destination = new RecipeItemData();
 
-        $mapper = new RecipeItemMapper();
-        $mapper->map($source, $destination);
+        $instance = $this->createInstance();
+        $instance->map($source, $destination);
 
         $this->assertEquals($expectedDestination, $destination);
     }

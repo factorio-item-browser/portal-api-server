@@ -4,191 +4,191 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Helper;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
 use DateTime;
-use Exception;
-use FactorioItemBrowser\Api\Client\Constant\ExportJobStatus;
-use FactorioItemBrowser\Api\Client\Entity\ExportJob;
-use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\ClientInterface;
+use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
+use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
+use FactorioItemBrowser\CombinationApi\Client\Exception\ClientException;
+use FactorioItemBrowser\CombinationApi\Client\Request\Combination\StatusRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\CreateRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
+use FactorioItemBrowser\CombinationApi\Client\Response\Combination\StatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\DetailsResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
+use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
+use FactorioItemBrowser\PortalApi\Server\Exception\FailedCombinationApiException;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
+use GuzzleHttp\Promise\FulfilledPromise;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the CombinationHelper class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper
+ * @covers \FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper
  */
 class CombinationHelperTest extends TestCase
 {
-    use ReflectionTrait;
+    /** @var ClientInterface&MockObject */
+    private ClientInterface $combinationApiClient;
+    /** @var CombinationRepository&MockObject */
+    private CombinationRepository $combinationRepository;
 
-    /**
-     * The mocked combination repository.
-     * @var CombinationRepository&MockObject
-     */
-    protected $combinationRepository;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
+        $this->combinationApiClient = $this->createMock(ClientInterface::class);
         $this->combinationRepository = $this->createMock(CombinationRepository::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return CombinationHelper&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): CombinationHelper
     {
-        $helper = new CombinationHelper($this->combinationRepository);
-
-        $this->assertSame($this->combinationRepository, $this->extractProperty($helper, 'combinationRepository'));
+        return $this->getMockBuilder(CombinationHelper::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->combinationApiClient,
+                        $this->combinationRepository,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the createCombinationFromStatusResponse method.
-     * @throws Exception
-     * @covers ::createCombinationFromStatusResponse
+     * @throws FailedCombinationApiException
      */
-    public function testCreateCombinationFromStatusResponse(): void
+    public function testCreateForModNames(): void
     {
-        $combinationIdString = 'af1da41d-55db-4075-9a34-1ee405a7c683';
         $modNames = ['abc', 'def'];
 
-        $combinationId = Uuid::fromString($combinationIdString);
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->modNames = $modNames;
+        $statusResponse = new StatusResponse();
+        $statusResponse->id = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $statusResponse->isDataAvailable = true;
 
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        /* @var CombinationStatusResponse&MockObject $statusResponse */
-        $statusResponse = $this->createMock(CombinationStatusResponse::class);
-        $statusResponse->expects($this->once())
-                       ->method('getId')
-                       ->willReturn($combinationIdString);
-        $statusResponse->expects($this->once())
-                       ->method('getModNames')
-                       ->willReturn($modNames);
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willReturn(new FulfilledPromise($statusResponse));
 
         $this->combinationRepository->expects($this->once())
                                     ->method('getCombination')
-                                    ->with($this->equalTo($combinationId))
-                                    ->willReturn(null);
-
-        /* @var CombinationHelper&MockObject $helper */
-        $helper = $this->getMockBuilder(CombinationHelper::class)
-                       ->onlyMethods(['createCombination', 'hydrateStatusResponseToCombination'])
-                       ->setConstructorArgs([$this->combinationRepository])
-                       ->getMock();
-        $helper->expects($this->once())
-               ->method('createCombination')
-               ->with($this->equalTo($combinationId), $this->identicalTo($modNames))
-               ->willReturn($combination);
-        $helper->expects($this->once())
-               ->method('hydrateStatusResponseToCombination')
-               ->with($this->identicalTo($statusResponse), $this->identicalTo($combination));
-
-        $result = $helper->createCombinationFromStatusResponse($statusResponse);
-
-        $this->assertSame($combination, $result);
-    }
-
-    /**
-     * Tests the createCombinationFromStatusResponse method.
-     * @throws Exception
-     * @covers ::createCombinationFromStatusResponse
-     */
-    public function testCreateCombinationFromStatusResponseWithExistingCombination(): void
-    {
-        $combinationIdString = 'af1da41d-55db-4075-9a34-1ee405a7c683';
-
-        $combinationId = Uuid::fromString($combinationIdString);
-
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
-
-        /* @var CombinationStatusResponse&MockObject $statusResponse */
-        $statusResponse = $this->createMock(CombinationStatusResponse::class);
-        $statusResponse->expects($this->once())
-                       ->method('getId')
-                       ->willReturn($combinationIdString);
-        $statusResponse->expects($this->never())
-                       ->method('getModNames');
-
-        $this->combinationRepository->expects($this->once())
-                                    ->method('getCombination')
-                                    ->with($this->equalTo($combinationId))
+                                    ->with($this->equalTo(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b')))
                                     ->willReturn($combination);
 
-        /* @var CombinationHelper&MockObject $helper */
-        $helper = $this->getMockBuilder(CombinationHelper::class)
-                       ->onlyMethods(['createCombination', 'hydrateStatusResponseToCombination'])
-                       ->setConstructorArgs([$this->combinationRepository])
-                       ->getMock();
-        $helper->expects($this->never())
-               ->method('createCombination');
-        $helper->expects($this->once())
-               ->method('hydrateStatusResponseToCombination')
-               ->with($this->identicalTo($statusResponse), $this->identicalTo($combination));
+        $this->combinationRepository->expects($this->once())
+                                    ->method('persist')
+                                    ->with($this->identicalTo($combination));
 
-        $result = $helper->createCombinationFromStatusResponse($statusResponse);
+        $instance = $this->createInstance();
+        $result = $instance->createForModNames($modNames);
 
         $this->assertSame($combination, $result);
     }
 
     /**
-     * Tests the createCombination method.
-     * @throws ReflectionException
-     * @covers ::createCombination
+     * @throws FailedCombinationApiException
      */
-    public function testCreateCombination(): void
+    public function testCreateForModNamesWithoutCombination(): void
     {
         $modNames = ['abc', 'def'];
 
-        /* @var UuidInterface&MockObject $combinationId */
-        $combinationId = $this->createMock(UuidInterface::class);
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->modNames = $modNames;
+        $statusResponse = new StatusResponse();
+        $statusResponse->id = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $statusResponse->modNames = $modNames;
+        $statusResponse->isDataAvailable = false;
 
-        $expectedResult = new Combination();
-        $expectedResult->setId($combinationId)
-                       ->setModNames($modNames);
+        $expectedApiListRequest = new ListRequest();
+        $expectedApiListRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $expectedApiListRequest->order = ListOrder::LATEST;
+        $expectedApiListRequest->limit = 1;
+        $listResponse = new ListResponse();
 
-        $helper = new CombinationHelper($this->combinationRepository);
-        $result = $this->invokeMethod($helper, 'createCombination', $combinationId, $modNames);
+        $expectedCombination = new Combination();
+        $expectedCombination->setId(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b'))
+                            ->setModNames($modNames)
+                            ->setStatus(CombinationStatus::UNKNOWN);
 
-        $this->assertEquals($expectedResult, $result);
+        $this->combinationApiClient->expects($this->exactly(2))
+                                   ->method('sendRequest')
+                                   ->withConsecutive(
+                                       [$this->equalTo($expectedApiRequest)],
+                                       [$this->equalTo($expectedApiListRequest)],
+                                   )
+                                   ->willReturnOnConsecutiveCalls(
+                                       new FulfilledPromise($statusResponse),
+                                       new FulfilledPromise($listResponse),
+                                   );
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->equalTo(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b')))
+                                    ->willReturn(null);
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $instance = $this->createInstance();
+        $result = $instance->createForModNames($modNames);
+
+        $expectedCombination->setLastCheckTime($result->getLastCheckTime());
+        $this->assertEquals($expectedCombination, $result);
+    }
+
+    public function testCreateForModNamesWithApiException(): void
+    {
+        $modNames = ['abc', 'def'];
+
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->modNames = $modNames;
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willThrowException($this->createMock(ClientException::class));
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('getCombination');
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->createForModNames($modNames);
     }
 
     /**
-     * Tests the hydrateStatusResponseToCombination method.
-     * @throws Exception
-     * @covers ::hydrateStatusResponseToCombination
+     * @throws FailedCombinationApiException
      */
-    public function testHydrateStatusResponseToCombinationWithStatusAvailable(): void
+    public function testUpdateStatus(): void
     {
-        /* @var DateTime&MockObject $exportTime */
-        $exportTime = $this->createMock(DateTime::class);
+        $exportTime = new DateTime('2038-01-19 03:14:07');
 
-        $latestSuccessfulExportJob = new ExportJob();
-        $latestSuccessfulExportJob->setExportTime($exportTime);
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $statusResponse = new StatusResponse();
+        $statusResponse->isDataAvailable = true;
+        $statusResponse->exportTime = $exportTime;
 
-        $statusResponse = new CombinationStatusResponse();
-        $statusResponse->setLatestSuccessfulExportJob($latestSuccessfulExportJob);
-
-        /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
+        $combination->expects($this->any())
+                    ->method('getId')
+                    ->willReturn(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b'));
         $combination->expects($this->once())
                     ->method('setStatus')
                     ->with($this->identicalTo(CombinationStatus::AVAILABLE))
@@ -202,110 +202,187 @@ class CombinationHelperTest extends TestCase
                     ->with($this->isInstanceOf(DateTime::class))
                     ->willReturnSelf();
 
-        $helper = new CombinationHelper($this->combinationRepository);
-        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
-    }
-
-    /**
-     * Tests the hydrateStatusResponseToCombination method.
-     * @throws Exception
-     * @covers ::hydrateStatusResponseToCombination
-     */
-    public function testHydrateStatusResponseToCombinationWithStatusErrored(): void
-    {
-        $latestExportJob = new ExportJob();
-        $latestExportJob->setStatus(ExportJobStatus::ERROR);
-
-        $statusResponse = new CombinationStatusResponse();
-        $statusResponse->setLatestExportJob($latestExportJob);
-
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
-        $combination->expects($this->once())
-                    ->method('setStatus')
-                    ->with($this->identicalTo(CombinationStatus::ERRORED))
-                    ->willReturnSelf();
-        $combination->expects($this->never())
-                    ->method('setExportTime');
-        $combination->expects($this->once())
-                    ->method('setLastCheckTime')
-                    ->with($this->isInstanceOf(DateTime::class))
-                    ->willReturnSelf();
-
-        $helper = new CombinationHelper($this->combinationRepository);
-        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
-    }
-
-    /**
-     * Tests the hydrateStatusResponseToCombination method.
-     * @throws Exception
-     * @covers ::hydrateStatusResponseToCombination
-     */
-    public function testHydrateStatusResponseToCombinationWithStatusPending(): void
-    {
-        $latestExportJob = new ExportJob();
-        $latestExportJob->setStatus(ExportJobStatus::QUEUED);
-
-        $statusResponse = new CombinationStatusResponse();
-        $statusResponse->setLatestExportJob($latestExportJob);
-
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
-        $combination->expects($this->once())
-                    ->method('setStatus')
-                    ->with($this->identicalTo(CombinationStatus::PENDING))
-                    ->willReturnSelf();
-        $combination->expects($this->never())
-                    ->method('setExportTime');
-        $combination->expects($this->once())
-                    ->method('setLastCheckTime')
-                    ->with($this->isInstanceOf(DateTime::class))
-                    ->willReturnSelf();
-
-        $helper = new CombinationHelper($this->combinationRepository);
-        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
-    }
-
-    /**
-     * Tests the hydrateStatusResponseToCombination method.
-     * @throws Exception
-     * @covers ::hydrateStatusResponseToCombination
-     */
-    public function testHydrateStatusResponseToCombinationWithStatusUnknown(): void
-    {
-        $statusResponse = new CombinationStatusResponse();
-
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
-        $combination->expects($this->once())
-                    ->method('setStatus')
-                    ->with($this->identicalTo(CombinationStatus::UNKNOWN))
-                    ->willReturnSelf();
-        $combination->expects($this->never())
-                    ->method('setExportTime');
-        $combination->expects($this->once())
-                    ->method('setLastCheckTime')
-                    ->with($this->isInstanceOf(DateTime::class))
-                    ->willReturnSelf();
-
-        $helper = new CombinationHelper($this->combinationRepository);
-        $helper->hydrateStatusResponseToCombination($statusResponse, $combination);
-    }
-
-    /**
-     * Tests the persist method.
-     * @covers ::persist
-     */
-    public function testPersist(): void
-    {
-        /* @var Combination&MockObject $combination */
-        $combination = $this->createMock(Combination::class);
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willReturn(new FulfilledPromise($statusResponse));
 
         $this->combinationRepository->expects($this->once())
                                     ->method('persist')
                                     ->with($this->identicalTo($combination));
 
-        $helper = new CombinationHelper($this->combinationRepository);
-        $helper->persist($combination);
+        $instance = $this->createInstance();
+        $instance->updateStatus($combination);
+    }
+
+    public function testUpdateStatusWithApiException(): void
+    {
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+
+        $combination = $this->createMock(Combination::class);
+        $combination->expects($this->any())
+                    ->method('getId')
+                    ->willReturn(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b'));
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willThrowException($this->createMock(ClientException::class));
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->updateStatus($combination);
+    }
+
+    /**
+     * @throws FailedCombinationApiException
+     */
+    public function testUpdateStatusWithJobRequest(): void
+    {
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $statusResponse = new StatusResponse();
+        $statusResponse->isDataAvailable = false;
+
+        $expectedApiListRequest = new ListRequest();
+        $expectedApiListRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $expectedApiListRequest->order = ListOrder::LATEST;
+        $expectedApiListRequest->limit = 1;
+        $job = new Job();
+        $job->status = JobStatus::ERROR;
+        $listResponse = new ListResponse();
+        $listResponse->jobs = [$job];
+
+        $combination = $this->createMock(Combination::class);
+        $combination->expects($this->any())
+                    ->method('getId')
+                    ->willReturn(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b'));
+        $combination->expects($this->once())
+                    ->method('setStatus')
+                    ->with($this->identicalTo(CombinationStatus::ERRORED))
+                    ->willReturnSelf();
+        $combination->expects($this->once())
+                    ->method('setLastCheckTime')
+                    ->with($this->isInstanceOf(DateTime::class))
+                    ->willReturnSelf();
+
+        $this->combinationApiClient->expects($this->exactly(2))
+                                   ->method('sendRequest')
+                                   ->withConsecutive(
+                                       [$this->equalTo($expectedApiRequest)],
+                                       [$this->equalTo($expectedApiListRequest)],
+                                   )
+                                   ->willReturnOnConsecutiveCalls(
+                                       new FulfilledPromise($statusResponse),
+                                       new FulfilledPromise($listResponse),
+                                   );
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('persist')
+                                    ->with($this->identicalTo($combination));
+
+        $instance = $this->createInstance();
+        $instance->updateStatus($combination);
+    }
+
+    public function testUpdateStatusWithFailedJobRequest(): void
+    {
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $statusResponse = new StatusResponse();
+        $statusResponse->isDataAvailable = false;
+
+        $expectedApiListRequest = new ListRequest();
+        $expectedApiListRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+        $expectedApiListRequest->order = ListOrder::LATEST;
+        $expectedApiListRequest->limit = 1;
+
+        $combination = $this->createMock(Combination::class);
+        $combination->expects($this->any())
+                    ->method('getId')
+                    ->willReturn(Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b'));
+
+        $this->combinationApiClient->expects($this->exactly(2))
+                                   ->method('sendRequest')
+                                   ->withConsecutive(
+                                       [$this->equalTo($expectedApiRequest)],
+                                       [$this->equalTo($expectedApiListRequest)],
+                                   )
+                                   ->willReturnOnConsecutiveCalls(
+                                       new FulfilledPromise($statusResponse),
+                                       $this->throwException($this->createMock(ClientException::class)),
+                                   );
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->updateStatus($combination);
+    }
+
+    /**
+     * @throws FailedCombinationApiException
+     */
+    public function testTriggerExport(): void
+    {
+        $combinationId = Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b');
+
+        $combination = new Combination();
+        $combination->setId($combinationId);
+
+        $expectedApiRequest = new CreateRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+
+        $apiResponse = new DetailsResponse();
+        $apiResponse->status = JobStatus::QUEUED;
+
+        $expectedCombination = new Combination();
+        $expectedCombination->setId($combinationId)
+                            ->setStatus(CombinationStatus::PENDING);
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willReturn(new FulfilledPromise($apiResponse));
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('persist')
+                                    ->with($this->equalTo($expectedCombination));
+
+        $instance = $this->createInstance();
+        $instance->triggerExport($combination);
+
+        $this->assertEquals($expectedCombination, $combination);
+    }
+
+    public function testTriggerExportWithApiException(): void
+    {
+        $combinationId = Uuid::fromString('78c85405-bfc0-4600-acd9-b992c871812b');
+
+        $combination = new Combination();
+        $combination->setId($combinationId);
+
+        $expectedApiRequest = new CreateRequest();
+        $expectedApiRequest->combinationId = '78c85405-bfc0-4600-acd9-b992c871812b';
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willThrowException($this->createMock(ClientException::class));
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->triggerExport($combination);
     }
 }

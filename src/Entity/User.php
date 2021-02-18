@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Entity;
 
+use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,25 +22,26 @@ class User
      * The ID of the user.
      * @var UuidInterface
      */
-    protected $id;
+    private UuidInterface $id;
 
     /**
      * The time when the user last visited.
      * @var DateTimeInterface
      */
-    protected $lastVisitTime;
+    private DateTimeInterface $lastVisitTime;
 
     /**
      * The settings of the user.
      * @var Collection<int,Setting>|Setting[]
      */
-    protected $settings;
+    private Collection $settings;
 
     /**
      * Initializes the entity.
      */
     public function __construct()
     {
+        $this->lastVisitTime = new DateTime();
         $this->settings = new ArrayCollection();
     }
 

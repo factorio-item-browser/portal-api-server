@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
 
-use BluePsyduck\TestHelper\ReflectionTrait;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
@@ -17,59 +16,45 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Ramsey\Uuid\Uuid;
-use ReflectionException;
 
 /**
  * The PHPUnit test of the DetailsHandler class.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Handler\Settings\DetailsHandler
+ * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Settings\DetailsHandler
  */
 class DetailsHandlerTest extends TestCase
 {
-    use ReflectionTrait;
+    /** @var User&MockObject */
+    private User $currentUser;
+    /** @var SettingHelper&MockObject */
+    private SettingHelper $settingHelper;
 
-    /**
-     * The mocked current user.
-     * @var User&MockObject
-     */
-    protected $currentUser;
-
-    /**
-     * The mocked setting helper.
-     * @var SettingHelper&MockObject
-     */
-    protected $settingHelper;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->currentUser = $this->createMock(User::class);
         $this->settingHelper = $this->createMock(SettingHelper::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return DetailsHandler&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): DetailsHandler
     {
-        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
-
-        $this->assertSame($this->currentUser, $this->extractProperty($handler, 'currentUser'));
-        $this->assertSame($this->settingHelper, $this->extractProperty($handler, 'settingHelper'));
+        return $this->getMockBuilder(DetailsHandler::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->currentUser,
+                        $this->settingHelper,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the handle method.
      * @throws PortalApiServerException
-     * @covers ::handle
      */
     public function testHandle(): void
     {
@@ -94,19 +79,16 @@ class DetailsHandlerTest extends TestCase
                             ->with($this->identicalTo($setting))
                             ->willReturn($settingDetails);
 
-        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
-
-        /* @var TransferResponse $result */
-        $result = $handler->handle($request);
+        $instance = $this->createInstance();
+        $result = $instance->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);
+        /* @var TransferResponse $result */
         $this->assertSame($settingDetails, $result->getTransfer());
     }
 
     /**
-     * Tests the handle method.
      * @throws PortalApiServerException
-     * @covers ::handle
      */
     public function testHandleWithException(): void
     {
@@ -129,7 +111,7 @@ class DetailsHandlerTest extends TestCase
 
         $this->expectException(MissingSettingException::class);
 
-        $handler = new DetailsHandler($this->currentUser, $this->settingHelper);
-        $handler->handle($request);
+        $instance = $this->createInstance();
+        $instance->handle($request);
     }
 }

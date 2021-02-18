@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The configuration of the mapper manager.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+
+declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
@@ -28,6 +28,7 @@ return [
             Mapper\RecipeToEntityMapper::class,
             Mapper\SearchQueryResponseMapper::class,
             Mapper\SettingMapper::class,
+            Mapper\SidebarEntityDataMapper::class,
             Mapper\SidebarEntityMapper::class,
         ],
     ],

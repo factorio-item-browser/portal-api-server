@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowserTestSerializer\PortalApi\Server;
 
-use FactorioItemBrowser\PortalApi\Server\Serializer\SerializerFactory;
-use Interop\Container\ContainerInterface;
+use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
+use JMS\Serializer\SerializerBuilder;
 use JMS\Serializer\SerializerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,11 +23,13 @@ class SerializerTestCase extends TestCase
      */
     protected function createSerializer(): SerializerInterface
     {
-        /* @var ContainerInterface&MockObject $container */
-        $container = $this->createMock(ContainerInterface::class);
+        $builder = new SerializerBuilder();
+        $builder->setMetadataDirs([
+                    'FactorioItemBrowser\PortalApi\Server' => __DIR__ . '/../../config/serializer',
+                ])
+                ->setPropertyNamingStrategy(new IdenticalPropertyNamingStrategy());
 
-        $serializerFactory = new SerializerFactory();
-        return $serializerFactory($container, SerializerInterface::class);
+        return $builder->build();
     }
 
     /**

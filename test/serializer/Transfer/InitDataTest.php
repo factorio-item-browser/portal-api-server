@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
 use DateTime;
-use Exception;
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
@@ -19,53 +18,47 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class InitDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     * @throws Exception
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $sidebarEntity1 = new SidebarEntityData();
-        $sidebarEntity1->setType('abc')
-                       ->setName('def')
-                       ->setLabel('ghi')
-                       ->setPinnedPosition(42)
-                       ->setLastViewTime(new DateTime('2038-01-18 03:14:07.123'));
+        $sidebarEntity1->type = 'abc';
+        $sidebarEntity1->name = 'def';
+        $sidebarEntity1->label = 'ghi';
+        $sidebarEntity1->pinnedPosition = 42;
+        $sidebarEntity1->lastViewTime = new DateTime('2038-01-18 03:14:07.123');
 
         $sidebarEntity2 = new SidebarEntityData();
-        $sidebarEntity2->setType('jkl')
-                       ->setName('mno')
-                       ->setLabel('pqr')
-                       ->setPinnedPosition(21)
-                       ->setLastViewTime(new DateTime('2038-01-19 03:14:07.123'));
+        $sidebarEntity2->type = 'jkl';
+        $sidebarEntity2->name = 'mno';
+        $sidebarEntity2->label = 'pqr';
+        $sidebarEntity2->pinnedPosition = 21;
+        $sidebarEntity2->lastViewTime = new DateTime('2038-01-19 03:14:07.123');
 
         $setting = new SettingMetaData();
-        $setting->setCombinationId('stu')
-                ->setName('vwx')
-                ->setStatus('yza')
-                ->setIsTemporary(true);
+        $setting->combinationId = 'stu';
+        $setting->name = 'vwx';
+        $setting->status = 'yza';
+        $setting->isTemporary = true;
 
         $lastUsedSetting = new SettingMetaData();
-        $lastUsedSetting->setCombinationId('klm')
-                        ->setName('nop')
-                        ->setStatus('qrs')
-                        ->setIsTemporary(false);
+        $lastUsedSetting->combinationId = 'klm';
+        $lastUsedSetting->name = 'nop';
+        $lastUsedSetting->status = 'qrs';
+        $lastUsedSetting->isTemporary = false;
 
         $object = new InitData();
-        $object->setSetting($setting)
-               ->setLastUsedSetting($lastUsedSetting)
-               ->setLocale('efg')
-               ->setSidebarEntities([$sidebarEntity1, $sidebarEntity2])
-               ->setScriptVersion('hij');
+        $object->setting = $setting;
+        $object->lastUsedSetting = $lastUsedSetting;
+        $object->locale = 'efg';
+        $object->sidebarEntities = [$sidebarEntity1, $sidebarEntity2];
+        $object->scriptVersion = 'hij';
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'setting' => [
@@ -101,10 +94,6 @@ class InitDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     * @throws Exception
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

@@ -14,35 +14,30 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
+ *
+ * @implements DynamicMapperInterface<Setting, SettingMetaData>
  */
 class SettingMapper implements DynamicMapperInterface
 {
-    /**
-     * Returns whether the mapper supports the combination of source and destination object.
-     * @param object $source
-     * @param object $destination
-     * @return bool
-     */
-    public function supports($source, $destination): bool
+    public function supports(object $source, object $destination): bool
     {
         return $source instanceof Setting && $destination instanceof SettingMetaData;
     }
 
     /**
-     * Maps the source object to the destination one.
      * @param Setting $source
      * @param SettingMetaData $destination
      */
-    public function map($source, $destination): void
+    public function map(object $source, object $destination): void
     {
-        $destination->setCombinationId($source->getCombination()->getId()->toString())
-                    ->setName($source->getName())
-                    ->setStatus($source->getCombination()->getStatus())
-                    ->setIsTemporary($source->getIsTemporary());
+        $destination->combinationId = $source->getCombination()->getId()->toString();
+        $destination->name = $source->getName();
+        $destination->status = $source->getCombination()->getStatus();
+        $destination->isTemporary = $source->getIsTemporary();
 
         if ($destination instanceof SettingDetailsData) {
-            $destination->setLocale($source->getLocale())
-                        ->setRecipeMode($source->getRecipeMode());
+            $destination->locale = $source->getLocale();
+            $destination->recipeMode = $source->getRecipeMode();
         }
     }
 }

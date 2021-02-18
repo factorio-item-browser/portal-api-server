@@ -16,34 +16,29 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class EntityDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $recipe1 = new RecipeData();
-        $recipe1->setCraftingTime(1.2)
-                ->setIsExpensive(false);
+        $recipe1->craftingTime = 1.2;
+        $recipe1->isExpensive = false;
 
         $recipe2 = new RecipeData();
-        $recipe2->setCraftingTime(3.4)
-                ->setIsExpensive(true);
+        $recipe2->craftingTime = 3.4;
+        $recipe2->isExpensive = true;
 
         $object = new EntityData();
-        $object->setType('abc')
-               ->setName('def')
-               ->setLabel('ghi')
-               ->setRecipes([$recipe1, $recipe2])
-               ->setNumberOfRecipes(42);
+        $object->type = 'abc';
+        $object->name = 'def';
+        $object->label = 'ghi';
+        $object->recipes = [$recipe1, $recipe2];
+        $object->numberOfRecipes = 42;
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'type' => 'abc',
@@ -67,9 +62,6 @@ class EntityDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

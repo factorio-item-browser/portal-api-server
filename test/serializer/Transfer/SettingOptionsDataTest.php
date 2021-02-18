@@ -15,25 +15,19 @@ use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
  */
 class SettingOptionsDataTest extends SerializerTestCase
 {
-    /**
-     * Returns the object to test on.
-     * @return object
-     */
-    protected function getObject(): object
+    private function getObject(): object
     {
         $object = new SettingOptionsData();
-        $object->setName('abc')
-               ->setLocale('def')
-               ->setRecipeMode('ghi');
-
+        $object->name = 'abc';
+        $object->locale = 'def';
+        $object->recipeMode = 'ghi';
         return $object;
     }
 
     /**
-     * Returns the data to test on.
      * @return array<mixed>
      */
-    protected function getData(): array
+    private function getData(): array
     {
         return [
             'name' => 'abc',
@@ -42,9 +36,6 @@ class SettingOptionsDataTest extends SerializerTestCase
         ];
     }
 
-    /**
-     * Tests the serialization.
-     */
     public function testSerialize(): void
     {
         $this->assertSerializedObject($this->getData(), $this->getObject());

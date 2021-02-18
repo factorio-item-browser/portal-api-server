@@ -1,19 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The configuration of the project dependencies.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
+// phpcs:ignoreFile
+
+declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server;
 
+use BluePsyduck\JmsSerializerFactory\JmsSerializerFactory;
 use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
+use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
 use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
@@ -28,8 +31,6 @@ return [
             ErrorResponseGenerator::class => Response\ErrorResponseGenerator::class,
         ],
         'factories' => [
-            Api\ApiClientFactory::class => AutoWireFactory::class,
-
             Command\CleanSessionsCommand::class => AutoWireFactory::class,
 
             Handler\InitHandler::class => AutoWireFactory::class,
@@ -71,11 +72,13 @@ return [
             Mapper\RecipeToEntityMapper::class => AutoWireFactory::class,
             Mapper\SearchQueryResponseMapper::class => AutoWireFactory::class,
             Mapper\SettingMapper::class => AutoWireFactory::class,
+            Mapper\SidebarEntityDataMapper::class => AutoWireFactory::class,
             Mapper\SidebarEntityMapper::class => AutoWireFactory::class,
 
             Middleware\ApiClientMiddleware::class => AutoWireFactory::class,
             Middleware\CorsHeaderMiddleware::class => AutoWireFactory::class,
             Middleware\MetaMiddleware::class => AutoWireFactory::class,
+            Middleware\RequestDeserializerMiddleware::class => AutoWireFactory::class,
             Middleware\ResponseSerializerMiddleware::class => AutoWireFactory::class,
             Middleware\SessionMiddleware::class => AutoWireFactory::class,
 
@@ -87,27 +90,29 @@ return [
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,
 
             // 3rd-party dependencies
-            EntityManagerInterface::class => EntityManagerFactory::class,
             'doctrine.migrations.orm_default' => MigrationsConfigurationFactory::class,
+            EntityManagerInterface::class => EntityManagerFactory::class,
+            IdenticalPropertyNamingStrategy::class => AutoWireFactory::class,
             ImplicitOptionsMiddleware::class => Middleware\ImplicitOptionsMiddlewareFactory::class,
 
             // Auto-wire helpers
-            SerializerInterface::class . ' $portalApiServerSerializer' => Serializer\SerializerFactory::class,
+            SerializerInterface::class . ' $portalApiServerSerializer' => new JmsSerializerFactory(ConfigKey::MAIN, ConfigKey::SERIALIZER),
 
-            'array $allowedOrigins' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::ALLOWED_ORIGINS),
+            'array $allowedOrigins' => readConfig(ConfigKey::MAIN, ConfigKey::ALLOWED_ORIGINS),
+            'array $requestClassesByRoutes' => readConfig(ConfigKey::MAIN, ConfigKey::REQUEST_CLASSES_BY_ROUTES),
 
             'bool $isDebug' => readConfig('debug'),
-            'bool $useSecureCookie' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_SECURE),
+            'bool $useSecureCookie' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_COOKIE_SECURE),
 
-            'int $numberOfRecipesPerResult' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::NUMBER_OF_RECIPES_PER_RESULT),
+            'int $numberOfRecipesPerResult' => readConfig(ConfigKey::MAIN, ConfigKey::NUMBER_OF_RECIPES_PER_RESULT),
 
-            'string $scriptVersion' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SCRIPT_VERSION),
-            'string $sessionCookieDomain' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_DOMAIN),
-            'string $sessionCookieLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_LIFETIME),
-            'string $sessionCookieName' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_NAME),
-            'string $sessionCookiePath' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_COOKIE_PATH),
-            'string $sessionLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::SESSION_LIFETIME),
-            'string $temporarySettingLifeTime' => readConfig(ConfigKey::PROJECT, ConfigKey::PORTAL_API_SERVER, ConfigKey::TEMPORARY_SETTING_LIFETIME),
+            'string $scriptVersion' => readConfig(ConfigKey::MAIN, ConfigKey::SCRIPT_VERSION),
+            'string $sessionCookieDomain' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_COOKIE_DOMAIN),
+            'string $sessionCookieLifeTime' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_COOKIE_LIFETIME),
+            'string $sessionCookieName' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_COOKIE_NAME),
+            'string $sessionCookiePath' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_COOKIE_PATH),
+            'string $sessionLifeTime' => readConfig(ConfigKey::MAIN, ConfigKey::SESSION_LIFETIME),
+            'string $temporarySettingLifeTime' => readConfig(ConfigKey::MAIN, ConfigKey::TEMPORARY_SETTING_LIFETIME),
             'string $version' => readConfig('version'),
         ],
     ],

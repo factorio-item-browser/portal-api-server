@@ -12,18 +12,11 @@ use PHPUnit\Framework\TestCase;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes
+ * @covers \FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes
  */
 class NamesByTypesTest extends TestCase
 {
-    /**
-     * Tests the setting, adding and getting the values.
-     * @covers ::addValue
-     * @covers ::getValues
-     * @covers ::hasValue
-     * @covers ::setValues
-     */
-    public function testSetAddGetAndHasValues(): void
+    public function testAdd(): void
     {
         $values = [
             'abc' => ['def', 'ghi'],
@@ -39,17 +32,15 @@ class NamesByTypesTest extends TestCase
             'stu' => ['vwx'],
         ];
 
-        $transfer = new NamesByTypes();
+        $instance = new NamesByTypes();
+        $instance->values = $values;
 
-        $this->assertSame($transfer, $transfer->setValues($values));
-        $this->assertSame($values, $transfer->getValues());
+        $this->assertTrue($instance->has('abc', 'ghi'));
+        $this->assertFalse($instance->has('abc', 'mno'));
+        $this->assertSame($instance, $instance->add('jkl', 'pqr'));
+        $this->assertSame($expectedValues1, $instance->values);
 
-        $this->assertSame($transfer, $transfer->addValue('jkl', 'pqr'));
-        $this->assertSame($expectedValues1, $transfer->getValues());
-
-        $this->assertFalse($transfer->hasValue('stu', 'vwx'));
-        $this->assertSame($transfer, $transfer->addValue('stu', 'vwx'));
-        $this->assertSame($expectedValues2, $transfer->getValues());
-        $this->assertTrue($transfer->hasValue('stu', 'vwx'));
+        $instance->add('stu', 'vwx');
+        $this->assertSame($expectedValues2, $instance->values);
     }
 }

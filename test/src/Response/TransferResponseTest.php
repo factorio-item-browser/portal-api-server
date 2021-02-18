@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Response;
 
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use PHPUnit\Framework\MockObject\MockObject;
+use JMS\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -14,54 +14,31 @@ use stdClass;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Response\TransferResponse
+ * @covers \FactorioItemBrowser\PortalApi\Server\Response\TransferResponse
  */
 class TransferResponseTest extends TestCase
 {
-    /**
-     * Tests the constructing.
-     * @covers ::__construct
-     * @covers ::getTransfer
-     */
-    public function testConstruct(): void
+    public function testWithSerializer(): void
     {
-        /* @var stdClass&MockObject $transfer */
-        $transfer = $this->createMock(stdClass::class);
-        $statusCode = 123;
-        $headers = [
-            'abc' => 'def',
-        ];
+        $transfer = new stdClass();
+        $transfer->foo = 'bar';
+        $statusCode = 512;
+        $headers = ['abc' => 'def'];
+        $body = 'ghi';
 
-        $response = new TransferResponse($transfer, $statusCode, $headers);
+        $serializer = $this->createMock(SerializerInterface::class);
+        $serializer->expects($this->once())
+                   ->method('serialize')
+                   ->with($this->identicalTo($transfer), $this->identicalTo('json'))
+                   ->willReturn($body);
 
-        $this->assertSame($statusCode, $response->getStatusCode());
-        $this->assertSame('def', $response->getHeaderLine('abc'));
-        $this->assertSame('application/json', $response->getHeaderLine('Content-Type'));
-        $this->assertSame($transfer, $response->getTransfer());
-    }
+        $instance = new TransferResponse($transfer, $statusCode, $headers);
+        $result = $instance->withSerializer($serializer);
 
-    /**
-     * Tests the withSerializedResponse method.
-     * @covers ::withSerializedResponse
-     */
-    public function testWithSerializedResponse(): void
-    {
-        /* @var stdClass&MockObject $transfer */
-        $transfer = $this->createMock(stdClass::class);
-        $statusCode = 123;
-        $headers = [
-            'abc' => 'def',
-        ];
-        $serializedResponse = 'ghi';
-
-        $response = new TransferResponse($transfer, $statusCode, $headers);
-        $result = $response->withSerializedResponse($serializedResponse);
-
-        $this->assertNotSame($response, $result);
+        $this->assertSame($transfer, $instance->getTransfer());
         $this->assertSame($statusCode, $result->getStatusCode());
         $this->assertSame('def', $result->getHeaderLine('abc'));
         $this->assertSame('application/json', $result->getHeaderLine('Content-Type'));
-        $this->assertSame($transfer, $result->getTransfer());
-        $this->assertSame($serializedResponse, $result->getBody()->getContents());
+        $this->assertSame($body, $result->getBody()->getContents());
     }
 }

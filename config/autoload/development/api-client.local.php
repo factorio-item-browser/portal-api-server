@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The configuration of the API client.
  *
@@ -9,18 +7,16 @@ declare(strict_types=1);
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
 
+declare(strict_types=1);
+
 namespace FactorioItemBrowser\PortalApi\Server;
 
 use FactorioItemBrowser\Api\Client\Constant\ConfigKey;
 
 return [
-    ConfigKey::PROJECT => [
-        ConfigKey::API_CLIENT => [
-            ConfigKey::OPTIONS => [
-                ConfigKey::OPTION_API_URL => 'http://fib-as-php',
-                ConfigKey::OPTION_ACCESS_KEY => 'debug',
-                ConfigKey::OPTION_TIMEOUT => 60,
-            ],
-        ],
+    ConfigKey::MAIN => [
+        ConfigKey::BASE_URI => 'http://api.fib.dev/',
+        ConfigKey::API_KEY => 'factorio-item-browser',
+        ConfigKey::TIMEOUT => 60,
     ],
 ];

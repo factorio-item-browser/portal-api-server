@@ -5,14 +5,22 @@ declare(strict_types=1);
 namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
 use DateTime;
-use Exception;
-use FactorioItemBrowser\Api\Client\Constant\ExportJobStatus;
-use FactorioItemBrowser\Api\Client\Response\Combination\CombinationStatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\ClientInterface;
+use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
+use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
+use FactorioItemBrowser\CombinationApi\Client\Exception\ClientException;
+use FactorioItemBrowser\CombinationApi\Client\Request\Combination\StatusRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\CreateRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
+use FactorioItemBrowser\CombinationApi\Client\Response\Combination\StatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\DetailsResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
+use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
 use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
+use FactorioItemBrowser\PortalApi\Server\Exception\FailedCombinationApiException;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 
 /**
  * The helper for managing the combinations.
@@ -22,85 +30,138 @@ use Ramsey\Uuid\UuidInterface;
  */
 class CombinationHelper
 {
-    /**
-     * The combination repository.
-     * @var CombinationRepository
-     */
-    protected $combinationRepository;
+    private ClientInterface $combinationApiClient;
+    private CombinationRepository $combinationRepository;
 
-    /**
-     * Initializes the helper.
-     * @param CombinationRepository $combinationRepository
-     */
-    public function __construct(CombinationRepository $combinationRepository)
+    public function __construct(ClientInterface $combinationApiClient, CombinationRepository $combinationRepository)
     {
+        $this->combinationApiClient = $combinationApiClient;
         $this->combinationRepository = $combinationRepository;
     }
 
     /**
-     * Creates a combination from the specified status response.
-     * @param CombinationStatusResponse $statusResponse
-     * @return Combination
-     * @throws Exception
-     */
-    public function createCombinationFromStatusResponse(CombinationStatusResponse $statusResponse): Combination
-    {
-        $combinationId = Uuid::fromString($statusResponse->getId());
-        $combination = $this->combinationRepository->getCombination($combinationId);
-        if ($combination === null) {
-            $combination = $this->createCombination($combinationId, $statusResponse->getModNames());
-        }
-
-        $this->hydrateStatusResponseToCombination($statusResponse, $combination);
-        return $combination;
-    }
-
-    /**
-     * Creates a new combination instance.
-     * @param UuidInterface $combinationId
+     * Creates a combination representing the specified mod names, requesting its latest status.
      * @param array<string> $modNames
      * @return Combination
+     * @throws FailedCombinationApiException
      */
-    protected function createCombination(UuidInterface $combinationId, array $modNames): Combination
+    public function createForModNames(array $modNames): Combination
     {
-        $combination = new Combination();
-        $combination->setId($combinationId)
-                    ->setModNames($modNames);
+        $request = new StatusRequest();
+        $request->modNames = $modNames;
+
+        try {
+            /** @var StatusResponse $response */
+            $response = $this->combinationApiClient->sendRequest($request)->wait();
+        } catch (ClientException $e) {
+            throw new FailedCombinationApiException($e);
+        }
+
+        $combinationId = Uuid::fromString($response->id);
+        $combination = $this->combinationRepository->getCombination($combinationId);
+        if ($combination === null) {
+            $combination = new Combination();
+            $combination->setId($combinationId)
+                        ->setModNames($response->modNames)
+                        ->setStatus(CombinationStatus::UNKNOWN);
+        }
+
+        $this->applyStatusResponse($combination, $response);
+        $this->persist($combination);
         return $combination;
     }
 
     /**
-     * Hydrates the values from the status response to the combination.
-     * @param CombinationStatusResponse $statusResponse
+     * Updates the status of the specified combination.
      * @param Combination $combination
-     * @throws Exception
+     * @throws FailedCombinationApiException
      */
-    public function hydrateStatusResponseToCombination(
-        CombinationStatusResponse $statusResponse,
-        Combination $combination
-    ): void {
-        if ($statusResponse->getLatestSuccessfulExportJob() !== null) {
-            $combination->setStatus(CombinationStatus::AVAILABLE)
-                        ->setExportTime($statusResponse->getLatestSuccessfulExportJob()->getExportTime());
-        } elseif ($statusResponse->getLatestExportJob() !== null) {
-            if ($statusResponse->getLatestExportJob()->getStatus() === ExportJobStatus::ERROR) {
-                $combination->setStatus(CombinationStatus::ERRORED);
-            } else {
-                $combination->setStatus(CombinationStatus::PENDING);
-            }
-        } else {
-            $combination->setStatus(CombinationStatus::UNKNOWN);
+    public function updateStatus(Combination $combination): void
+    {
+        $statusRequest = new StatusRequest();
+        $statusRequest->combinationId = $combination->getId()->toString();
+        try {
+            /** @var StatusResponse $statusResponse */
+            $statusResponse = $this->combinationApiClient->sendRequest($statusRequest)->wait();
+        } catch (ClientException $e) {
+            throw new FailedCombinationApiException($e);
         }
 
+        $this->applyStatusResponse($combination, $statusResponse);
+        $this->persist($combination);
+    }
+
+    /**
+     * Triggers a new export for the specified combination.
+     * @param Combination $combination
+     * @throws FailedCombinationApiException
+     */
+    public function triggerExport(Combination $combination): void
+    {
+        $createRequest = new CreateRequest();
+        $createRequest->combinationId = $combination->getId()->toString();
+
+        try {
+            /** @var DetailsResponse $detailsResponse */
+            $detailsResponse = $this->combinationApiClient->sendRequest($createRequest)->wait();
+        } catch (ClientException $e) {
+            throw new FailedCombinationApiException($e);
+        }
+
+        $this->applyJob($combination, $detailsResponse);
+        $this->persist($combination);
+    }
+
+    /**
+     * Applies the status response to the combination, requesting the latest job if further details are required.
+     * @param Combination $combination
+     * @param StatusResponse $statusResponse
+     * @throws FailedCombinationApiException
+     */
+    private function applyStatusResponse(Combination $combination, StatusResponse $statusResponse): void
+    {
+        if ($statusResponse->isDataAvailable) {
+            $combination->setStatus(CombinationStatus::AVAILABLE)
+                        ->setExportTime($statusResponse->exportTime);
+        } else {
+            $listRequest = new ListRequest();
+            $listRequest->combinationId = $combination->getId()->toString();
+            $listRequest->order = ListOrder::LATEST;
+            $listRequest->limit = 1;
+
+            try {
+                /** @var ListResponse $listResponse */
+                $listResponse = $this->combinationApiClient->sendRequest($listRequest)->wait();
+            } catch (ClientException $e) {
+                throw new FailedCombinationApiException($e);
+            }
+
+            $job = $listResponse->jobs[0] ?? null;
+            if ($job !== null) {
+                $this->applyJob($combination, $job);
+            }
+        }
         $combination->setLastCheckTime(new DateTime());
     }
 
     /**
-     * Persists the combination to the database, creating its dataset if it was newly created.
+     * Applies the job details to the combination.
      * @param Combination $combination
+     * @param Job $job
      */
-    public function persist(Combination $combination): void
+    private function applyJob(Combination $combination, Job $job): void
     {
-        $this->combinationRepository->persist($combination);
+        if ($job->status === JobStatus::ERROR) {
+            $combination->setStatus(CombinationStatus::ERRORED);
+        } else {
+            $combination->setStatus(CombinationStatus::PENDING);
+        }
+    }
+
+    private function persist(Combination $combination): void
+    {
+        if ($combination->getStatus() !== CombinationStatus::UNKNOWN) {
+            $this->combinationRepository->persist($combination);
+        }
     }
 }

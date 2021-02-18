@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
-use FactorioItemBrowser\Api\Client\Entity\Icon;
+use FactorioItemBrowser\Api\Client\Transfer\Icon;
 use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
 use Laminas\Escaper\Escaper;
 
@@ -16,27 +16,11 @@ use Laminas\Escaper\Escaper;
  */
 class IconsStyleBuilder
 {
-    /**
-     * The Zend escaper.
-     * @var Escaper
-     */
-    protected $escaper;
+    protected Escaper $escaper;
+    protected NamesByTypes $processedEntities;
+     /** @var array<string> */
+    protected array $rules = [];
 
-    /**
-     * The entities which actually have been processed in the built style.
-     * @var NamesByTypes
-     */
-    protected $processedEntities;
-
-    /**
-     * The built stylesheet rules.
-     * @var array<string>
-     */
-    protected $rules = [];
-
-    /**
-     * Initializes the builder.
-     */
     public function __construct()
     {
         $this->escaper = new Escaper();
@@ -51,12 +35,12 @@ class IconsStyleBuilder
     public function processIcon(Icon $icon): self
     {
         $selectors = [];
-        foreach ($icon->getEntities() as $entity) {
-            $selectors[] = $this->buildSelector($entity->getType(), $entity->getName());
-            $this->processedEntities->addValue($entity->getType(), $entity->getName());
+        foreach ($icon->entities as $entity) {
+            $selectors[] = $this->buildSelector($entity->type, $entity->name);
+            $this->processedEntities->add($entity->type, $entity->name);
         }
 
-        $this->rules[] = $this->buildRule($selectors, $icon->getContent());
+        $this->rules[] = $this->buildRule($selectors, $icon->content);
         return $this;
     }
 
@@ -92,7 +76,7 @@ class IconsStyleBuilder
      */
     public function getProcessedEntities(): NamesByTypes
     {
-        return clone $this->processedEntities;
+        return $this->processedEntities;
     }
 
     /**

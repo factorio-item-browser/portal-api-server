@@ -1,5 +1,10 @@
 <?xml version="1.0" ?>
 <phpunit colors="true">
+    <coverage>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </coverage>
     <testsuites>
         <testsuite name="unit-test">
             <directory>test/src</directory>
@@ -8,9 +13,4 @@
             <directory>test/serializer</directory>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-        </whitelist>
-    </filter>
 </phpunit>

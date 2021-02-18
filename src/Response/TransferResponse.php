@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Response;
 
+use JMS\Serializer\SerializerInterface;
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\Response\InjectContentTypeTrait;
 use Laminas\Diactoros\Stream;
 
 /**
- *
+ * The response wrapping the transfer object.
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
@@ -18,27 +19,21 @@ class TransferResponse extends Response
 {
     use InjectContentTypeTrait;
 
-    /**
-     * The transfer data of the response.
-     * @var mixed
-     */
-    protected $transfer;
+    /** @var mixed */
+    private $transfer;
 
     /**
-     * Initializes the response.
      * @param mixed $transfer
-     * @param int $status
-     * @param array<string> $headers
+     * @param int $statusCode
+     * @param array<string, string> $headers
      */
-    public function __construct($transfer, $status = 200, array $headers = [])
+    public function __construct($transfer, int $statusCode = 200, array $headers = [])
     {
-        parent::__construct('php://memory', $status, $this->injectContentType('application/json', $headers));
-
+        parent::__construct('php://memory', $statusCode, $this->injectContentType('application/json', $headers));
         $this->transfer = $transfer;
     }
 
     /**
-     * Returns the transfer data of the response.
      * @return mixed
      */
     public function getTransfer()
@@ -46,15 +41,10 @@ class TransferResponse extends Response
         return $this->transfer;
     }
 
-    /**
-     * Returns a client response with the serialized response as body.
-     * @param string $serializedResponse
-     * @return self
-     */
-    public function withSerializedResponse(string $serializedResponse): self
+    public function withSerializer(SerializerInterface $serializer): self
     {
         $stream = new Stream('php://temp', 'wb+');
-        $stream->write($serializedResponse);
+        $stream->write($serializer->serialize($this->transfer, 'json'));
         $stream->rewind();
         return $this->withBody($stream);
     }

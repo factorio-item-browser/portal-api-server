@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Helper;
 
-use BluePsyduck\MapperManager\Exception\MapperException;
 use BluePsyduck\MapperManager\MapperManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use FactorioItemBrowser\Api\Client\Entity\Entity;
-use FactorioItemBrowser\Api\Client\Exception\ApiClientException;
+use FactorioItemBrowser\Api\Client\ClientInterface;
+use FactorioItemBrowser\Api\Client\Exception\ClientException;
+use FactorioItemBrowser\Api\Client\Transfer\Entity;
 use FactorioItemBrowser\Api\Client\Request\Generic\GenericDetailsRequest;
 use FactorioItemBrowser\Api\Client\Response\Generic\GenericDetailsResponse;
-use FactorioItemBrowser\PortalApi\Server\Api\ApiClientFactory;
+use FactorioItemBrowser\Common\Constant\Defaults;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
-use FactorioItemBrowser\PortalApi\Server\Exception\MappingException;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 
 /**
  * The helper for managing the sidebar entities.
@@ -26,46 +24,25 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
  */
 class SidebarEntitiesHelper
 {
-    /**
-     * The api client factory.
-     * @var ApiClientFactory
-     */
-    protected $apiClientFactory;
+    private ClientInterface $apiClient;
+    private EntityManagerInterface $entityManager;
+    private MapperManagerInterface $mapperManager;
 
-    /**
-     * The entity manager.
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
-    /**
-     * The mapper manager.
-     * @var MapperManagerInterface
-     */
-    protected $mapperManager;
-
-    /**
-     * Initializes the helper.
-     * @param ApiClientFactory $apiClientFactory
-     * @param EntityManagerInterface $entityManager
-     * @param MapperManagerInterface $mapperManager
-     */
     public function __construct(
-        ApiClientFactory $apiClientFactory,
+        ClientInterface $apiClient,
         EntityManagerInterface $entityManager,
         MapperManagerInterface $mapperManager
     ) {
-        $this->apiClientFactory = $apiClientFactory;
+        $this->apiClient = $apiClient;
         $this->entityManager = $entityManager;
         $this->mapperManager = $mapperManager;
     }
 
     /**
-     * Creates an associative map of the entities.
-     * @param array|SidebarEntity[] $entities
-     * @return array<string,SidebarEntity>|SidebarEntity[]
+     * @param array<SidebarEntity> $entities
+     * @return array<string, SidebarEntity>
      */
-    protected function createAssociativeMap(array $entities): array
+    private function createAssociativeMap(array $entities): array
     {
         $result = [];
         foreach ($entities as $entity) {
@@ -77,7 +54,7 @@ class SidebarEntitiesHelper
     /**
      * Replaces the entities in the setting.
      * @param Setting $setting
-     * @param array<SidebarEntity>|SidebarEntity[] $newEntities
+     * @param array<SidebarEntity> $newEntities
      */
     public function replaceEntities(Setting $setting, array $newEntities): void
     {
@@ -117,48 +94,43 @@ class SidebarEntitiesHelper
      */
     public function refreshLabels(Setting $setting): void
     {
-        $request = $this->createDetailsRequest($setting->getSidebarEntities()->toArray());
-
-        $client = $this->apiClientFactory->create($setting);
+        $request = $this->createRequest($setting);
         try {
             /** @var GenericDetailsResponse $response */
-            $response = $client->fetchResponse($request);
+            $response = $this->apiClient->sendRequest($request)->wait();
             $this->processDetailsResponse($response, $setting);
-        } catch (ApiClientException $e) {
+        } catch (ClientException $e) {
             throw new FailedApiRequestException($e);
         }
     }
 
-    /**
-     * Creates the generic details request to the specified entities.
-     * @param array<SidebarEntity>|SidebarEntity[] $entities
-     * @return GenericDetailsRequest
-     */
-    protected function createDetailsRequest(array $entities): GenericDetailsRequest
+    private function createRequest(Setting $setting): GenericDetailsRequest
     {
         $request = new GenericDetailsRequest();
-        foreach ($entities as $entity) {
-            $requestEntity = new Entity();
-            $requestEntity->setType($entity->getType())
-                          ->setName($entity->getName());
-            $request->addEntity($requestEntity);
+        if ($setting->getHasData()) {
+            $request->combinationId = $setting->getCombination()->getId()->toString();
+        } else {
+            $request->combinationId = Defaults::COMBINATION_ID;
+        }
+        $request->locale = $setting->getLocale();
+        foreach ($setting->getSidebarEntities() as $sidebarEntity) {
+            /* @var SidebarEntity $sidebarEntity */
+            $entity = new Entity();
+            $entity->type = $sidebarEntity->getType();
+            $entity->name = $sidebarEntity->getName();
+            $request->entities[] = $entity;
         }
         return $request;
     }
 
-    /**
-     * Processes the details response.
-     * @param GenericDetailsResponse $response
-     * @param Setting $setting
-     */
-    protected function processDetailsResponse(GenericDetailsResponse $response, Setting $setting): void
+    private function processDetailsResponse(GenericDetailsResponse $response, Setting $setting): void
     {
         $entities = $this->createAssociativeMap($setting->getSidebarEntities()->toArray());
 
-        foreach ($response->getEntities() as $responseEntity) {
-            $key = "{$responseEntity->getType()}|{$responseEntity->getName()}";
+        foreach ($response->entities as $responseEntity) {
+            $key = "{$responseEntity->type}|{$responseEntity->name}";
             if (isset($entities[$key])) {
-                $entities[$key]->setLabel($responseEntity->getLabel());
+                $entities[$key]->setLabel($responseEntity->label);
                 unset($entities[$key]);
             }
         }
@@ -166,27 +138,6 @@ class SidebarEntitiesHelper
         foreach ($entities as $entity) {
             $setting->getSidebarEntities()->removeElement($entity);
             $this->entityManager->remove($entity);
-        }
-    }
-
-    /**
-     * Maps the entities to data objects.
-     * @param array<SidebarEntity>|SidebarEntity[] $sidebarEntities
-     * @return array<SidebarEntityData>|SidebarEntityData[]
-     * @throws MappingException
-     */
-    public function mapEntities(array $sidebarEntities): array
-    {
-        try {
-            $result = [];
-            foreach ($sidebarEntities as $sidebarEntity) {
-                $data = new SidebarEntityData();
-                $this->mapperManager->map($sidebarEntity, $data);
-                $result[] = $data;
-            }
-            return $result;
-        } catch (MapperException $e) {
-            throw new MappingException($e);
         }
     }
 }

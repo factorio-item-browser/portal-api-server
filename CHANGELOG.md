@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 - 2021-02-18
+
+### Changed
+
+- Replaced combination-related endpoints of the API with their counterparts in the new Combination API.
+- Updated to version 3.0 of the data API.
+
+### Removed
+
+- No longer needed `authorizationKey` from the Setting database table.
+
 ## 1.3.0 - 2020-10-06
 
 ### Added

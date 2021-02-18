@@ -17,5 +17,5 @@ return [
     ConfigAggregator::ENABLE_CACHE => true,
     'debug' => false,
     'name' => 'Factorio Item Browser - Portal API Server',
-    'version' => '1.3.0',
+    'version' => '1.4.0',
 ];

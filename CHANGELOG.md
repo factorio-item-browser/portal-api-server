@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 - 2021-02-19
+
+### Fixed
+
+- Temporary settings could not be saved permanently.
+
 ## 1.4.0 - 2021-02-18
 
 ### Changed

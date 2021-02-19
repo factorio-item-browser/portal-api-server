@@ -52,7 +52,8 @@ class SaveHandler implements RequestHandlerInterface
 
         $setting->setName($requestOptions->name)
                 ->setLocale($requestOptions->locale)
-                ->setRecipeMode($requestOptions->recipeMode);
+                ->setRecipeMode($requestOptions->recipeMode)
+                ->setIsTemporary(false);
 
         $this->sidebarEntitiesHelper->refreshLabels($setting);
 

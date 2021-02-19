@@ -86,6 +86,10 @@ class SaveHandlerTest extends TestCase
                 ->method('setLocale')
                 ->with($this->identicalTo('ghi'))
                 ->willReturnSelf();
+        $setting->expects($this->once())
+                ->method('setIsTemporary')
+                ->with($this->isFalse())
+                ->willReturnSelf();
 
         $this->currentUser->expects($this->once())
                           ->method('getSettingByCombinationId')

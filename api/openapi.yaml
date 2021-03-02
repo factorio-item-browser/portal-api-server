@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 info:
-  version: 1.4.1
+  version: 1.5.0-draft
   title: Factorio Item Browser - Portal API
   contact:
     name: BluePsyduck
@@ -39,7 +39,7 @@ paths:
           required: false
           schema:
             type: string
-            example: b6d9080c-0ce1-4c33-a628-62682bfa20f3
+            example: 2f4a45fa-a509-a9d1-aae6-ffcf984a7a76
       responses:
         200:
           description: The data of the initialization.
@@ -191,26 +191,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SettingsListData"
+                type: array
+                items:
+                  $ref: "#/components/schemas/SettingData"
 
-    put:
-      summary: Creates a new setting with the specified options for the current user.
-      operationId: settings.create
+  /setting/validate:
+    post:
+      summary: Returns the status of the setting build by the specified mods.
+      operationId: settings.status.mods
       tags:
         - Settings
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SettingCreateData"
+              description: The mod names used in the setting.
+              type: array
+              items:
+                type: string
+              example:
+                - base
+                - FNEI
       responses:
-        204:
-          description: The setting has been successfully created. Start over with a /session/init request.
+        200:
+          description: The status of the current setting.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettingValidationData"
 
-  /settings/{combination-id}:
+  /setting/{combination-id}:
     get:
       summary: Returns the details of the specified setting.
-      operationId: settings.details
+      operationId: setting.details
       tags:
         - Settings
       parameters:
@@ -221,11 +234,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SettingDetailsData"
+                $ref: "#/components/schemas/SettingData"
 
     put:
       summary: Saves changes to the specified setting.
-      operationId: settings.save
+      operationId: setting.save
       tags:
         - Settings
       parameters:
@@ -241,7 +254,7 @@ paths:
 
     delete:
       summary: Deletes the setting. The setting must not be the current active setting.
-      operationId: settings.delete
+      operationId: setting.delete
       tags:
         - Settings
       parameters:
@@ -250,42 +263,23 @@ paths:
         204:
           description: The setting have been successfully deleted.
 
-  /settings/status:
+  /setting/{combination-id}/mods:
     get:
-      summary: Returns the status of the current setting.
-      operationId: settings.status
+      summary: Returns the list of mods used in the setting.
+      operationId: setting.mods
       tags:
         - Settings
+      parameters:
+        - $ref: "#/components/parameters/combination-id"
       responses:
         200:
-          description: The status of the current setting.
+          description: The list of mods of the settings.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SettingStatusData"
-    post:
-      summary: Returns the status of the setting build by the specified mods.
-      operationId: settings.status.mods
-      tags:
-        - Settings
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              description: The mod names used in the setting.
-              items:
-                type: string
-              example:
-                - base
-                - FNEI
-      responses:
-        200:
-          description: The status of the current setting.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SettingStatusData"
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModData"
 
   /sidebar/entities:
     put:
@@ -372,7 +366,7 @@ components:
       required: true
       schema:
         type: string
-        example: b6d9080c-0ce1-4c33-a628-62682bfa20f3
+        example: 2f4a45fa-a509-a9d1-aae6-ffcf984a7a76
 
     type:
       name: type
@@ -469,13 +463,9 @@ components:
       description: The data to initialize the session.
       properties:
         setting:
-          $ref: "#/components/schemas/SettingMetaData"
+          $ref: "#/components/schemas/SettingData"
         lastUsedSetting:
-          $ref: "#/components/schemas/SettingMetaData"
-        locale:
-          type: string
-          description: The locale to use for the page.
-          example: de
+          $ref: "#/components/schemas/SettingData"
         sidebarEntities:
           type: array
           description: The sidebar entities of the session.
@@ -487,7 +477,6 @@ components:
           example: 1650be3c220267a96f3d
       required:
         - setting
-        - locale
         - sidebarEntities
         - scriptVersion
 
@@ -728,50 +717,33 @@ components:
           description: The total number of search results.
           example: 42
 
-    SettingCreateData:
-      allOf:
-        - $ref: "#/components/schemas/SettingOptionsData"
-        - type: object
-          properties:
-            modNames:
-              type: array
-              description: The mod names to use in the setting.
-              items:
-                type: string
-              example:
-                - base
-                - FNEI
-
-    SettingDetailsData:
-      allOf:
-        - $ref: "#/components/schemas/SettingMetaData"
-        - $ref: "#/components/schemas/SettingOptionsData"
-        - type: object
-          description: The detailed data of a setting of mods.
-          properties:
-            mods:
-              type: array
-              description: The mods used by the setting.
-              items:
-                $ref: "#/components/schemas/ModData"
-            modIconsStyle:
-              $ref: "#/components/schemas/IconsStyleData"
-
-    SettingMetaData:
+    SettingData:
       type: object
-      description: The meta data of a setting of mods.
+      description: The data of a setting available to the user.
       properties:
         combinationId:
-          type: string
           description: The id of the combination assigned to the setting.
-          example: 84ad3867-d5fe-495d-af32-a4709ab3c2b7
+          type: string
+          example: 2f4a45fa-a509-a9d1-aae6-ffcf984a7a76
         name:
+          description: The (user-defined) name of the setting.
           type: string
-          description: The name of the setting.
           example: Vanilla
-        status:
+        locale:
+          description: The locale used for the setting.
           type: string
-          description: The status of the setting.
+          example: de
+        recipeMode:
+          description: The recipe mode used for the setting.
+          type: string
+          enum:
+            - hybrid
+            - normal
+            - expensive
+          example: hybrid
+        status:
+          description: The status of the setting, i.e.
+          type: string
           enum:
             - available
             - errored
@@ -779,8 +751,8 @@ components:
             - unknown
           example: available
         isTemporary:
+          description: Whether the sertting is a temporary one.
           type: boolean
-          description: Whether the setting is temporary.
           example: false
 
     SettingOptionsData:
@@ -788,55 +760,36 @@ components:
       description: The options of the setting.
       properties:
         name:
-          type: string
           description: The name of the setting.
+          type: string
           example: Vanilla
         locale:
-          type: string
           description: The locale of the setting.
+          type: string
           example: en
         recipeMode:
+          description: The recipe mode of the setting.
           type: string
           enum:
             - hybrid
             - normal
             - expensive
-          description: The recipe mode of the setting.
           example: hybrid
 
-    SettingStatusData:
-      type: object
-      description: The current status of the setting.
-      properties:
-        status:
-          type: string
-          description: The export status of the combination.
-          enum:
-            - pending
-            - available
-            - errored
-          example: available
-        exportTime:
-          type: string
-          format: date-time
-          description: The timestamp when the data was exported from Factorio.
-          example: "2038-01-19T03:14:07.000Z"
-        existingSetting:
-          $ref: "#/components/schemas/SettingDetailsData"
-      required:
-        - status
-
-    SettingsListData:
-      type: object
-      description: The data of the list of available settings.
-      properties:
-        settings:
-          type: array
-          description: The list of available settings.
-          items:
-            $ref: "#/components/schemas/SettingMetaData"
-        currentSetting:
-          $ref: "#/components/schemas/SettingDetailsData"
+    SettingValidationData:
+      allOf:
+        - $ref: "#/components/schemas/SettingData"
+        - type: object
+          properties:
+            isValid:
+              description: Whether the combination of mods is vaild.
+              type: boolean
+              example: true
+            validatedProblems:
+              description: The problems which occurred dureing validation.
+              type: array
+              items:
+                $ref: "#/components/schemas/ValidationProblemData"
 
     SidebarEntityData:
       type: object
@@ -867,3 +820,29 @@ components:
           format: date-time
           description: The timestamp when the entity was last viewed.
           example: "2038-01-19T03:14:07.000Z"
+
+    ValidationProblemData:
+      description: The data representing a problem which occurred during validation.
+      type: object
+      properties:
+        mod:
+          description: The mod which caused the validation problem.
+          type: string
+          example: Krastorio2
+        version:
+          description: The version of the mod used for the validation.
+          type: string
+          example: "1.2.3."
+        type:
+          description: The type of problem which occured during validation.
+          type: string
+          enum:
+            - unknownMod
+            - noRelease
+            - missingDependency
+            - conflict
+          example: missingDependency
+        dependency:
+          description: The dependency for which the validation failed.
+          type: string
+          example: bar >= 2.0

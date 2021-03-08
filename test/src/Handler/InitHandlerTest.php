@@ -15,11 +15,10 @@ use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Handler\InitHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -40,8 +39,6 @@ class InitHandlerTest extends TestCase
     private Setting $currentSetting;
     /** @var MapperManagerInterface&MockObject */
     private MapperManagerInterface $mapperManager;
-    /** @var SettingHelper&MockObject */
-    private SettingHelper $settingHelper;
     /** @var SidebarEntitiesHelper&MockObject */
     private SidebarEntitiesHelper $sidebarEntitiesHelper;
     private string $scriptVersion = 'foo';
@@ -51,7 +48,6 @@ class InitHandlerTest extends TestCase
         $this->combinationHelper = $this->createMock(CombinationHelper::class);
         $this->currentSetting = $this->createMock(Setting::class);
         $this->mapperManager = $this->createMock(MapperManagerInterface::class);
-        $this->settingHelper = $this->createMock(SettingHelper::class);
         $this->sidebarEntitiesHelper = $this->createMock(SidebarEntitiesHelper::class);
     }
 
@@ -68,7 +64,6 @@ class InitHandlerTest extends TestCase
                         $this->combinationHelper,
                         $this->currentSetting,
                         $this->mapperManager,
-                        $this->settingHelper,
                         $this->sidebarEntitiesHelper,
                         $this->scriptVersion,
                     ])
@@ -116,15 +111,14 @@ class InitHandlerTest extends TestCase
         bool $expectRefreshLabels
     ): void {
         $request = $this->createMock(ServerRequestInterface::class);
-        $settingMetaData = $this->createMock(SettingMetaData::class);
+        $settingData = $this->createMock(SettingData::class);
         $sidebarEntity1 = $this->createMock(SidebarEntity::class);
         $sidebarEntity2 = $this->createMock(SidebarEntity::class);
         $sidebarEntityData1 = $this->createMock(SidebarEntityData::class);
         $sidebarEntityData2 = $this->createMock(SidebarEntityData::class);
 
         $expectedTransfer = new InitData();
-        $expectedTransfer->setting = $settingMetaData;
-        $expectedTransfer->locale = 'bar';
+        $expectedTransfer->setting = $settingData;
         $expectedTransfer->sidebarEntities = [$sidebarEntityData1, $sidebarEntityData2];
         $expectedTransfer->scriptVersion = 'foo';
 
@@ -134,9 +128,6 @@ class InitHandlerTest extends TestCase
         $this->currentSetting->expects($this->any())
                              ->method('getHasData')
                              ->willReturn($settingHasData);
-        $this->currentSetting->expects($this->any())
-                             ->method('getLocale')
-                             ->willReturn('bar');
         $this->currentSetting->expects($this->any())
                              ->method('getSidebarEntities')
                              ->willReturn(new ArrayCollection([$sidebarEntity1, $sidebarEntity2]));
@@ -148,21 +139,18 @@ class InitHandlerTest extends TestCase
                                 ->method('updateStatus')
                                 ->with($this->identicalTo($combination));
 
-        $this->mapperManager->expects($this->exactly(2))
+        $this->mapperManager->expects($this->exactly(3))
                             ->method('map')
                             ->withConsecutive(
+                                [$this->identicalTo($this->currentSetting), $this->isInstanceOf(SettingData::class)],
                                 [$this->identicalTo($sidebarEntity1), $this->isInstanceOf(SidebarEntityData::class)],
                                 [$this->identicalTo($sidebarEntity2), $this->isInstanceOf(SidebarEntityData::class)],
                             )
                             ->willReturnOnConsecutiveCalls(
+                                $settingData,
                                 $sidebarEntityData1,
                                 $sidebarEntityData2
                             );
-
-        $this->settingHelper->expects($this->once())
-                            ->method('createSettingMeta')
-                            ->with($this->identicalTo($this->currentSetting))
-                            ->willReturn($settingMetaData);
 
         $this->sidebarEntitiesHelper->expects($expectRefreshLabels ? $this->once() : $this->never())
                                     ->method('refreshLabels')
@@ -186,15 +174,14 @@ class InitHandlerTest extends TestCase
                     ->setLastCheckTime(new DateTime());
 
         $request = $this->createMock(ServerRequestInterface::class);
-        $settingMetaData = $this->createMock(SettingMetaData::class);
+        $settingData = $this->createMock(SettingData::class);
         $sidebarEntity1 = $this->createMock(SidebarEntity::class);
         $sidebarEntity2 = $this->createMock(SidebarEntity::class);
         $sidebarEntityData1 = $this->createMock(SidebarEntityData::class);
         $sidebarEntityData2 = $this->createMock(SidebarEntityData::class);
 
         $expectedTransfer = new InitData();
-        $expectedTransfer->setting = $settingMetaData;
-        $expectedTransfer->locale = 'bar';
+        $expectedTransfer->setting = $settingData;
         $expectedTransfer->sidebarEntities = [$sidebarEntityData1, $sidebarEntityData2];
         $expectedTransfer->scriptVersion = 'foo';
 
@@ -205,30 +192,24 @@ class InitHandlerTest extends TestCase
                              ->method('getHasData')
                              ->willReturn(true);
         $this->currentSetting->expects($this->any())
-                             ->method('getLocale')
-                             ->willReturn('bar');
-        $this->currentSetting->expects($this->any())
                              ->method('getSidebarEntities')
                              ->willReturn(new ArrayCollection([$sidebarEntity1, $sidebarEntity2]));
         $this->currentSetting->expects($this->any())
                              ->method('getIsTemporary')
                              ->willReturn(true);
 
-        $this->mapperManager->expects($this->exactly(2))
+        $this->mapperManager->expects($this->exactly(3))
                             ->method('map')
                             ->withConsecutive(
+                                [$this->identicalTo($this->currentSetting), $this->isInstanceOf(SettingData::class)],
                                 [$this->identicalTo($sidebarEntity1), $this->isInstanceOf(SidebarEntityData::class)],
                                 [$this->identicalTo($sidebarEntity2), $this->isInstanceOf(SidebarEntityData::class)],
                             )
                             ->willReturnOnConsecutiveCalls(
+                                $settingData,
                                 $sidebarEntityData1,
                                 $sidebarEntityData2
                             );
-
-        $this->settingHelper->expects($this->once())
-                            ->method('createSettingMeta')
-                            ->with($this->identicalTo($this->currentSetting))
-                            ->willReturn($settingMetaData);
 
         $instance = $this->createInstance();
         $result = $instance->handle($request);
@@ -248,17 +229,16 @@ class InitHandlerTest extends TestCase
                     ->setLastCheckTime(new DateTime());
 
         $request = $this->createMock(ServerRequestInterface::class);
-        $settingMetaData = $this->createMock(SettingMetaData::class);
+        $settingData = $this->createMock(SettingData::class);
         $sidebarEntity1 = $this->createMock(SidebarEntity::class);
         $sidebarEntity2 = $this->createMock(SidebarEntity::class);
         $sidebarEntityData1 = $this->createMock(SidebarEntityData::class);
         $sidebarEntityData2 = $this->createMock(SidebarEntityData::class);
         $lastUsedSetting = $this->createMock(Setting::class);
-        $lastUsedSettingData = $this->createMock(SettingMetaData::class);
+        $lastUsedSettingData = $this->createMock(SettingData::class);
 
         $expectedTransfer = new InitData();
-        $expectedTransfer->setting = $settingMetaData;
-        $expectedTransfer->locale = 'bar';
+        $expectedTransfer->setting = $settingData;
         $expectedTransfer->sidebarEntities = [$sidebarEntityData1, $sidebarEntityData2];
         $expectedTransfer->scriptVersion = 'foo';
         $expectedTransfer->lastUsedSetting = $lastUsedSettingData;
@@ -275,9 +255,6 @@ class InitHandlerTest extends TestCase
                              ->method('getHasData')
                              ->willReturn(true);
         $this->currentSetting->expects($this->any())
-                             ->method('getLocale')
-                             ->willReturn('bar');
-        $this->currentSetting->expects($this->any())
                              ->method('getSidebarEntities')
                              ->willReturn(new ArrayCollection([$sidebarEntity1, $sidebarEntity2]));
         $this->currentSetting->expects($this->any())
@@ -287,26 +264,19 @@ class InitHandlerTest extends TestCase
                              ->method('getUser')
                              ->willReturn($user);
 
-        $this->mapperManager->expects($this->exactly(2))
+        $this->mapperManager->expects($this->exactly(4))
                             ->method('map')
                             ->withConsecutive(
+                                [$this->identicalTo($this->currentSetting), $this->isInstanceOf(SettingData::class)],
+                                [$this->identicalTo($lastUsedSetting), $this->isInstanceOf(SettingData::class)],
                                 [$this->identicalTo($sidebarEntity1), $this->isInstanceOf(SidebarEntityData::class)],
                                 [$this->identicalTo($sidebarEntity2), $this->isInstanceOf(SidebarEntityData::class)],
                             )
                             ->willReturnOnConsecutiveCalls(
+                                $settingData,
+                                $lastUsedSettingData,
                                 $sidebarEntityData1,
                                 $sidebarEntityData2
-                            );
-
-        $this->settingHelper->expects($this->exactly(2))
-                            ->method('createSettingMeta')
-                            ->withConsecutive(
-                                [$this->identicalTo($this->currentSetting)],
-                                [$this->identicalTo($lastUsedSetting)],
-                            )
-                            ->willReturnOnConsecutiveCalls(
-                                $settingMetaData,
-                                $lastUsedSettingData,
                             );
 
         $instance = $this->createInstance();

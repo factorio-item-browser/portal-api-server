@@ -1,0 +1,11 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\ValidationProblemData:
+  exclusion_policy: all
+  properties:
+    mod:
+      type: string
+    version:
+      type: string
+    type:
+      type: string
+    dependency:
+      type: string

@@ -2,18 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
+namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Setting;
 
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
-use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Handler\Settings\ListHandler;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
+use FactorioItemBrowser\PortalApi\Server\Handler\Setting\ListHandler;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingsListData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +21,7 @@ use Ramsey\Uuid\Uuid;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Settings\ListHandler
+ * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Setting\ListHandler
  */
 class ListHandlerTest extends TestCase
 {
@@ -32,14 +29,14 @@ class ListHandlerTest extends TestCase
     private Setting $currentSetting;
     /** @var User&MockObject */
     private User $currentUser;
-    /** @var SettingHelper&MockObject */
-    private SettingHelper $settingHelper;
+    /** @var MapperManagerInterface&MockObject */
+    private MapperManagerInterface $mapperManager;
 
     protected function setUp(): void
     {
         $this->currentSetting = $this->createMock(Setting::class);
         $this->currentUser = $this->createMock(User::class);
-        $this->settingHelper = $this->createMock(SettingHelper::class);
+        $this->mapperManager = $this->createMock(MapperManagerInterface::class);
     }
 
     /**
@@ -54,14 +51,11 @@ class ListHandlerTest extends TestCase
                     ->setConstructorArgs([
                         $this->currentSetting,
                         $this->currentUser,
-                        $this->settingHelper,
+                        $this->mapperManager,
                     ])
                     ->getMock();
     }
 
-    /**
-     * @throws PortalApiServerException
-     */
     public function testHandle(): void
     {
         $setting1 = new Setting();
@@ -80,15 +74,12 @@ class ListHandlerTest extends TestCase
         $setting4->setId(Uuid::fromString('4e39c25b-d3e3-4960-a599-648aa0564d73'))
                  ->setIsTemporary(false);
 
-        $settingMeta1 = $this->createMock(SettingMetaData::class);
-        $settingMeta2 = $this->createMock(SettingMetaData::class);
-        $settingMeta3 = $this->createMock(SettingMetaData::class);
-        $settingDetails = $this->createMock(SettingDetailsData::class);
+        $settingData1 = $this->createMock(SettingData::class);
+        $settingData2 = $this->createMock(SettingData::class);
+        $settingData3 = $this->createMock(SettingData::class);
         $request = $this->createMock(ServerRequestInterface::class);
 
-        $transfer = new SettingsListData();
-        $transfer->settings = [$settingMeta1, $settingMeta2, $settingMeta3];
-        $transfer->currentSetting = $settingDetails;
+        $expectedTransfer = [$settingData1, $settingData2, $settingData3];
 
         $this->currentSetting->expects($this->any())
                              ->method('getId')
@@ -98,28 +89,24 @@ class ListHandlerTest extends TestCase
                           ->method('getSettings')
                           ->willReturn(new ArrayCollection([$setting1, $setting2, $setting3, $setting4]));
 
-        $this->settingHelper->expects($this->exactly(3))
-                            ->method('createSettingMeta')
+        $this->mapperManager->expects($this->exactly(3))
+                            ->method('map')
                             ->withConsecutive(
-                                [$this->identicalTo($setting1)],
-                                [$this->identicalTo($setting3)],
-                                [$this->identicalTo($setting4)],
+                                [$this->identicalTo($setting1), $this->isInstanceOf(SettingData::class)],
+                                [$this->identicalTo($setting3), $this->isInstanceOf(SettingData::class)],
+                                [$this->identicalTo($setting4), $this->isInstanceOf(SettingData::class)],
                             )
                             ->willReturnOnConsecutiveCalls(
-                                $settingMeta1,
-                                $settingMeta2,
-                                $settingMeta3
+                                $settingData1,
+                                $settingData2,
+                                $settingData3,
                             );
-        $this->settingHelper->expects($this->once())
-                            ->method('createSettingDetails')
-                            ->with($this->identicalTo($this->currentSetting))
-                            ->willReturn($settingDetails);
 
         $instance = $this->createInstance();
         $result = $instance->handle($request);
 
         $this->assertInstanceOf(TransferResponse::class, $result);
         /* @var TransferResponse $result */
-        $this->assertEquals($transfer, $result->getTransfer());
+        $this->assertEquals($expectedTransfer, $result->getTransfer());
     }
 }

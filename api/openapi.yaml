@@ -777,19 +777,36 @@ components:
           example: hybrid
 
     SettingValidationData:
-      allOf:
-        - $ref: "#/components/schemas/SettingData"
-        - type: object
-          properties:
-            isValid:
-              description: Whether the combination of mods is vaild.
-              type: boolean
-              example: true
-            validatedProblems:
-              description: The problems which occurred dureing validation.
-              type: array
-              items:
-                $ref: "#/components/schemas/ValidationProblemData"
+      type: object
+      properties:
+        combinationId:
+          description: The combination id representing the mods.
+          type: string
+          example: 2f4a45fa-a509-a9d1-aae6-ffcf984a7a76
+        status:
+          description: The status of the combination.
+          type: string
+          enum:
+            - available
+            - errored
+            - pending
+            - unknown
+          example: available
+        isValid:
+          description: Whether the combination of mods is vaild.
+          type: boolean
+          example: true
+        validationProblems:
+          description: The problems which occurred dureing validation.
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationProblemData"
+        existingSetting:
+          $ref: "#/components/schemas/SettingData"
+      required:
+        - combinationId
+        - isValid
+        - validationProblems
 
     SidebarEntityData:
       type: object

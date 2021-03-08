@@ -1,9 +1,0 @@
-FactorioItemBrowser\PortalApi\Server\Transfer\SettingStatusData:
-  exclusion_policy: all
-  properties:
-    status:
-      type: string
-    exportTime:
-      type: DateTime<'Y-m-d\TH:i:s.vP'>
-    existingSetting:
-      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData

@@ -12,15 +12,14 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
  */
 class InitData
 {
-    public SettingMetaData $setting;
-    public ?SettingMetaData $lastUsedSetting = null;
-    public string $locale = '';
+    public SettingData $setting;
+    public ?SettingData $lastUsedSetting = null;
     /** @var array<SidebarEntityData> */
     public array $sidebarEntities = [];
     public string $scriptVersion = '';
 
     public function __construct()
     {
-        $this->setting = new SettingMetaData();
+        $this->setting = new SettingData();
     }
 }

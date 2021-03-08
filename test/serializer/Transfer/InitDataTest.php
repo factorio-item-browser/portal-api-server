@@ -6,7 +6,7 @@ namespace FactorioItemBrowserTestSerializer\PortalApi\Server\Transfer;
 
 use DateTime;
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use FactorioItemBrowserTestSerializer\PortalApi\Server\SerializerTestCase;
 
@@ -34,24 +34,27 @@ class InitDataTest extends SerializerTestCase
         $sidebarEntity2->pinnedPosition = 21;
         $sidebarEntity2->lastViewTime = new DateTime('2038-01-19 03:14:07.123');
 
-        $setting = new SettingMetaData();
+        $setting = new SettingData();
         $setting->combinationId = 'stu';
         $setting->name = 'vwx';
-        $setting->status = 'yza';
+        $setting->locale = 'yza';
+        $setting->recipeMode = 'bcd';
+        $setting->status = 'efg';
         $setting->isTemporary = true;
 
-        $lastUsedSetting = new SettingMetaData();
-        $lastUsedSetting->combinationId = 'klm';
-        $lastUsedSetting->name = 'nop';
-        $lastUsedSetting->status = 'qrs';
+        $lastUsedSetting = new SettingData();
+        $lastUsedSetting->combinationId = 'hij';
+        $lastUsedSetting->name = 'klm';
+        $lastUsedSetting->locale = 'nop';
+        $lastUsedSetting->recipeMode = 'qrs';
+        $lastUsedSetting->status = 'tuv';
         $lastUsedSetting->isTemporary = false;
 
         $object = new InitData();
         $object->setting = $setting;
         $object->lastUsedSetting = $lastUsedSetting;
-        $object->locale = 'efg';
         $object->sidebarEntities = [$sidebarEntity1, $sidebarEntity2];
-        $object->scriptVersion = 'hij';
+        $object->scriptVersion = 'wxy';
         return $object;
     }
 
@@ -64,16 +67,19 @@ class InitDataTest extends SerializerTestCase
             'setting' => [
                 'combinationId' => 'stu',
                 'name' => 'vwx',
-                'status' => 'yza',
+                'locale' => 'yza',
+                'recipeMode' => 'bcd',
+                'status' => 'efg',
                 'isTemporary' => true,
             ],
             'lastUsedSetting' => [
-                'combinationId' => 'klm',
-                'name' => 'nop',
-                'status' => 'qrs',
+                'combinationId' => 'hij',
+                'name' => 'klm',
+                'locale' => 'nop',
+                'recipeMode' => 'qrs',
+                'status' => 'tuv',
                 'isTemporary' => false,
             ],
-            'locale' => 'efg',
             'sidebarEntities' => [
                 [
                     'type' => 'abc',
@@ -90,7 +96,7 @@ class InitDataTest extends SerializerTestCase
                     'lastViewTime' => '2038-01-19T03:14:07.123+00:00',
                 ],
             ],
-            'scriptVersion' => 'hij',
+            'scriptVersion' => 'wxy',
         ];
     }
 

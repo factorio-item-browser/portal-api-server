@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace FactorioItemBrowserTest\PortalApi\Server\Transfer;
 
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +21,6 @@ class InitDataTest extends TestCase
     {
         $instance = new InitData();
 
-        $this->assertEquals(new SettingMetaData(), $instance->setting);
+        $this->assertEquals(new SettingData(), $instance->setting);
     }
 }

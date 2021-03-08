@@ -1,5 +1,0 @@
-FactorioItemBrowser\PortalApi\Server\Transfer\SettingCreateData:
-  exclusion_policy: all
-  properties:
-    modNames:
-      type: array<string>

@@ -28,7 +28,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
 
     $app->get('/settings', Handler\Setting\ListHandler::class, RouteName::SETTING_LIST);
-    $app->post('/settings/validate', Handler\Setting\ValidateHandler::class, RouteName::SETTING_VALIDATE);
+    $app->post('/setting/validate', Handler\Setting\ValidateHandler::class, RouteName::SETTING_VALIDATE);
     $app->delete('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\DeleteHandler::class, RouteName::SETTING_DELETE);
     $app->get('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\DetailsHandler::class, RouteName::SETTING_DETAILS);
     $app->put('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\SaveHandler::class, RouteName::SETTING_SAVE);

@@ -148,7 +148,7 @@ class IconsStyleFetcherTest extends TestCase
         $expectedProcessedEntities->values = ['abc' => ['def', 'ghi']];
 
         $instance = $this->createInstance();
-        $result = $instance->process($promise);
+        $result = $instance->process('.foo-{type}-{name}', $promise);
 
         $this->assertEquals($expectedProcessedEntities, $result->processedEntities);
     }

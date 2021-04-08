@@ -312,7 +312,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NamesByTypes"
+              type: object
+              properties:
+                cssSelector:
+                  description: |
+                    The selector to use in the returned css style. Use the placeholders {type} and {name}, which will
+                    be replaced with the entity's type and name respectively.
+                  type: string
+                  example: ".icon-{type}-{name}"
+                entities:
+                  $ref: "#/components/schemas/NamesByTypes"
         required: true
       responses:
         200:

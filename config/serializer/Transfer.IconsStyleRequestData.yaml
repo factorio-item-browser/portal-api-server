@@ -1,0 +1,7 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleRequestData:
+  exclusion_policy: all
+  properties:
+    cssSelector:
+      type: string
+    entities:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes

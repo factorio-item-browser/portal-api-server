@@ -16,13 +16,16 @@ use Laminas\Escaper\Escaper;
  */
 class IconsStyleBuilder
 {
+    protected string $cssSelector;
     protected Escaper $escaper;
     protected NamesByTypes $processedEntities;
-     /** @var array<string> */
+    /** @var array<string> */
     protected array $rules = [];
 
-    public function __construct()
+    public function __construct(string $cssSelector)
     {
+        $this->cssSelector = $cssSelector;
+
         $this->escaper = new Escaper();
         $this->processedEntities = new NamesByTypes();
     }
@@ -52,8 +55,10 @@ class IconsStyleBuilder
      */
     protected function buildSelector(string $type, string $name): string
     {
-        $escapedSelector = $this->escaper->escapeCss(str_replace(' ', '_', "{$type}-${name}"));
-        return ".icon-{$escapedSelector}";
+        return str_replace(['{type}', '{name}'], [
+            $this->escaper->escapeCss(str_replace(' ', '_', $type)),
+            $this->escaper->escapeCss(str_replace(' ', '_', $name)),
+        ], $this->cssSelector);
     }
 
     /**

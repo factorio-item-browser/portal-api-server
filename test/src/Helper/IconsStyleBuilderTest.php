@@ -20,6 +20,8 @@ use PHPUnit\Framework\TestCase;
  */
 class IconsStyleBuilderTest extends TestCase
 {
+    private string $cssSelector = '.foo-{type}-{name}';
+
     /**
      * @param array<string> $mockedMethods
      * @return IconsStyleBuilder&MockObject
@@ -28,12 +30,15 @@ class IconsStyleBuilderTest extends TestCase
     {
         return $this->getMockBuilder(IconsStyleBuilder::class)
                     ->disableProxyingToOriginalMethods()
+                    ->setConstructorArgs([$this->cssSelector])
                     ->onlyMethods($mockedMethods)
                     ->getMock();
     }
 
     public function testProcessIcon(): void
     {
+        $this->cssSelector = '.foo-{type}-{name}';
+
         $entity1 = new Entity();
         $entity1->type = 'abc';
         $entity1->name = 'def';
@@ -58,8 +63,8 @@ class IconsStyleBuilderTest extends TestCase
         ];
 
         $expectedStyle = <<<EOT
-        .icon-abc\\2D def, .icon-ghi\\2D jkl { background-image: url(data:image/png;base64,c3R1); }
-        .icon-abc\\2D mno\\5F pqr { background-image: url(data:image/png;base64,dnd4); }
+        .foo-abc-def, .foo-ghi-jkl { background-image: url(data:image/png;base64,c3R1); }
+        .foo-abc-mno\\5F pqr { background-image: url(data:image/png;base64,dnd4); }
         EOT;
 
         $instance = $this->createInstance();

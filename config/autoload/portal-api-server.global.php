@@ -23,7 +23,7 @@ return [
             RouteName::SETTING_SAVE => Transfer\SettingOptionsData::class,
             RouteName::SETTING_VALIDATE => 'array<string>',
             RouteName::SIDEBAR_ENTITIES => sprintf('array<%s>', Transfer\SidebarEntityData::class),
-            RouteName::STYLE_ICONS => Transfer\NamesByTypes::class,
+            RouteName::STYLE_ICONS => Transfer\IconsStyleRequestData::class,
         ],
         ConfigKey::SERIALIZER => [
             JmsConfigKey::METADATA_DIRS => [

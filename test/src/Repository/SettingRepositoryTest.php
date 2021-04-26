@@ -15,7 +15,6 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -29,51 +28,40 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository
+ * @covers \FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository
  */
 class SettingRepositoryTest extends TestCase
 {
     use ReflectionTrait;
 
-    /**
-     * The mocked combination repository.
-     * @var CombinationRepository&MockObject
-     */
-    protected $combinationRepository;
+    /** @var CombinationRepository&MockObject */
+    private CombinationRepository $combinationRepository;
+    /** @var EntityManagerInterface&MockObject */
+    private EntityManagerInterface $entityManager;
 
-    /**
-     * The mocked entity manager.
-     * @var EntityManagerInterface&MockObject
-     */
-    protected $entityManager;
-
-    /**
-     * Sets up the test case.
-     */
     protected function setUp(): void
     {
-        parent::setUp();
-
         $this->combinationRepository = $this->createMock(CombinationRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
     }
 
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return SettingRepository&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): SettingRepository
     {
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-
-        $this->assertSame($this->combinationRepository, $this->extractProperty($repository, 'combinationRepository'));
-        $this->assertSame($this->entityManager, $this->extractProperty($repository, 'entityManager'));
+        return $this->getMockBuilder(SettingRepository::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->combinationRepository,
+                        $this->entityManager,
+                    ])
+                    ->getMock();
     }
 
     /**
-     * Tests the createSetting method.
-     * @covers ::createSetting
      * @throws Exception
      */
     public function testCreateSetting(): void
@@ -83,17 +71,15 @@ class SettingRepositoryTest extends TestCase
         /* @var Combination&MockObject $combination */
         $combination = $this->createMock(Combination::class);
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $result = $repository->createSetting($user, $combination);
+        $instance = $this->createInstance();
+        $result = $instance->createSetting($user, $combination);
 
-        $result->getId(); // Asserted by type-hint.
+        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
     }
 
     /**
-     * Tests the createDefaultSetting method.
-     * @covers ::createDefaultSetting
      * @throws Exception
      */
     public function testCreateDefaultSetting(): void
@@ -107,10 +93,10 @@ class SettingRepositoryTest extends TestCase
                                     ->method('getDefaultCombination')
                                     ->willReturn($defaultCombination);
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $result = $repository->createDefaultSetting($user);
+        $instance = $this->createInstance();
+        $result = $instance->createDefaultSetting($user);
 
-        $result->getId(); // Asserted by type-hint.
+        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($defaultCombination, $result->getCombination());
         $this->assertSame('Vanilla', $result->getName());
@@ -120,13 +106,10 @@ class SettingRepositoryTest extends TestCase
     }
 
     /**
-     * Tests the createTemporarySetting method.
      * @throws Exception
-     * @covers ::createTemporarySetting
      */
     public function testCreateTemporarySetting(): void
     {
-        $combinationId = $this->createMock(UuidInterface::class);
         $combination = $this->createMock(Combination::class);
 
         $lastSetting = new Setting();
@@ -138,15 +121,10 @@ class SettingRepositoryTest extends TestCase
              ->method('getLastUsedSetting')
              ->willReturn($lastSetting);
 
-        $this->combinationRepository->expects($this->once())
-                                    ->method('getCombination')
-                                    ->with($this->identicalTo($combinationId))
-                                    ->willReturn($combination);
+        $instance = $this->createInstance();
+        $result = $instance->createTemporarySetting($user, $combination);
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $result = $repository->createTemporarySetting($user, $combinationId);
-
-        $result->getId(); // Asserted by type-hint.
+        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
         $this->assertSame('Temporary', $result->getName());
@@ -156,13 +134,10 @@ class SettingRepositoryTest extends TestCase
     }
 
     /**
-     * Tests the createTemporarySetting method.
      * @throws Exception
-     * @covers ::createTemporarySetting
      */
     public function testCreateTemporarySettingWithoutLastSetting(): void
     {
-        $combinationId = $this->createMock(UuidInterface::class);
         $combination = $this->createMock(Combination::class);
 
         $user = $this->createMock(User::class);
@@ -170,15 +145,10 @@ class SettingRepositoryTest extends TestCase
              ->method('getLastUsedSetting')
              ->willReturn(null);
 
-        $this->combinationRepository->expects($this->once())
-                                    ->method('getCombination')
-                                    ->with($this->identicalTo($combinationId))
-                                    ->willReturn($combination);
+        $instance = $this->createInstance();
+        $result = $instance->createTemporarySetting($user, $combination);
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $result = $repository->createTemporarySetting($user, $combinationId);
-
-        $result->getId(); // Asserted by type-hint.
+        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
         $this->assertSame('Temporary', $result->getName());
@@ -187,31 +157,6 @@ class SettingRepositoryTest extends TestCase
         $this->assertTrue($result->getIsTemporary());
     }
 
-    /**
-     * Tests the createTemporarySetting method.
-     * @throws Exception
-     * @covers ::createTemporarySetting
-     */
-    public function testCreateTemporarySettingWithoutCombination(): void
-    {
-        $user = $this->createMock(User::class);
-        $combinationId = Uuid::fromString('800a2e58-034d-414e-8bb0-056bb9d5b4b0');
-
-        $this->combinationRepository->expects($this->once())
-                                    ->method('getCombination')
-                                    ->with($this->identicalTo($combinationId))
-                                    ->willReturn(null);
-
-        $this->expectException(UnknownEntityException::class);
-
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $repository->createTemporarySetting($user, $combinationId);
-    }
-
-    /**
-     * Tests the deleteSetting method.
-     * @covers ::deleteSetting
-     */
     public function testDeleteSetting(): void
     {
         $settingId = $this->createMock(UuidInterface::class);
@@ -219,21 +164,14 @@ class SettingRepositoryTest extends TestCase
         $setting = new Setting();
         $setting->setId($settingId);
 
-        $repository = $this->getMockBuilder(SettingRepository::class)
-                           ->onlyMethods(['removeSettings'])
-                           ->setConstructorArgs([$this->combinationRepository, $this->entityManager])
-                           ->getMock();
-        $repository->expects($this->once())
-                   ->method('removeSettings')
-                   ->with($this->equalTo([$settingId]));
+        $instance = $this->createInstance(['removeSettings']);
+        $instance->expects($this->once())
+                 ->method('removeSettings')
+                 ->with($this->equalTo([$settingId]));
 
-        $repository->deleteSetting($setting);
+        $instance->deleteSetting($setting);
     }
 
-    /**
-     * Tests the cleanupTemporarySettings method.
-     * @covers ::cleanupTemporarySettings
-     */
     public function testCleanupTemporarySettings(): void
     {
         $timeCut = $this->createMock(DateTime::class);
@@ -242,47 +180,35 @@ class SettingRepositoryTest extends TestCase
             $this->createMock(UuidInterface::class),
         ];
 
-        $repository = $this->getMockBuilder(SettingRepository::class)
-                           ->onlyMethods(['findOldTemporarySettings', 'removeSettings'])
-                           ->setConstructorArgs([$this->combinationRepository, $this->entityManager])
-                           ->getMock();
-        $repository->expects($this->once())
-                   ->method('findOldTemporarySettings')
-                   ->with($this->identicalTo($timeCut))
-                   ->willReturn($settingIds);
-        $repository->expects($this->once())
-                   ->method('removeSettings')
-                   ->with($this->identicalTo($settingIds));
+        $instance = $this->createInstance(['findOldTemporarySettings', 'removeSettings']);
+        $instance->expects($this->once())
+                 ->method('findOldTemporarySettings')
+                 ->with($this->identicalTo($timeCut))
+                 ->willReturn($settingIds);
+        $instance->expects($this->once())
+                 ->method('removeSettings')
+                 ->with($this->identicalTo($settingIds));
 
-        $repository->cleanupTemporarySettings($timeCut);
+        $instance->cleanupTemporarySettings($timeCut);
     }
 
-    /**
-     * Tests the cleanupTemporarySettings method.
-     * @covers ::cleanupTemporarySettings
-     */
     public function testCleanupTemporarySettingsWithoutSettingIds(): void
     {
         $timeCut = $this->createMock(DateTime::class);
 
-        $repository = $this->getMockBuilder(SettingRepository::class)
-                           ->onlyMethods(['findOldTemporarySettings', 'removeSettings'])
-                           ->setConstructorArgs([$this->combinationRepository, $this->entityManager])
-                           ->getMock();
-        $repository->expects($this->once())
-                   ->method('findOldTemporarySettings')
-                   ->with($this->identicalTo($timeCut))
-                   ->willReturn([]);
-        $repository->expects($this->never())
-                   ->method('removeSettings');
+        $instance = $this->createInstance(['findOldTemporarySettings', 'removeSettings']);
+        $instance->expects($this->once())
+                 ->method('findOldTemporarySettings')
+                 ->with($this->identicalTo($timeCut))
+                 ->willReturn([]);
+        $instance->expects($this->never())
+                 ->method('removeSettings');
 
-        $repository->cleanupTemporarySettings($timeCut);
+        $instance->cleanupTemporarySettings($timeCut);
     }
 
     /**
-     * Tests the findOldTemporarySettings method.
      * @throws ReflectionException
-     * @covers ::findOldTemporarySettings
      */
     public function testFindOldTemporarySettings(): void
     {
@@ -332,16 +258,14 @@ class SettingRepositoryTest extends TestCase
                             ->method('createQueryBuilder')
                             ->willReturn($queryBuilder);
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $result = $this->invokeMethod($repository, 'findOldTemporarySettings', $timeCut);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'findOldTemporarySettings', $timeCut);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the removeSettings method.
      * @throws ReflectionException
-     * @covers ::removeSettings
      */
     public function testRemoveSettings(): void
     {
@@ -403,7 +327,7 @@ class SettingRepositoryTest extends TestCase
                                 $queryBuilder2
                             );
 
-        $repository = new SettingRepository($this->combinationRepository, $this->entityManager);
-        $this->invokeMethod($repository, 'removeSettings', $settingIds);
+        $instance = $this->createInstance();
+        $this->invokeMethod($instance, 'removeSettings', $settingIds);
     }
 }

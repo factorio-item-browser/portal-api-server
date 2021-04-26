@@ -7,12 +7,11 @@ namespace FactorioItemBrowser\PortalApi\Server\Repository;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FactorioItemBrowser\PortalApi\Server\Constant\RecipeMode;
+use FactorioItemBrowser\PortalApi\Server\Constant\Defaults;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
-use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -24,43 +23,9 @@ use Ramsey\Uuid\UuidInterface;
  */
 class SettingRepository
 {
-    /**
-     * The name of the default setting.
-     */
-    protected const DEFAULT_NAME = 'Vanilla';
+    protected CombinationRepository $combinationRepository;
+    protected EntityManagerInterface $entityManager;
 
-    /**
-     * The recipe mode of the default setting.
-     */
-    protected const DEFAULT_RECIPE_MODE = RecipeMode::HYBRID;
-
-    /**
-     * The locale of the default setting.
-     */
-    protected const DEFAULT_LOCALE = 'en';
-
-    /**
-     * The name of a temporary setting.
-     */
-    protected const TEMPORARY_NAME = 'Temporary';
-
-    /**
-     * The combination repository.
-     * @var CombinationRepository
-     */
-    protected $combinationRepository;
-
-    /**
-     * The entity manager.
-     * @var EntityManagerInterface
-     */
-    protected $entityManager;
-
-    /**
-     * Initializes the repository.
-     * @param CombinationRepository $combinationRepository
-     * @param EntityManagerInterface $entityManager
-     */
     public function __construct(
         CombinationRepository $combinationRepository,
         EntityManagerInterface $entityManager
@@ -97,9 +62,9 @@ class SettingRepository
     {
         $defaultCombination = $this->combinationRepository->getDefaultCombination();
         $setting = $this->createSetting($user, $defaultCombination);
-        $setting->setName(self::DEFAULT_NAME)
-                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
-                ->setLocale(self::DEFAULT_LOCALE)
+        $setting->setName(Defaults::SETTING_NAME)
+                ->setRecipeMode(Defaults::RECIPE_MODE)
+                ->setLocale(Defaults::LOCALE)
                 ->setHasData(true);
         return $setting;
     }
@@ -107,22 +72,17 @@ class SettingRepository
     /**
      * Creates a temporary setting for the user.
      * @param User $user
-     * @param UuidInterface $combinationId
+     * @param Combination $combination
      * @return Setting
      * @throws Exception
      */
-    public function createTemporarySetting(User $user, UuidInterface $combinationId): Setting
+    public function createTemporarySetting(User $user, Combination $combination): Setting
     {
-        $combination = $this->combinationRepository->getCombination($combinationId);
-        if ($combination === null) {
-            throw new UnknownEntityException('combination', $combinationId->toString());
-        }
-
         $setting = $this->createSetting($user, $combination);
-        $setting->setName(self::TEMPORARY_NAME)
+        $setting->setName(Defaults::TEMPORARY_SETTING_NAME)
                 ->setIsTemporary(true)
-                ->setRecipeMode(self::DEFAULT_RECIPE_MODE)
-                ->setLocale(self::DEFAULT_LOCALE);
+                ->setRecipeMode(Defaults::RECIPE_MODE)
+                ->setLocale(Defaults::LOCALE);
 
         $lastSetting = $user->getLastUsedSetting();
         if ($lastSetting !== null) {

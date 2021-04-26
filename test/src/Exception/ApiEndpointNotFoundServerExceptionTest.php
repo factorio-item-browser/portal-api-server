@@ -33,7 +33,7 @@ class ApiEndpointNotFoundServerExceptionTest extends TestCase
         $exception = new ApiEndpointNotFoundServerException($endpoint, $previous);
 
         $this->assertSame($expectedMessage, $exception->getMessage());
-        $this->assertSame(404, $exception->getCode());
+        $this->assertSame(400, $exception->getCode());
         $this->assertSame($previous, $exception->getPrevious());
     }
 }

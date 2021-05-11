@@ -10,7 +10,7 @@ use FactorioItemBrowser\PortalApi\Server\Exception\FailedApiRequestException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleFetcher;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
+use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleRequestData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -41,13 +41,13 @@ class IconsHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var NamesByTypes $namesByTypes */
-        $namesByTypes = $request->getParsedBody();
+        /** @var IconsStyleRequestData $requestData */
+        $requestData = $request->getParsedBody();
 
         try {
-            $promise = $this->iconsStyleFetcher->request($this->currentSetting, $namesByTypes);
-            $iconsStyleData = $this->iconsStyleFetcher->process($promise);
-            $this->iconsStyleFetcher->addMissingEntities($iconsStyleData->processedEntities, $namesByTypes);
+            $promise = $this->iconsStyleFetcher->request($this->currentSetting, $requestData->entities);
+            $iconsStyleData = $this->iconsStyleFetcher->process($requestData->cssSelector, $promise);
+            $this->iconsStyleFetcher->addMissingEntities($iconsStyleData->processedEntities, $requestData->entities);
 
             return new TransferResponse($iconsStyleData);
         } catch (ClientException $e) {

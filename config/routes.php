@@ -6,7 +6,7 @@
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  */
-
+// phpcs:ignoreFile
 
 declare(strict_types=1);
 
@@ -27,13 +27,12 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->get('/recipe/{name}/machines', Handler\Recipe\MachinesHandler::class, RouteName::RECIPE_MACHINES);
     $app->get('/search', Handler\SearchHandler::class, RouteName::SEARCH);
 
-    $app->get('/settings', Handler\Settings\ListHandler::class, RouteName::SETTINGS_LIST);
-    $app->put('/settings', Handler\Settings\CreateHandler::class, RouteName::SETTINGS_CREATE);
-    $app->get('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS);
-    $app->post('/settings/status', Handler\Settings\StatusHandler::class, RouteName::SETTINGS_STATUS_MODS);
-    $app->delete('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\DeleteHandler::class, RouteName::SETTINGS_DELETE);
-    $app->get('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\DetailsHandler::class, RouteName::SETTINGS_DETAILS);
-    $app->put('/settings/{combination-id:[0-9a-f-]{36}}', Handler\Settings\SaveHandler::class, RouteName::SETTINGS_SAVE);
+    $app->get('/settings', Handler\Setting\ListHandler::class, RouteName::SETTING_LIST);
+    $app->post('/setting/validate', Handler\Setting\ValidateHandler::class, RouteName::SETTING_VALIDATE);
+    $app->delete('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\DeleteHandler::class, RouteName::SETTING_DELETE);
+    $app->get('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\DetailsHandler::class, RouteName::SETTING_DETAILS);
+    $app->put('/setting/{combination-id:[0-9a-f-]{36}}', Handler\Setting\SaveHandler::class, RouteName::SETTING_SAVE);
+    $app->get('/setting/{combination-id:[0-9a-f-]{36}}/mods', Handler\Setting\ModsHandler::class, RouteName::SETTING_MODS);
 
     $app->put('/sidebar/entities', Handler\Sidebar\EntitiesHandler::class, RouteName::SIDEBAR_ENTITIES);
     $app->post('/style/icons', Handler\Style\IconsHandler::class, RouteName::STYLE_ICONS);

@@ -6,11 +6,15 @@ namespace FactorioItemBrowser\PortalApi\Server\Middleware;
 
 use DateTime;
 use Exception;
+use FactorioItemBrowser\PortalApi\Server\Constant\CombinationStatus;
 use FactorioItemBrowser\PortalApi\Server\Constant\RouteName;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
+use FactorioItemBrowser\PortalApi\Server\Exception\FailedCombinationApiException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingCombinationIdException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSessionException;
+use FactorioItemBrowser\PortalApi\Server\Exception\UnknownEntityException;
+use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\CookieHelper;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use FactorioItemBrowser\PortalApi\Server\Repository\UserRepository;
@@ -32,43 +36,20 @@ use Ramsey\Uuid\UuidInterface;
  */
 class SessionMiddleware implements MiddlewareInterface
 {
-    /**
-     * The cookie helper.
-     * @var CookieHelper
-     */
-    protected $cookieHelper;
+    protected CombinationHelper $combinationHelper;
+    protected CookieHelper $cookieHelper;
+    protected ServiceManager $serviceManager;
+    protected SettingRepository $settingRepository;
+    protected UserRepository $userRepository;
 
-    /**
-     * The service manager.
-     * @var ServiceManager
-     */
-    protected $serviceManager;
-
-    /**
-     * The setting repository.
-     * @var SettingRepository
-     */
-    protected $settingRepository;
-
-    /**
-     * The user repository.
-     * @var UserRepository
-     */
-    protected $userRepository;
-
-    /**
-     * Initializes the middleware.
-     * @param CookieHelper $cookieHelper
-     * @param ServiceManager $serviceManager
-     * @param SettingRepository $settingRepository
-     * @param UserRepository $userRepository
-     */
     public function __construct(
+        CombinationHelper $combinationHelper,
         CookieHelper $cookieHelper,
         ServiceManager $serviceManager,
         SettingRepository $settingRepository,
         UserRepository $userRepository
     ) {
+        $this->combinationHelper = $combinationHelper;
         $this->cookieHelper = $cookieHelper;
         $this->serviceManager = $serviceManager;
         $this->settingRepository = $settingRepository;
@@ -94,8 +75,7 @@ class SessionMiddleware implements MiddlewareInterface
         $response = $handler->handle($request);
 
         $this->userRepository->persist($user);
-        $response = $this->cookieHelper->injectUser($response, $user);
-        return $response;
+        return $this->cookieHelper->injectUser($response, $user);
     }
 
     /**
@@ -152,7 +132,16 @@ class SessionMiddleware implements MiddlewareInterface
             }
         }
 
-        $setting = $this->settingRepository->createTemporarySetting($user, $combinationId);
+        try {
+            $combination = $this->combinationHelper->createForCombinationId($combinationId);
+        } catch (FailedCombinationApiException $e) {
+            throw new UnknownEntityException('combination', $combinationId->toString(), $e);
+        }
+        if ($combination->getStatus() === CombinationStatus::UNKNOWN) {
+            throw new UnknownEntityException('combination', $combinationId->toString());
+        }
+
+        $setting = $this->settingRepository->createTemporarySetting($user, $combination);
         $user->getSettings()->add($setting);
 
         return $setting;

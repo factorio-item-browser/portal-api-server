@@ -7,12 +7,10 @@ namespace FactorioItemBrowserTest\PortalApi\Server\Mapper;
 use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Mapper\SettingMapper;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use stdClass;
 
 /**
  * The PHPUnit test of the SettingMapper class.
@@ -35,31 +33,12 @@ class SettingMapperTest extends TestCase
                     ->getMock();
     }
 
-    /**
-     * @return array<mixed>
-     */
-    public function provideSupports(): array
-    {
-        return [
-            [new Setting(), new SettingMetaData(), true],
-            [new Setting(), new SettingDetailsData(), true],
-            [new Setting(), new stdClass(), false],
-            [new stdClass(), new SettingMetaData(), false],
-        ];
-    }
-
-    /**
-     * @param object $source
-     * @param object $destination
-     * @param bool $expectedResult
-     * @dataProvider provideSupports
-     */
-    public function testSupports(object $source, object $destination, bool $expectedResult): void
+    public function testSupports(): void
     {
         $instance = $this->createInstance();
-        $result = $instance->supports($source, $destination);
 
-        $this->assertSame($expectedResult, $result);
+        $this->assertSame(Setting::class, $instance->getSupportedSourceClass());
+        $this->assertSame(SettingData::class, $instance->getSupportedDestinationClass());
     }
 
     public function testMap(): void
@@ -68,47 +47,24 @@ class SettingMapperTest extends TestCase
 
         $combination = new Combination();
         $combination->setId(Uuid::fromString($combinationId))
-                    ->setStatus('def');
+                    ->setStatus('abc');
 
         $source = new Setting();
-        $source->setName('abc')
-               ->setCombination($combination);
-
-        $expectedDestination = new SettingMetaData();
-        $expectedDestination->combinationId = $combinationId;
-        $expectedDestination->name = 'abc';
-        $expectedDestination->status = 'def';
-
-        $destination = new SettingMetaData();
-
-        $instance = $this->createInstance();
-        $instance->map($source, $destination);
-
-        $this->assertEquals($expectedDestination, $destination);
-    }
-
-    public function testMapWithDetails(): void
-    {
-        $combinationId = 'bc845964-3422-45ad-b8c1-819af3763667';
-
-        $combination = new Combination();
-        $combination->setId(Uuid::fromString($combinationId))
-                    ->setStatus('def');
-
-        $source = new Setting();
-        $source->setName('abc')
+        $source->setName('def')
                ->setCombination($combination)
                ->setLocale('ghi')
-               ->setRecipeMode('jkl');
+               ->setRecipeMode('jkl')
+               ->setIsTemporary(true);
 
-        $expectedDestination = new SettingDetailsData();
+        $expectedDestination = new SettingData();
         $expectedDestination->combinationId = $combinationId;
-        $expectedDestination->name = 'abc';
-        $expectedDestination->status = 'def';
+        $expectedDestination->name = 'def';
         $expectedDestination->locale = 'ghi';
         $expectedDestination->recipeMode = 'jkl';
+        $expectedDestination->status = 'abc';
+        $expectedDestination->isTemporary = true;
 
-        $destination = new SettingDetailsData();
+        $destination = new SettingData();
 
         $instance = $this->createInstance();
         $instance->map($source, $destination);

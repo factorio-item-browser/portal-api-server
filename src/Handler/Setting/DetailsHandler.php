@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
+namespace FactorioItemBrowser\PortalApi\Server\Handler\Setting;
 
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
+use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -22,13 +24,18 @@ use Ramsey\Uuid\Uuid;
  */
 class DetailsHandler implements RequestHandlerInterface
 {
+    private CombinationHelper $combinationHelper;
     private User $currentUser;
-    private SettingHelper $settingHelper;
+    private MapperManagerInterface $mapperManager;
 
-    public function __construct(User $currentUser, SettingHelper $settingHelper)
-    {
+    public function __construct(
+        CombinationHelper $combinationHelper,
+        User $currentUser,
+        MapperManagerInterface $mapperManager
+    ) {
+        $this->combinationHelper = $combinationHelper;
         $this->currentUser = $currentUser;
-        $this->settingHelper = $settingHelper;
+        $this->mapperManager = $mapperManager;
     }
 
     /**
@@ -44,7 +51,8 @@ class DetailsHandler implements RequestHandlerInterface
             throw new MissingSettingException($combinationId);
         }
 
-        $settingDetails = $this->settingHelper->createSettingDetails($setting);
-        return new TransferResponse($settingDetails);
+        $this->combinationHelper->updateStatus($setting->getCombination());
+        $settingData = $this->mapperManager->map($setting, new SettingData());
+        return new TransferResponse($settingData);
     }
 }

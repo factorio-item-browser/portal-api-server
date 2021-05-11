@@ -10,9 +10,11 @@ use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
 use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
 use FactorioItemBrowser\CombinationApi\Client\Exception\ClientException;
 use FactorioItemBrowser\CombinationApi\Client\Request\Combination\StatusRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Combination\ValidateRequest;
 use FactorioItemBrowser\CombinationApi\Client\Request\Job\CreateRequest;
 use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
 use FactorioItemBrowser\CombinationApi\Client\Response\Combination\StatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Combination\ValidateResponse;
 use FactorioItemBrowser\CombinationApi\Client\Response\Job\DetailsResponse;
 use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
 use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
@@ -22,6 +24,7 @@ use FactorioItemBrowser\PortalApi\Server\Exception\FailedCombinationApiException
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use GuzzleHttp\Promise\FulfilledPromise;
+use GuzzleHttp\Promise\RejectedPromise;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -170,6 +173,93 @@ class CombinationHelperTest extends TestCase
 
         $instance = $this->createInstance();
         $instance->createForModNames($modNames);
+    }
+
+    /**
+     * @throws FailedCombinationApiException
+     */
+    public function testCreateForCombinationId(): void
+    {
+        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
+
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+        $statusResponse = new StatusResponse();
+        $statusResponse->id = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+        $statusResponse->modNames = ['abc', 'def'];
+        $statusResponse->isDataAvailable = true;
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willReturn(new FulfilledPromise($statusResponse));
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn(null);
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('persist')
+                                    ->with($this->isInstanceOf(Combination::class));
+
+        $instance = $this->createInstance();
+        $result = $instance->createForCombinationId($combinationId);
+
+        $this->assertSame($combinationId, $result->getId());
+        $this->assertSame(['abc', 'def'], $result->getModNames());
+        $this->assertSame(CombinationStatus::AVAILABLE, $result->getStatus());
+    }
+
+    /**
+     * @throws FailedCombinationApiException
+     */
+    public function testCreateForCombinationIdWithExistingCombination(): void
+    {
+        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
+        $combination = $this->createMock(Combination::class);
+
+        $this->combinationApiClient->expects($this->never())
+                                   ->method('sendRequest');
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn($combination);
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $instance = $this->createInstance();
+        $result = $instance->createForCombinationId($combinationId);
+
+        $this->assertSame($combination, $result);
+    }
+
+    public function testCreateForCombinationIdWithApiException(): void
+    {
+        $combinationId = Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76');
+
+        $expectedApiRequest = new StatusRequest();
+        $expectedApiRequest->combinationId = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedApiRequest))
+                                   ->willReturn(new RejectedPromise($this->createMock(ClientException::class)));
+
+        $this->combinationRepository->expects($this->once())
+                                    ->method('getCombination')
+                                    ->with($this->identicalTo($combinationId))
+                                    ->willReturn(null);
+
+        $this->combinationRepository->expects($this->never())
+                                    ->method('persist');
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->createForCombinationId($combinationId);
     }
 
     /**
@@ -384,5 +474,52 @@ class CombinationHelperTest extends TestCase
 
         $instance = $this->createInstance();
         $instance->triggerExport($combination);
+    }
+
+    /**
+     * @throws FailedCombinationApiException
+     */
+    public function testValidate(): void
+    {
+        $factorioVersion = '1.2.3';
+        $combination = new Combination();
+        $combination->setId(Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'));
+
+        $expectedRequest = new ValidateRequest();
+        $expectedRequest->combinationId = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+        $expectedRequest->factorioVersion = '1.2.3';
+
+        $response = $this->createMock(ValidateResponse::class);
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedRequest))
+                                   ->willReturn(new FulfilledPromise($response));
+
+        $instance = $this->createInstance();
+        $result = $instance->validate($combination, $factorioVersion);
+
+        $this->assertSame($response, $result);
+    }
+
+    public function testValidateWithApiException(): void
+    {
+        $factorioVersion = '1.2.3';
+        $combination = new Combination();
+        $combination->setId(Uuid::fromString('2f4a45fa-a509-a9d1-aae6-ffcf984a7a76'));
+
+        $expectedRequest = new ValidateRequest();
+        $expectedRequest->combinationId = '2f4a45fa-a509-a9d1-aae6-ffcf984a7a76';
+        $expectedRequest->factorioVersion = '1.2.3';
+
+        $this->combinationApiClient->expects($this->once())
+                                   ->method('sendRequest')
+                                   ->with($this->equalTo($expectedRequest))
+                                   ->willReturn(new RejectedPromise($this->createMock(ClientException::class)));
+
+        $this->expectException(FailedCombinationApiException::class);
+
+        $instance = $this->createInstance();
+        $instance->validate($combination, $factorioVersion);
     }
 }

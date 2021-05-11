@@ -2,11 +2,9 @@ FactorioItemBrowser\PortalApi\Server\Transfer\InitData:
   exclusion_policy: all
   properties:
     setting:
-      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingData
     lastUsedSetting:
-      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData
-    locale:
-      type: string
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingData
     sidebarEntities:
       type: array<FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData>
     scriptVersion:

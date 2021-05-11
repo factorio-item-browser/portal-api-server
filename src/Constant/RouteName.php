@@ -53,39 +53,34 @@ interface RouteName
     public const SEARCH = 'search';
 
     /**
-     * The route for creating a new setting.
-     */
-    public const SETTINGS_CREATE = 'settings.create';
-
-    /**
      * The route for deleting a setting.
      */
-    public const SETTINGS_DELETE = 'settings.delete';
+    public const SETTING_DELETE = 'setting.delete';
 
     /**
      * The route for requesting the details of a setting.
      */
-    public const SETTINGS_DETAILS = 'settings.details';
+    public const SETTING_DETAILS = 'setting.details';
 
     /**
      * The route for requesting the settings list.
      */
-    public const SETTINGS_LIST = 'settings.list';
+    public const SETTING_LIST = 'setting.list';
+
+    /**
+     * The route for requesting the mods of a setting.
+     */
+    public const SETTING_MODS = 'setting.mods';
 
     /**
      * The route for saving changes of a setting.
      */
-    public const SETTINGS_SAVE = 'settings.save';
+    public const SETTING_SAVE = 'setting.save';
 
     /**
      * The route for requesting the status of the current setting.
      */
-    public const SETTINGS_STATUS = 'settings.status';
-
-    /**
-     * The route for requesting the status of a combination of mods.
-     */
-    public const SETTINGS_STATUS_MODS = 'settings.status.mods';
+    public const SETTING_VALIDATE = 'setting.validate';
 
     /**
      * The route for sending the sidebar entities to the server.

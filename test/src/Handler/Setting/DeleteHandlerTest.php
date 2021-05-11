@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Settings;
+namespace FactorioItemBrowserTest\PortalApi\Server\Handler\Setting;
 
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
 use FactorioItemBrowser\PortalApi\Server\Exception\DeleteActiveSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\MissingSettingException;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Handler\Settings\DeleteHandler;
+use FactorioItemBrowser\PortalApi\Server\Handler\Setting\DeleteHandler;
 use FactorioItemBrowser\PortalApi\Server\Repository\SettingRepository;
 use Laminas\Diactoros\Response\EmptyResponse;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -22,7 +22,7 @@ use Ramsey\Uuid\Uuid;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Settings\DeleteHandler
+ * @covers \FactorioItemBrowser\PortalApi\Server\Handler\Setting\DeleteHandler
  */
 class DeleteHandlerTest extends TestCase
 {

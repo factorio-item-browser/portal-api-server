@@ -10,9 +10,11 @@ use FactorioItemBrowser\CombinationApi\Client\Constant\JobStatus;
 use FactorioItemBrowser\CombinationApi\Client\Constant\ListOrder;
 use FactorioItemBrowser\CombinationApi\Client\Exception\ClientException;
 use FactorioItemBrowser\CombinationApi\Client\Request\Combination\StatusRequest;
+use FactorioItemBrowser\CombinationApi\Client\Request\Combination\ValidateRequest;
 use FactorioItemBrowser\CombinationApi\Client\Request\Job\CreateRequest;
 use FactorioItemBrowser\CombinationApi\Client\Request\Job\ListRequest;
 use FactorioItemBrowser\CombinationApi\Client\Response\Combination\StatusResponse;
+use FactorioItemBrowser\CombinationApi\Client\Response\Combination\ValidateResponse;
 use FactorioItemBrowser\CombinationApi\Client\Response\Job\DetailsResponse;
 use FactorioItemBrowser\CombinationApi\Client\Response\Job\ListResponse;
 use FactorioItemBrowser\CombinationApi\Client\Transfer\Job;
@@ -21,6 +23,7 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Combination;
 use FactorioItemBrowser\PortalApi\Server\Exception\FailedCombinationApiException;
 use FactorioItemBrowser\PortalApi\Server\Repository\CombinationRepository;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 /**
  * The helper for managing the combinations.
@@ -65,6 +68,39 @@ class CombinationHelper
                         ->setModNames($response->modNames)
                         ->setStatus(CombinationStatus::UNKNOWN);
         }
+
+        $this->applyStatusResponse($combination, $response);
+        $this->persist($combination);
+        return $combination;
+    }
+
+    /**
+     * Creates the combination for the specified id, requesting its details from the Combination API if necessary.
+     * @param UuidInterface $combinationId
+     * @return Combination
+     * @throws FailedCombinationApiException
+     */
+    public function createForCombinationId(UuidInterface $combinationId): Combination
+    {
+        $combination = $this->combinationRepository->getCombination($combinationId);
+        if ($combination !== null) {
+            return $combination;
+        }
+
+        $request = new StatusRequest();
+        $request->combinationId = $combinationId->toString();
+
+        try {
+            /** @var StatusResponse $response */
+            $response = $this->combinationApiClient->sendRequest($request)->wait();
+        } catch (ClientException $e) {
+            throw new FailedCombinationApiException($e);
+        }
+
+        $combination = new Combination();
+        $combination->setId($combinationId)
+                    ->setModNames($response->modNames)
+                    ->setStatus(CombinationStatus::UNKNOWN);
 
         $this->applyStatusResponse($combination, $response);
         $this->persist($combination);
@@ -162,6 +198,28 @@ class CombinationHelper
     {
         if ($combination->getStatus() !== CombinationStatus::UNKNOWN) {
             $this->combinationRepository->persist($combination);
+        }
+    }
+
+    /**
+     * Validates the combination.
+     * @param Combination $combination
+     * @param string $factorioVersion
+     * @return ValidateResponse
+     * @throws FailedCombinationApiException
+     */
+    public function validate(Combination $combination, string $factorioVersion): ValidateResponse
+    {
+        $request = new ValidateRequest();
+        $request->combinationId = $combination->getId()->toString();
+        $request->factorioVersion = $factorioVersion;
+
+        try {
+            /** @var ValidateResponse $response */
+            $response = $this->combinationApiClient->sendRequest($request)->wait();
+            return $response;
+        } catch (ClientException $e) {
+            throw new FailedCombinationApiException($e);
         }
     }
 }

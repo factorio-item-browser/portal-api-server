@@ -12,10 +12,10 @@ use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\SidebarEntity;
 use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
 use FactorioItemBrowser\PortalApi\Server\Helper\CombinationHelper;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Helper\SidebarEntitiesHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\InitData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use FactorioItemBrowser\PortalApi\Server\Transfer\SidebarEntityData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,7 +32,6 @@ class InitHandler implements RequestHandlerInterface
     private CombinationHelper $combinationHelper;
     private Setting $currentSetting;
     private MapperManagerInterface $mapperManager;
-    private SettingHelper $settingHelper;
     private SidebarEntitiesHelper $sidebarEntitiesHelper;
     private string $scriptVersion;
 
@@ -40,14 +39,12 @@ class InitHandler implements RequestHandlerInterface
         CombinationHelper $combinationHelper,
         Setting $currentSetting,
         MapperManagerInterface $mapperManager,
-        SettingHelper $settingHelper,
         SidebarEntitiesHelper $sidebarEntitiesHelper,
         string $scriptVersion
     ) {
         $this->combinationHelper = $combinationHelper;
         $this->currentSetting = $currentSetting;
         $this->mapperManager = $mapperManager;
-        $this->settingHelper = $settingHelper;
         $this->sidebarEntitiesHelper = $sidebarEntitiesHelper;
         $this->scriptVersion = $scriptVersion;
     }
@@ -63,20 +60,20 @@ class InitHandler implements RequestHandlerInterface
         $this->updateSetting($this->currentSetting);
 
         $response = new InitData();
-        $response->setting = $this->settingHelper->createSettingMeta($this->currentSetting);
-        $response->locale = $this->currentSetting->getLocale();
+        $response->scriptVersion = $this->scriptVersion;
+
+        $response->setting = $this->mapperManager->map($this->currentSetting, new SettingData());
+        if ($this->currentSetting->getIsTemporary()) {
+            $lastUsedSetting = $this->currentSetting->getUser()->getLastUsedSetting();
+            if ($lastUsedSetting !== null) {
+                $response->lastUsedSetting = $this->mapperManager->map($lastUsedSetting, new SettingData());
+            }
+        }
+
         $response->sidebarEntities = array_map(
             [$this, 'mapSidebarEntity'],
             $this->currentSetting->getSidebarEntities()->toArray(),
         );
-        $response->scriptVersion = $this->scriptVersion;
-
-        if ($this->currentSetting->getIsTemporary()) {
-            $lastUsedSetting = $this->currentSetting->getUser()->getLastUsedSetting();
-            if ($lastUsedSetting !== null) {
-                $response->lastUsedSetting = $this->settingHelper->createSettingMeta($lastUsedSetting);
-            }
-        }
 
         return new TransferResponse($response);
     }

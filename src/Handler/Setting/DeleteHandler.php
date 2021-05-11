@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
+namespace FactorioItemBrowser\PortalApi\Server\Handler\Setting;
 
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;

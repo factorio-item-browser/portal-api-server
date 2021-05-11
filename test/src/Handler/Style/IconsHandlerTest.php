@@ -12,7 +12,7 @@ use FactorioItemBrowser\PortalApi\Server\Handler\Style\IconsHandler;
 use FactorioItemBrowser\PortalApi\Server\Helper\IconsStyleFetcher;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
 use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\NamesByTypes;
+use FactorioItemBrowser\PortalApi\Server\Transfer\IconsStyleRequestData;
 use GuzzleHttp\Promise\PromiseInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -59,12 +59,13 @@ class IconsHandlerTest extends TestCase
      */
     public function testHandle(): void
     {
-        $namesByTypes = $this->createMock(NamesByTypes::class);
+        $requestData = new IconsStyleRequestData();
+        $requestData->cssSelector = 'def';
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getParsedBody')
-                ->willReturn($namesByTypes);
+                ->willReturn($requestData);
 
         $iconsPromise = $this->createMock(PromiseInterface::class);
         $transfer = new IconsStyleData();
@@ -72,17 +73,20 @@ class IconsHandlerTest extends TestCase
 
         $this->iconsStyleFetcher->expects($this->once())
                                 ->method('request')
-                                ->with($this->identicalTo($this->currentSetting), $this->identicalTo($namesByTypes))
+                                ->with(
+                                    $this->identicalTo($this->currentSetting),
+                                    $this->identicalTo($requestData->entities),
+                                )
                                 ->willReturn($iconsPromise);
         $this->iconsStyleFetcher->expects($this->once())
                                 ->method('process')
-                                ->with($this->identicalTo($iconsPromise))
+                                ->with($this->identicalTo('def'), $this->identicalTo($iconsPromise))
                                 ->willReturn($transfer);
         $this->iconsStyleFetcher->expects($this->once())
                                 ->method('addMissingEntities')
                                 ->with(
                                     $this->identicalTo($transfer->processedEntities),
-                                    $this->identicalTo($namesByTypes),
+                                    $this->identicalTo($requestData->entities),
                                 );
 
         $instance = $this->createInstance();
@@ -98,16 +102,20 @@ class IconsHandlerTest extends TestCase
      */
     public function testHandleWithApiException(): void
     {
-        $namesByTypes = $this->createMock(NamesByTypes::class);
+        $requestData = new IconsStyleRequestData();
+        $requestData->cssSelector = 'def';
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->expects($this->once())
                 ->method('getParsedBody')
-                ->willReturn($namesByTypes);
+                ->willReturn($requestData);
 
         $this->iconsStyleFetcher->expects($this->once())
                                 ->method('request')
-                                ->with($this->identicalTo($this->currentSetting), $this->identicalTo($namesByTypes))
+                                ->with(
+                                    $this->identicalTo($this->currentSetting),
+                                    $this->identicalTo($requestData->entities),
+                                )
                                 ->willThrowException($this->createMock(ClientException::class));
 
         $this->expectException(FailedApiRequestException::class);

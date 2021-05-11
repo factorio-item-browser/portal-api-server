@@ -60,12 +60,13 @@ class IconsStyleFetcher
 
     /**
      * Processes the response of the API server, building up the icons style.
+     * @param string $cssSelector
      * @param PromiseInterface $requestPromise
      * @return IconsStyleData
      */
-    public function process(PromiseInterface $requestPromise): IconsStyleData
+    public function process(string $cssSelector, PromiseInterface $requestPromise): IconsStyleData
     {
-        $builder = new IconsStyleBuilder();
+        $builder = new IconsStyleBuilder($cssSelector);
 
         /** @var GenericIconResponse $response */
         $response = $requestPromise->wait();

@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace FactorioItemBrowser\PortalApi\Server\Handler\Settings;
+namespace FactorioItemBrowser\PortalApi\Server\Handler\Setting;
 
+use BluePsyduck\MapperManager\MapperManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
 use FactorioItemBrowser\PortalApi\Server\Entity\User;
-use FactorioItemBrowser\PortalApi\Server\Exception\PortalApiServerException;
-use FactorioItemBrowser\PortalApi\Server\Helper\SettingHelper;
 use FactorioItemBrowser\PortalApi\Server\Response\TransferResponse;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingsListData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -24,43 +23,42 @@ class ListHandler implements RequestHandlerInterface
 {
     private Setting $currentSetting;
     private User $currentUser;
-    private SettingHelper $settingHelper;
+    private MapperManagerInterface $mapperManager;
 
-    public function __construct(Setting $currentSetting, User $currentUser, SettingHelper $settingHelper)
+    public function __construct(Setting $currentSetting, User $currentUser, MapperManagerInterface $mapperManager)
     {
         $this->currentSetting = $currentSetting;
         $this->currentUser = $currentUser;
-        $this->settingHelper = $settingHelper;
+        $this->mapperManager = $mapperManager;
     }
 
     /**
      * @param ServerRequestInterface $request
      * @return ResponseInterface
-     * @throws PortalApiServerException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $settings = array_map([$this->settingHelper, 'createSettingMeta'], $this->getFilteredSettings());
-        $currentSetting = $this->settingHelper->createSettingDetails($this->currentSetting);
-
-        $settingList = new SettingsListData();
-        $settingList->settings = $settings;
-        $settingList->currentSetting = $currentSetting;
-        return new TransferResponse($settingList);
+        $settings = array_map([$this, 'mapSetting'], $this->getFilteredSettings());
+        return new TransferResponse($settings);
     }
 
     /**
      * Returns the settings of the current user, ignoring the temporary ones.
      * @return array<Setting>
      */
-    protected function getFilteredSettings(): array
+    private function getFilteredSettings(): array
     {
-        $result = [];
+        $settings = [];
         foreach ($this->currentUser->getSettings() as $setting) {
             if (!$setting->getIsTemporary() || $setting->getId()->equals($this->currentSetting->getId())) {
-                $result[] = $setting;
+                $settings[] = $setting;
             }
         }
-        return $result;
+        return $settings;
+    }
+
+    private function mapSetting(Setting $setting): SettingData
+    {
+        return $this->mapperManager->map($setting, new SettingData());
     }
 }

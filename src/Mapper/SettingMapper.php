@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace FactorioItemBrowser\PortalApi\Server\Mapper;
 
-use BluePsyduck\MapperManager\Mapper\DynamicMapperInterface;
+use BluePsyduck\MapperManager\Mapper\StaticMapperInterface;
 use FactorioItemBrowser\PortalApi\Server\Entity\Setting;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingDetailsData;
-use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
+use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
 
 /**
  * The mapper of the settings.
@@ -15,29 +14,31 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingMetaData;
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
  *
- * @implements DynamicMapperInterface<Setting, SettingMetaData>
+ * @implements StaticMapperInterface<Setting, SettingData>
  */
-class SettingMapper implements DynamicMapperInterface
+class SettingMapper implements StaticMapperInterface
 {
-    public function supports(object $source, object $destination): bool
+    public function getSupportedSourceClass(): string
     {
-        return $source instanceof Setting && $destination instanceof SettingMetaData;
+        return Setting::class;
+    }
+
+    public function getSupportedDestinationClass(): string
+    {
+        return SettingData::class;
     }
 
     /**
      * @param Setting $source
-     * @param SettingMetaData $destination
+     * @param SettingData $destination
      */
     public function map(object $source, object $destination): void
     {
         $destination->combinationId = $source->getCombination()->getId()->toString();
         $destination->name = $source->getName();
+        $destination->locale = $source->getLocale();
+        $destination->recipeMode = $source->getRecipeMode();
         $destination->status = $source->getCombination()->getStatus();
         $destination->isTemporary = $source->getIsTemporary();
-
-        if ($destination instanceof SettingDetailsData) {
-            $destination->locale = $source->getLocale();
-            $destination->recipeMode = $source->getRecipeMode();
-        }
     }
 }

@@ -1,0 +1,13 @@
+FactorioItemBrowser\PortalApi\Server\Transfer\SettingValidationData:
+  exclusion_policy: all
+  properties:
+    combinationId:
+      type: string
+    status:
+      type: string
+    isValid:
+      type: boolean
+    validationProblems:
+      type: array<FactorioItemBrowser\PortalApi\Server\Transfer\ValidationProblemData>
+    existingSetting:
+      type: FactorioItemBrowser\PortalApi\Server\Transfer\SettingData

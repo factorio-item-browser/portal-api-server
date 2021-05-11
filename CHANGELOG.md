@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0 - 2021-05-11
+
+### Changed
+
+- Refactored all setting related endpoints, including adding new ones for validating a setting and for requesting the 
+  mods of a setting.
+- Status code of unknown endpoints to 400 (was 404).
+- Endpoint `/style/icons` now expecting the CSS selector (with placeholders) to use for the generated stylesheet.
+
+### Fixed
+
+- `/init` failing if a combination is not yet known to the api server.
+
 ## 1.4.1 - 2021-02-19
 
 ### Fixed

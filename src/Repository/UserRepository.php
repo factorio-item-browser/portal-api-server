@@ -169,7 +169,7 @@ class UserRepository
     protected function removeSidebarEntities(array $userIds): void
     {
         $mappedUserIds = array_values(array_map(function (UuidInterface $userId): string {
-            return $userId->getHex();
+            return $userId->getHex()->toString();
         }, $userIds));
         $placeholders = implode(',', array_fill(0, count($userIds), 'UNHEX(?)'));
 

@@ -14,6 +14,8 @@ namespace FactorioItemBrowser\PortalApi\Server;
 
 use BluePsyduck\JmsSerializerFactory\JmsSerializerFactory;
 use BluePsyduck\LaminasAutoWireFactory\AutoWireFactory;
+use Doctrine\Migrations\Configuration\Migration\ConfigurationLoader;
+use Doctrine\Migrations\DependencyFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
@@ -21,7 +23,8 @@ use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
 use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
 use Roave\PsrContainerDoctrine\EntityManagerFactory;
-use Roave\PsrContainerDoctrine\MigrationsConfigurationFactory;
+use Roave\PsrContainerDoctrine\Migrations\ConfigurationLoaderFactory;
+use Roave\PsrContainerDoctrine\Migrations\DependencyFactoryFactory;
 
 use function BluePsyduck\LaminasAutoWireFactory\readConfig;
 
@@ -89,7 +92,8 @@ return [
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,
 
             // 3rd-party dependencies
-            'doctrine.migrations.orm_default' => MigrationsConfigurationFactory::class,
+            ConfigurationLoader::class => ConfigurationLoaderFactory::class,
+            DependencyFactory::class => DependencyFactoryFactory::class,
             EntityManagerInterface::class => EntityManagerFactory::class,
             IdenticalPropertyNamingStrategy::class => AutoWireFactory::class,
             ImplicitOptionsMiddleware::class => Middleware\ImplicitOptionsMiddlewareFactory::class,

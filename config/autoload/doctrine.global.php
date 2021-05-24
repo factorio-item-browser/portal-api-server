@@ -36,10 +36,12 @@ return [
         ],
         'migrations' => [
             'orm_default' => [
-                'directory' => 'data/migrations',
-                'name'      => 'FactorioItemBrowser Portal API Server Database Migrations',
-                'namespace' => 'FactorioItemBrowser\PortalApi\Server\Migrations',
-                'table'     => '_Migrations',
+                'table_storage' => [
+                    'table_name' => '_Migrations',
+                ],
+                'migrations_paths' => [
+                    'FactorioItemBrowser\PortalApi\Server\Migrations' => 'data/migrations'
+                ],
             ],
         ],
         'types' => [

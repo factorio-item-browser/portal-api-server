@@ -58,6 +58,7 @@ class SettingMapperTest extends TestCase
 
         $expectedDestination = new SettingData();
         $expectedDestination->combinationId = $combinationId;
+        $expectedDestination->combinationHash = 'e3dd48e30aa7bcf8';
         $expectedDestination->name = 'def';
         $expectedDestination->locale = 'ghi';
         $expectedDestination->recipeMode = 'jkl';

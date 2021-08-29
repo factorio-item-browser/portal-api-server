@@ -3,6 +3,8 @@ FactorioItemBrowser\PortalApi\Server\Transfer\SettingData:
   properties:
     combinationId:
       type: string
+    combinationHash:
+      type: string
     name:
       type: string
     locale:

@@ -734,6 +734,10 @@ components:
           description: The id of the combination assigned to the setting.
           type: string
           example: 2f4a45fa-a509-a9d1-aae6-ffcf984a7a76
+        combinationHash:
+          description: The hash representing the current state of the combination.
+          type: string
+          example: fedcba9876543210
         name:
           description: The (user-defined) name of the setting.
           type: string

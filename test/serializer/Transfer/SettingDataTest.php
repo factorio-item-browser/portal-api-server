@@ -19,10 +19,11 @@ class SettingDataTest extends SerializerTestCase
     {
         $object = new SettingData();
         $object->combinationId = 'abc';
-        $object->name = 'def';
-        $object->locale = 'ghi';
-        $object->recipeMode = 'jkl';
-        $object->status = 'mno';
+        $object->combinationHash = 'def';
+        $object->name = 'ghi';
+        $object->locale = 'jkl';
+        $object->recipeMode = 'mno';
+        $object->status = 'pqr';
         $object->isTemporary = true;
         return $object;
     }
@@ -34,10 +35,11 @@ class SettingDataTest extends SerializerTestCase
     {
         return [
             'combinationId' => 'abc',
-            'name' => 'def',
-            'locale' => 'ghi',
-            'recipeMode' => 'jkl',
-            'status' => 'mno',
+            'combinationHash' => 'def',
+            'name' => 'ghi',
+            'locale' => 'jkl',
+            'recipeMode' => 'mno',
+            'status' => 'pqr',
             'isTemporary' => true,
         ];
     }

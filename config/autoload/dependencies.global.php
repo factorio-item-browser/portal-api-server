@@ -21,7 +21,6 @@ use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Roave\PsrContainerDoctrine\EntityManagerFactory;
 use Roave\PsrContainerDoctrine\Migrations\ConfigurationLoaderFactory;
 use Roave\PsrContainerDoctrine\Migrations\DependencyFactoryFactory;
@@ -32,7 +31,6 @@ return [
     'dependencies' => [
         'aliases' => [
             ErrorResponseGenerator::class => Response\ErrorResponseGenerator::class,
-            ResponseFactoryInterface::class => Response\ResponseFactory::class,
         ],
         'factories' => [
             Command\CleanSessionsCommand::class => AutoWireFactory::class,
@@ -91,7 +89,6 @@ return [
             Repository\UserRepository::class => AutoWireFactory::class,
 
             Response\ErrorResponseGenerator::class => AutoWireFactory::class,
-            Response\ResponseFactory::class => AutoWireFactory::class,
 
             // 3rd-party dependencies
             ConfigurationLoader::class => ConfigurationLoaderFactory::class,

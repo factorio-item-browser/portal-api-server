@@ -17,6 +17,8 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class CorsHeaderMiddleware implements MiddlewareInterface
 {
+    private const MAX_AGE = 3600;
+
     /**
      * The allowed origins to access the Portal API server.
      * @var array<string>
@@ -41,6 +43,7 @@ class CorsHeaderMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
+        $response = $response->withHeader('Access-Control-Max-Age', (string) self::MAX_AGE);
 
         $origin = $request->getServerParams()['HTTP_ORIGIN'] ?? '';
         if ($this->isOriginAllowed($origin)) {

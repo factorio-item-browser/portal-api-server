@@ -19,6 +19,11 @@ use FactorioItemBrowser\PortalApi\Server\Transfer\SettingData;
  */
 class SettingMapper implements StaticMapperInterface
 {
+    public function __construct(
+        public string $scriptVersion,
+    ) {
+    }
+
     public function getSupportedSourceClass(): string
     {
         return Setting::class;
@@ -48,6 +53,7 @@ class SettingMapper implements StaticMapperInterface
     {
         return substr(hash('md5', (string) json_encode([
             $combination->getExportTime()?->getTimestamp(),
+            $this->scriptVersion,
         ])), 0, 16);
     }
 }

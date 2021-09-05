@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.2 - 2021-09-05
+
+### Added
+
+- `combinationHash` to the setting data to be able to recognize version changes of the combinations.
+
 ## 1.5.1 - 2021-05-24
 
 ### Changed

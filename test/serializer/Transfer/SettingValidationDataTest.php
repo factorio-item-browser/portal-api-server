@@ -33,6 +33,7 @@ class SettingValidationDataTest extends SerializerTestCase
 
         $existingSetting = new SettingData();
         $existingSetting->combinationId = 'yza';
+        $existingSetting->combinationHash = 'tuv';
         $existingSetting->name = 'bcd';
         $existingSetting->locale = 'efg';
         $existingSetting->recipeMode = 'hij';
@@ -73,6 +74,7 @@ class SettingValidationDataTest extends SerializerTestCase
             ],
             'existingSetting' => [
                 'combinationId' => 'yza',
+                'combinationHash' => 'tuv',
                 'name' => 'bcd',
                 'locale' => 'efg',
                 'recipeMode' => 'hij',

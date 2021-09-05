@@ -18,30 +18,30 @@ use ReflectionException;
  *
  * @author BluePsyduck <bluepsyduck@gmx.com>
  * @license http://opensource.org/licenses/GPL-3.0 GPL v3
- * @coversDefaultClass \FactorioItemBrowser\PortalApi\Server\Middleware\CorsHeaderMiddleware
+ * @covers \FactorioItemBrowser\PortalApi\Server\Middleware\CorsHeaderMiddleware
  */
 class CorsHeaderMiddlewareTest extends TestCase
 {
     use ReflectionTrait;
 
+    /** @var array<string> */
+    private array $allowedOrigins = ['abc', 'def'];
+
     /**
-     * Tests the constructing.
-     * @throws ReflectionException
-     * @covers ::__construct
+     * @param array<string> $mockedMethods
+     * @return CorsHeaderMiddleware&MockObject
      */
-    public function testConstruct(): void
+    private function createInstance(array $mockedMethods = []): CorsHeaderMiddleware
     {
-        $allowedOrigins = ['abc', 'def'];
-
-        $middleware = new CorsHeaderMiddleware($allowedOrigins);
-
-        $this->assertSame($allowedOrigins, $this->extractProperty($middleware, 'allowedOrigins'));
+        return $this->getMockBuilder(CorsHeaderMiddleware::class)
+                    ->disableProxyingToOriginalMethods()
+                    ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->allowedOrigins,
+                    ])
+                    ->getMock();
     }
 
-    /**
-     * Tests the process method.
-     * @covers ::process
-     */
     public function testProcess(): void
     {
         $origin = 'abc';
@@ -54,7 +54,14 @@ class CorsHeaderMiddlewareTest extends TestCase
                 ->method('getServerParams')
                 ->willReturn($serverParams);
 
+        $response2 = $this->createMock(ResponseInterface::class);
+
         $response = $this->createMock(ResponseInterface::class);
+        $response->expects($this->once())
+                 ->method('withHeader')
+                 ->with($this->identicalTo('Access-Control-Max-Age'), $this->identicalTo('3600'))
+                 ->willReturn($response2);
+
         $responseWithHeaders = $this->createMock(ResponseInterface::class);
 
         $handler = $this->createMock(RequestHandlerInterface::class);
@@ -63,28 +70,21 @@ class CorsHeaderMiddlewareTest extends TestCase
                 ->with($this->identicalTo($request))
                 ->willReturn($response);
 
-        $middleware = $this->getMockBuilder(CorsHeaderMiddleware::class)
-                           ->onlyMethods(['isOriginAllowed', 'AddHeaders'])
-                           ->setConstructorArgs([['foo', 'bar']])
-                           ->getMock();
-        $middleware->expects($this->once())
-                   ->method('isOriginAllowed')
-                   ->with($this->identicalTo($origin))
-                   ->willReturn(true);
-        $middleware->expects($this->once())
-                   ->method('addHeaders')
-                   ->with($this->identicalTo($response), $this->identicalTo($origin))
-                   ->willReturn($responseWithHeaders);
+        $instance = $this->createInstance(['isOriginAllowed', 'addHeaders']);
+        $instance->expects($this->once())
+                 ->method('isOriginAllowed')
+                 ->with($this->identicalTo($origin))
+                 ->willReturn(true);
+        $instance->expects($this->once())
+                 ->method('addHeaders')
+                 ->with($this->identicalTo($response2), $this->identicalTo($origin))
+                 ->willReturn($responseWithHeaders);
 
-        $result = $middleware->process($request, $handler);
+        $result = $instance->process($request, $handler);
 
         $this->assertSame($responseWithHeaders, $result);
     }
 
-    /**
-     * Tests the process method.
-     * @covers ::process
-     */
     public function testProcessWithoutHeaders(): void
     {
         $origin = 'abc';
@@ -97,7 +97,13 @@ class CorsHeaderMiddlewareTest extends TestCase
                 ->method('getServerParams')
                 ->willReturn($serverParams);
 
+        $response2 = $this->createMock(ResponseInterface::class);
+
         $response = $this->createMock(ResponseInterface::class);
+        $response->expects($this->once())
+                 ->method('withHeader')
+                 ->with($this->identicalTo('Access-Control-Max-Age'), $this->identicalTo('3600'))
+                 ->willReturn($response2);
 
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
@@ -118,11 +124,10 @@ class CorsHeaderMiddlewareTest extends TestCase
 
         $result = $middleware->process($request, $handler);
 
-        $this->assertSame($response, $result);
+        $this->assertSame($response2, $result);
     }
 
     /**
-     * Provides the data for the isOriginAllowed test.
      * @return array<mixed>
      */
     public function provideIsOriginAllowed(): array
@@ -142,26 +147,24 @@ class CorsHeaderMiddlewareTest extends TestCase
     }
 
     /**
-     * Tests the isOriginAllowed method.
      * @param array<string> $allowedOrigins
      * @param string $origin
      * @param bool $expectedResult
      * @throws ReflectionException
-     * @covers ::isOriginAllowed
      * @dataProvider provideIsOriginAllowed
      */
     public function testIsOriginAllowed(array $allowedOrigins, string $origin, bool $expectedResult): void
     {
-        $middleware = new CorsHeaderMiddleware($allowedOrigins);
-        $result = $this->invokeMethod($middleware, 'isOriginAllowed', $origin);
+        $this->allowedOrigins = $allowedOrigins;
+
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'isOriginAllowed', $origin);
 
         $this->assertSame($expectedResult, $result);
     }
 
     /**
-     * Tests the addHeaders method.
      * @throws ReflectionException
-     * @covers ::addHeaders
      */
     public function testAddHeaders(): void
     {
@@ -205,8 +208,8 @@ class CorsHeaderMiddlewareTest extends TestCase
                   )
                   ->willReturn($response2);
 
-        $middleware = new CorsHeaderMiddleware(['foo', 'bar']);
-        $result = $this->invokeMethod($middleware, 'addHeaders', $response1, $origin);
+        $instance = $this->createInstance();
+        $result = $this->invokeMethod($instance, 'addHeaders', $response1, $origin);
 
         $this->assertSame($response5, $result);
     }

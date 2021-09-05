@@ -36,6 +36,7 @@ class InitDataTest extends SerializerTestCase
 
         $setting = new SettingData();
         $setting->combinationId = 'stu';
+        $setting->combinationHash = 'zab';
         $setting->name = 'vwx';
         $setting->locale = 'yza';
         $setting->recipeMode = 'bcd';
@@ -44,6 +45,7 @@ class InitDataTest extends SerializerTestCase
 
         $lastUsedSetting = new SettingData();
         $lastUsedSetting->combinationId = 'hij';
+        $lastUsedSetting->combinationHash = 'cde';
         $lastUsedSetting->name = 'klm';
         $lastUsedSetting->locale = 'nop';
         $lastUsedSetting->recipeMode = 'qrs';
@@ -66,6 +68,7 @@ class InitDataTest extends SerializerTestCase
         return [
             'setting' => [
                 'combinationId' => 'stu',
+                'combinationHash' => 'zab',
                 'name' => 'vwx',
                 'locale' => 'yza',
                 'recipeMode' => 'bcd',
@@ -74,6 +77,7 @@ class InitDataTest extends SerializerTestCase
             ],
             'lastUsedSetting' => [
                 'combinationId' => 'hij',
+                'combinationHash' => 'cde',
                 'name' => 'klm',
                 'locale' => 'nop',
                 'recipeMode' => 'qrs',

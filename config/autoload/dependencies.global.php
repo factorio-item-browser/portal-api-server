@@ -21,7 +21,6 @@ use FactorioItemBrowser\PortalApi\Server\Constant\ConfigKey;
 use JMS\Serializer\Naming\IdenticalPropertyNamingStrategy;
 use JMS\Serializer\SerializerInterface;
 use Mezzio\Middleware\ErrorResponseGenerator;
-use Mezzio\Router\Middleware\ImplicitOptionsMiddleware;
 use Roave\PsrContainerDoctrine\EntityManagerFactory;
 use Roave\PsrContainerDoctrine\Migrations\ConfigurationLoaderFactory;
 use Roave\PsrContainerDoctrine\Migrations\DependencyFactoryFactory;
@@ -96,7 +95,6 @@ return [
             DependencyFactory::class => DependencyFactoryFactory::class,
             EntityManagerInterface::class => EntityManagerFactory::class,
             IdenticalPropertyNamingStrategy::class => AutoWireFactory::class,
-            ImplicitOptionsMiddleware::class => Middleware\ImplicitOptionsMiddlewareFactory::class,
 
             // Auto-wire helpers
             SerializerInterface::class . ' $portalApiServerSerializer' => new JmsSerializerFactory(ConfigKey::MAIN, ConfigKey::SERIALIZER),

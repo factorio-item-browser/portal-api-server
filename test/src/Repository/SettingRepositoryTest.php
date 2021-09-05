@@ -74,7 +74,6 @@ class SettingRepositoryTest extends TestCase
         $instance = $this->createInstance();
         $result = $instance->createSetting($user, $combination);
 
-        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
     }
@@ -96,7 +95,6 @@ class SettingRepositoryTest extends TestCase
         $instance = $this->createInstance();
         $result = $instance->createDefaultSetting($user);
 
-        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($defaultCombination, $result->getCombination());
         $this->assertSame('Vanilla', $result->getName());
@@ -124,7 +122,6 @@ class SettingRepositoryTest extends TestCase
         $instance = $this->createInstance();
         $result = $instance->createTemporarySetting($user, $combination);
 
-        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
         $this->assertSame('Temporary', $result->getName());
@@ -148,7 +145,6 @@ class SettingRepositoryTest extends TestCase
         $instance = $this->createInstance();
         $result = $instance->createTemporarySetting($user, $combination);
 
-        $this->assertNotSame('', $result->getId()->toString());
         $this->assertSame($user, $result->getUser());
         $this->assertSame($combination, $result->getCombination());
         $this->assertSame('Temporary', $result->getName());

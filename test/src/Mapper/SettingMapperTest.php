@@ -21,6 +21,8 @@ use Ramsey\Uuid\Uuid;
  */
 class SettingMapperTest extends TestCase
 {
+    private string $scriptVersion = 'foo';
+
     /**
      * @param array<string> $mockedMethods
      * @return SettingMapper&MockObject
@@ -30,6 +32,9 @@ class SettingMapperTest extends TestCase
         return $this->getMockBuilder(SettingMapper::class)
                     ->disableProxyingToOriginalMethods()
                     ->onlyMethods($mockedMethods)
+                    ->setConstructorArgs([
+                        $this->scriptVersion,
+                    ])
                     ->getMock();
     }
 
@@ -58,6 +63,7 @@ class SettingMapperTest extends TestCase
 
         $expectedDestination = new SettingData();
         $expectedDestination->combinationId = $combinationId;
+        $expectedDestination->combinationHash = 'da68a29bf92996f8';
         $expectedDestination->name = 'def';
         $expectedDestination->locale = 'ghi';
         $expectedDestination->recipeMode = 'jkl';

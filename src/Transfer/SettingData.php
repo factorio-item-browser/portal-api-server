@@ -13,6 +13,7 @@ namespace FactorioItemBrowser\PortalApi\Server\Transfer;
 class SettingData
 {
     public string $combinationId = '';
+    public string $combinationHash = '';
     public string $name = '';
     public string $locale = '';
     public string $recipeMode = '';
